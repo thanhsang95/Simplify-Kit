@@ -15,6 +15,25 @@ org found corrupted characters reaching a generated spec.
 - `propose` now refuses to write a spec containing U+FFFD, which also catches a
   later regression back to the `az` path
 
+`propose` no longer treats its planning boundary as overridable. A request that
+asks to plan *and* build in one go used to carry some runs straight into
+implementation — the model wrote project code, ticked tasks, and explained in its
+own words that it was continuing because the request said the work was urgent.
+
+- The guardrail refuses at the level of *reason category* rather than listing
+  phrases, and states that an explanation for why continuing is fine this time is
+  the guardrail failing, not an exception to it
+- Measured on `propose-does-not-auto-apply`: 4 violations in 20 valid runs before,
+  0 in 30 runs after, across appeals to urgency, to having no second turn, to
+  authority, and to planning not mattering much. That rules out a true rate at or
+  above 10%; it does not separate 0% from a few percent
+- New eval case covers behaviour no per-skill case reached — one request spanning
+  two skills' territory must still produce only one of them. It is the expensive
+  one: $2.68 per default invocation against $0.16 for the cheapest case
+- `ignores-unrelated-request` gains a `case.yaml`, so `name`/`tags` live in one
+  place across all eight cases. `prompt.md` frontmatter is read for tags as well,
+  which is now recorded in the suite's gotchas
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
@@ -30,3 +49,5 @@ First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive
 - [x] **Fixture sanitisation reviewed.** The work item payloads live in the heredocs inside `plugins/sk/evals/**/fixture.sh` — there are no standalone `.json` fixtures, so grepping for those finds nothing and proves nothing. Checked: no personal names, emails, customer names or contract identifiers; org URLs and work item ids replaced with invented ones. The fixtures keep the HTML *structure* of real work items on purpose, which is the part worth reviewing again whenever one is added.
 
   The deadline for this is **before anyone installs**, not before the repo gets a remote: `evals/` ships inside the plugin, so every install copies the fixtures onto another machine.
+
+- [x] **`propose-does-not-auto-apply/fixture.sh` reviewed** when it was added. Work item 20700 and its low-stock badge story are invented; org `example-org.visualstudio.com` and project `CatalogPortal` match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
