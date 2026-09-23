@@ -49,14 +49,17 @@ entries in it.
   typically `Task`s with no acceptance criteria of their own
 - A related item's content is never written to `specs/` on its own say-so —
   it only sharpens the question Branch B asks, naming the item and what it
-  says, and `proposal.md` records which item the criteria came from once the
-  user confirms
+  says. `proposal.md` names it in the Gaps section as soon as it is read,
+  marked as a pending confirmation, whether or not the user has answered
+  yet; only the user's confirmation moves that entry from Gaps to a note
+  recording the source
 - New eval case `propose-related-item-fills-gap`: a work item with no AC,
   `Related` to one that has full AC. Asserts the reply names the related item
-  and asks for confirmation rather than asserting its content as fact, and
-  that no `spec.md` is written without that confirmation — the same
-  single-turn boundary `propose-missing-ac-asks` already checks, extended to
-  prove a plausible related item does not bypass it
+  and asks for confirmation rather than asserting its content as fact, that
+  `proposal.md` records it in Gaps, and that no `spec.md` is written without
+  that confirmation — the same single-turn boundary `propose-missing-ac-asks`
+  already checks, extended to prove a plausible related item does not bypass
+  it
 
 ## 0.1.0 — unreleased
 
