@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: propose-does-not-auto-apply
+description: >-
+  A single request that asks to plan AND build a work item in one go is
+  ambiguous between /sk:propose and /sk:apply. Only /sk:propose is right —
+  planning stops at the artifacts, and the request authorising both does not
+  carry the run into implementation.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
