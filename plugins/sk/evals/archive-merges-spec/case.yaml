@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: archive-merges-spec
+description: >-
+  /sk:archive merges a finished change's delta into the living spec and moves
+  the change into the archive.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

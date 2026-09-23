@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: propose-missing-ac-asks
+description: >-
+  With no acceptance criteria on the work item, /sk:propose asks for them
+  instead of generating a specification out of an empty field.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

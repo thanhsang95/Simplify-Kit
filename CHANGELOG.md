@@ -1,0 +1,32 @@
+# Changelog
+
+## 0.1.1 — unreleased
+
+Work items are read over REST instead of the `az` CLI, after a pilot on the real
+org found corrupted characters reaching a generated spec.
+
+- `az boards work-item show` returns 9 replacement characters and 0 real em
+  dashes on a real work item; REST with an access token returns 0 and 9. Setting
+  `chcp`, `PYTHONIOENCODING`, `PYTHONUTF8` or `Console.OutputEncoding` does not
+  help — the corruption is in what `az` writes
+- `az devops invoke --area wit --resource comments` fails with an
+  extension-internal `TypeError` on every work item, so comment reading had
+  never run. REST reads them
+- `propose` now refuses to write a spec containing U+FFFD, which also catches a
+  later regression back to the `az` path
+
+## 0.1.0 — unreleased
+
+First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
+
+- Spec-driven artifacts under `sk/`, modelled on OpenSpec's requirement/scenario format
+- `/sk:propose` reads an Azure DevOps work item — full org URL, `--expand all`, HTML stripped, comments read, Task cascaded to parent — and turns acceptance criteria into a spec delta. Read-only against ADO
+- Branch for work items whose acceptance criteria are missing: ask, never generate a spec from an empty field
+- `/sk:archive` validates every capability before writing anything, and stops rather than reconciling conflicting deltas
+- Eval suite under `plugins/sk/evals/`
+
+### Pre-push checklist
+
+- [x] **Fixture sanitisation reviewed.** The work item payloads live in the heredocs inside `plugins/sk/evals/**/fixture.sh` — there are no standalone `.json` fixtures, so grepping for those finds nothing and proves nothing. Checked: no personal names, emails, customer names or contract identifiers; org URLs and work item ids replaced with invented ones. The fixtures keep the HTML *structure* of real work items on purpose, which is the part worth reviewing again whenever one is added.
+
+  The deadline for this is **before anyone installs**, not before the repo gets a remote: `evals/` ships inside the plugin, so every install copies the fixtures onto another machine.

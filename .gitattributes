@@ -1,0 +1,9 @@
+# Eval fixtures are Bash scripts. Git Bash tolerates CRLF, but a Linux CI
+# runner does not — keep them LF in the working tree on every platform.
+*.sh text eol=lf
+
+# Markdown, JSON and YAML normalise to LF in the repository.
+*.md text
+*.json text
+*.yaml text
+*.yml text

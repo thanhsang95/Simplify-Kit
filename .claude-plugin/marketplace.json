@@ -1,0 +1,14 @@
+{
+  "name": "simplify",
+  "owner": {
+    "name": "Simplify"
+  },
+  "plugins": [
+    {
+      "name": "sk",
+      "source": "./plugins/sk",
+      "description": "SimplifyKit — spec-driven workflow for Claude Code, driven by Azure DevOps work items.",
+      "category": "workflow"
+    }
+  ]
+}

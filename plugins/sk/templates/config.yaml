@@ -1,0 +1,37 @@
+# SimplifyKit project configuration.
+# Written by /sk:init, edited by hand afterwards.
+#
+# `context` and `rules` are constraints for the agent. They are never copied
+# into an artifact — they shape what gets written.
+
+# Point at documentation that already exists rather than restating it here.
+# Copied text goes stale; a pointer does not.
+context: |
+  Stack: <language, framework, versions actually pinned in this repo>
+  Build: <command>
+  Test: <command>
+
+  Read before implementing:
+  - <path/to/architecture doc> — <what it covers>
+  - <path/to/code standards> — <what it covers>
+
+  Conventions that are easy to get wrong here:
+  - <the thing a newcomer breaks first>
+
+# Per-artifact constraints. Drop any section you have nothing to say about.
+rules:
+  specs:
+    - Describe observable behaviour, not internal mechanism
+    - <project-specific rule>
+  tasks:
+    - <project-specific rule>
+  design:
+    - <project-specific rule>
+
+# Azure DevOps. Store the FULL organisation URL exactly as `az devops configure
+# --list` reports it. Legacy `*.visualstudio.com` organisations are still in use
+# and `https://dev.azure.com/<name>` does not resolve to the same place, so never
+# rebuild this URL from a short name.
+ado:
+  orgUrl: ""
+  project: ""

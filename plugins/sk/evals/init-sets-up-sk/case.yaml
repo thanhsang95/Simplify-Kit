@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: init-sets-up-sk
+description: >-
+  /sk:init creates the sk/ workspace and fills config.yaml from what it finds
+  in the repository.
+tags: [init]
+context:
+  scaffold_script: fixture.sh

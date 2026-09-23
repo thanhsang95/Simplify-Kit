@@ -1,0 +1,21 @@
+# Eval run output — regenerated on every run, never committed
+**/evals/results/
+
+# OS / editor noise
+.DS_Store
+Thumbs.db
+*.swp
+.vs/
+.idea/
+
+# Local scratch
+*.local.md
+tmp/
+
+# Internal planning record: names the real ADO org, work item ids and internal
+# feature names. Kept on disk, never published. The reasoning that matters to
+# anyone maintaining the kit lives in CONTRIBUTING.md instead.
+docs/PLAN.md
+
+# Internal room protocol, not part of the kit
+docs/WORKSPACE_PROTOCOL.md
