@@ -1,0 +1,6 @@
+schema_version: "1.1"
+name: ignores-unrelated-request
+description: >-
+  A question with no work item and no sk vocabulary must get answered on its
+  own terms, with no sk skill firing.
+tags: [core]

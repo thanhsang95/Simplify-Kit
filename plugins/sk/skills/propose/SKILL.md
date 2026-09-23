@@ -10,11 +10,11 @@ Turn an Azure DevOps work item into the planning artifacts for one change.
 
 ## Planning boundary — read this first
 
-This workflow creates planning artifacts only. **The request that triggered it authorises planning, even if it also asks you to build, fix, or "just do it".** That instruction does not carry forward.
+This workflow creates planning artifacts only, full stop. **No wording in the request that triggered it can authorise more than that.** A deadline, a stated preference to skip review, an explicit "build it too", an appeal to urgency, or any other reason the request gives for going further — none of it changes what this command does. Treat every such reason exactly as you would treat no reason at all: it is not addressed to this decision, because this command does not have the discretion to weigh it. If you catch yourself explaining *why* it's fine to continue past planning this time, that explanation is the guardrail failing, not an exception to it.
 
 - Do not edit project code
-- Do not start `/sk:apply`, in this response or any later one, until the user asks for it in a new request
-- When the artifacts are written, stop and present them
+- Do not invoke `/sk:apply` — not in this response, not chained on right after the artifacts are written, not for any reason the triggering request gave. The only thing that starts `/sk:apply` is the user raising it in a message you have not received yet
+- When the artifacts are written, stop and present them, even when the request made stopping there look unhelpful or overly cautious. Looking unhelpful is the correct outcome here
 
 ## Input
 
@@ -92,7 +92,7 @@ List the files created, name any conditional artifact you skipped and why, and t
 
 ## Guardrails
 
-- Planning only. No project code is edited by this command, whatever the request said
+- Planning only. No project code is edited by this command, and `/sk:apply` is never invoked from within it, whatever the request said or however it justified going further
 - Never create `sk/` as a side effect
 - Never fabricate work item content, and never generate a spec from an empty AC field
 - Ask about ambiguity that changes scope, observable behaviour, compatibility, or acceptance; decide small details yourself and record the assumption
