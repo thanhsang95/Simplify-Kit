@@ -58,7 +58,7 @@ Take from `fields`:
 | `Microsoft.VSTS.TCM.ReproSteps` | Bugs only. **strip HTML** |
 | `System.AreaPath`, `System.IterationPath`, `System.Tags` | context only |
 
-And `relations[]` — `rel` (Parent / Child / Related / AttachedFile) plus the id at the end of `url`.
+And `relations[]` — `rel` (Parent / Child / Related / AttachedFile) plus the id at the end of `url`. `Parent` is read unconditionally when the item is a `Task` (below). `Related` is read conditionally, only when Branch B fires — see "A related item can already answer a Branch B gap" below.
 
 ## Fetch the comments
 
@@ -103,6 +103,44 @@ When `System.WorkItemType == "Task"`:
 5. Parent is also a Task? Go up one more. **Stop at two levels.**
 
 In `proposal.md`, name both: the Task and the parent it inherited from.
+
+## A related item can already answer a Branch B gap
+
+`relations[]` is fetched on every read (`$expand=all` again ensures this), but
+until this section existed nothing consumed the `System.LinkTypes.Related`
+entries in it — a User Story could arrive with thin or absent acceptance
+criteria while a `Related` item on the same board already specified the exact
+behaviour, and `/sk:propose` had no way to notice.
+
+This only fires when `/sk:propose` has already landed in Branch B
+(`SKILL.md` — AC missing or unusable). A work item with usable AC of its own
+does not need this: reading a Related item there would risk mixing in
+behaviour the current item's own AC never asked for, which is exactly what
+the no-fabrication guardrail exists to prevent.
+
+When Branch B fires:
+
+1. Look at `relations[]` for entries where `rel == "System.LinkTypes.Related"`.
+   Take at most the first **3** — a busy board can carry many, and reading all
+   of them turns one fetch into an open-ended crawl
+2. Fetch each the same way as the primary item — `$expand=all`, HTML
+   stripped, checked for U+FFFD. **Do not follow that item's own
+   `relations[]`.** One hop only, the same shape of bound the Task cascade
+   above already uses and for the same reason: unbounded traversal on a busy
+   board does not stay small
+3. Ignore `System.LinkTypes.Hierarchy-Forward` (children) for this purpose. A
+   child is typically a `Task`, which per the section above carries an
+   implementation checklist and no acceptance criteria of its own —
+   descending into it does not fill the gap
+4. If a related item's description or acceptance criteria look like they
+   answer the current item's gap, **do not treat that as confirmation.** Name
+   the item and quote or paraphrase what it says when Branch B asks the user,
+   so the question becomes "does AB#\<id\>'s criteria apply here?" instead of a
+   bare "what are the acceptance criteria?" A plausible-looking related item
+   is not the same thing as the user's answer
+5. If the user confirms, continue as Branch A using the confirmed content, and
+   record in `proposal.md` which related item the criteria came from — the
+   same way a Task names the parent it inherited from
 
 ## When a fetch fails
 

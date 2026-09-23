@@ -71,7 +71,9 @@ Any criterion you cannot turn into observable behaviour goes into the **Gaps** s
 
 **Do not write anything under `specs/`.** A spec generated from an empty field is fabrication that looks like analysis.
 
-Instead: show the user what you did get — title, description, comments, parent — say plainly that the acceptance criteria are missing or too thin, and ask for them. If they answer, continue as Branch A. If they do not, write `proposal.md` alone with a Gaps section and stop.
+Before asking, check `relations[]` for a `System.LinkTypes.Related` entry. Follow `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` ("A related item can already answer a Branch B gap") for how far to take that — bounded to a few items, one hop, never the item's children. If a related item's content looks like it answers the gap, name it and ask the user to confirm reusing it, instead of asking a bare "what are the acceptance criteria?" A plausible-looking related item is not confirmation by itself — only the user's answer is, and nothing from it is written under `specs/` before that answer arrives.
+
+Show the user what you did get — title, description, comments, parent, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item, when one was found). If they answer or confirm, continue as Branch A and record the source in `proposal.md`. If they do not, write `proposal.md` alone with a Gaps section and stop.
 
 ## Step 4 — Write the artifacts
 
@@ -82,7 +84,7 @@ In this order, using the files in `${CLAUDE_PLUGIN_ROOT}/templates/` as structur
 3. `sk/changes/<change-id>/design.md` — **only** when there is a real technical trade-off to record. If you skip it, say why
 4. `sk/changes/<change-id>/tasks.md`
 
-`proposal.md` is a pointer, not a restatement. The work item already holds the why and the what; duplicating it here only creates a second copy to drift. It carries: the link, id and title; two or three sentences of summary; your assumptions; the Gaps; and any comment that overrode the description.
+`proposal.md` is a pointer, not a restatement. The work item already holds the why and the what; duplicating it here only creates a second copy to drift. It carries: the link, id and title; two or three sentences of summary; your assumptions; the Gaps; any comment that overrode the description; and, when Branch B reused a related item's acceptance criteria, which item they came from.
 
 **When your delta contains `## MODIFIED Requirements`, restate the entire requirement — including every scenario you did not change.** `/sk:archive` replaces the whole requirement with what you wrote. A requirement that arrives with only the changed scenario silently deletes the rest. This is the single easiest way to lose specification in this workflow.
 

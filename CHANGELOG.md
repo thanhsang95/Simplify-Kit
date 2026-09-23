@@ -34,6 +34,30 @@ own words that it was continuing because the request said the work was urgent.
   place across all eight cases. `prompt.md` frontmatter is read for tags as well,
   which is now recorded in the suite's gotchas
 
+`propose` now follows a `Related` link when a work item's own acceptance
+criteria are missing or too thin (Branch B), instead of asking a blank
+question while the answer sits one hop away on the board. `relations[]` was
+already fetched on every read but nothing before this consumed the `Related`
+entries in it.
+
+- Only fires in Branch B — a work item with usable AC of its own never reads
+  a related item, to keep the no-fabrication guardrail intact for the
+  four-in-five stories that already have what they need
+- Bounded the same way the Task→parent cascade already is: at most 3
+  `Related` items, one hop (a related item's own `relations[]` is not
+  followed), and children (`Hierarchy-Forward`) are skipped because they are
+  typically `Task`s with no acceptance criteria of their own
+- A related item's content is never written to `specs/` on its own say-so —
+  it only sharpens the question Branch B asks, naming the item and what it
+  says, and `proposal.md` records which item the criteria came from once the
+  user confirms
+- New eval case `propose-related-item-fills-gap`: a work item with no AC,
+  `Related` to one that has full AC. Asserts the reply names the related item
+  and asks for confirmation rather than asserting its content as fact, and
+  that no `spec.md` is written without that confirmation — the same
+  single-turn boundary `propose-missing-ac-asks` already checks, extended to
+  prove a plausible related item does not bypass it
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
@@ -51,3 +75,5 @@ First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive
   The deadline for this is **before anyone installs**, not before the repo gets a remote: `evals/` ships inside the plugin, so every install copies the fixtures onto another machine.
 
 - [x] **`propose-does-not-auto-apply/fixture.sh` reviewed** when it was added. Work item 20700 and its low-stock badge story are invented; org `example-org.visualstudio.com` and project `CatalogPortal` match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
+
+- [x] **`propose-related-item-fills-gap/fixture.sh` reviewed** when it was added. Work items 20800 and 20801 and their bulk-export story are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
