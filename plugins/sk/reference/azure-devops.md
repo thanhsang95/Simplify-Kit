@@ -106,11 +106,10 @@ In `proposal.md`, name both: the Task and the parent it inherited from.
 
 ## A related item can already answer a Branch B gap
 
-`relations[]` is fetched on every read (`$expand=all` again ensures this), but
-until this section existed nothing consumed the `System.LinkTypes.Related`
-entries in it — a User Story could arrive with thin or absent acceptance
-criteria while a `Related` item on the same board already specified the exact
-behaviour, and `/sk:propose` had no way to notice.
+`relations[]` is fetched on every read (`$expand=all` again ensures this). A
+User Story can arrive with thin or absent acceptance criteria while a
+`Related` item on the same board already specifies the exact behaviour —
+this is where that gets read.
 
 This only fires when `/sk:propose` has already landed in Branch B
 (`SKILL.md` — AC missing or unusable). A work item with usable AC of its own
@@ -138,9 +137,13 @@ When Branch B fires:
    so the question becomes "does AB#\<id\>'s criteria apply here?" instead of a
    bare "what are the acceptance criteria?" A plausible-looking related item
    is not the same thing as the user's answer
-5. If the user confirms, continue as Branch A using the confirmed content, and
-   record in `proposal.md` which related item the criteria came from — the
-   same way a Task names the parent it inherited from
+5. Record it in `proposal.md`'s Gaps section as soon as it is read — name the
+   item and mark the confirmation as pending — even before the user answers.
+   That is what makes the read visible to a reviewer instead of a fact only
+   the chat transcript holds
+6. If the user confirms, continue as Branch A using the confirmed content, and
+   move that entry from Gaps to a note recording which related item the
+   criteria came from — the same way a Task names the parent it inherited from
 
 ## When a fetch fails
 
