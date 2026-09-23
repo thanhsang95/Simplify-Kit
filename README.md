@@ -25,65 +25,99 @@ Nếu thấy `disabled` thì bật lên — lúc đang tắt, các lệnh `/sk:*
 claude plugin enable sk@simplify
 ```
 
+### Azure DevOps: chuẩn bị trước khi chạy `/sk:init`
+
+`/sk:init` đọc org/project mặc định qua Azure CLI, còn `/sk:propose` sau này dùng token do CLI cấp để đọc work item qua REST. Vì vậy hãy cài CLI và đăng nhập từ trước — đừng đợi tới lúc lỗi mới làm:
+
+1. Cài [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli) nếu máy chưa có.
+2. Cài extension `azure-devops` — lệnh `az devops` thuộc extension này, không có sẵn trong `az` gốc:
+   ```bash
+   az extension add --name azure-devops
+   ```
+3. Đăng nhập:
+   ```bash
+   az login
+   ```
+   Kiểm mình đã login chưa bằng một lệnh cho kết quả quan sát được, cùng nhịp với `claude plugin list` ở trên:
+   ```bash
+   az account show          # đã login: JSON có "user": { "name": ... }. Chưa login: báo lỗi
+   ```
+
 Sau đó, mỗi repo làm một lần:
 
 ```
 /sk:init
 ```
 
-Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` mô tả dự án. Xem qua file đó một lượt — nó là thứ Claude đọc mỗi lần làm việc, nên nếu có chỗ nào tả sai dự án thì sửa ngay lúc này.
+Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` — file mô tả dự án cho Claude: stack dùng gì, lệnh build/test là gì, tài liệu nào nên đọc trước khi làm việc. Xem qua file đó một lượt ngay lúc này: nó là thứ Claude đọc mỗi lần chạy `/sk:*` sau này, nên nếu có chỗ nào tả sai dự án, sửa bây giờ rẻ hơn nhiều so với sửa sau khi đã có vài change dựa trên nó.
+
+Lệnh này cũng đụng tới một file bạn đã có sẵn: nó **append** một đoạn giới thiệu `sk/` vào `./CLAUDE.md`, hoặc vào `./.claude/CLAUDE.md` nếu `./CLAUDE.md` không tồn tại nhưng file kia có; nếu repo chưa có file nào trong hai file đó, nó **tạo mới `./CLAUDE.md`**. Nội dung cũ không bị viết đè hay sắp lại, chỉ nối thêm ở cuối. `/sk:apply` sau này cũng ghi ngoài `sk/` — nhưng đó là code bạn đã yêu cầu, ở bước bạn đang chờ sẵn. `/sk:init` thì khác: nó sửa một file bạn đã sở hữu từ trước mà không ai yêu cầu riêng, nên đáng nói ngay ở đây. `git diff CLAUDE.md` sau khi chạy `/sk:init` sẽ cho thấy đúng đoạn đó.
+
+Để lấy `ado.orgUrl` và `ado.project`, `/sk:init` chạy `az devops configure --list` — lệnh này chỉ trả về gì đó nếu máy bạn từng đặt defaults bằng `az devops configure --defaults organization=<org-url> project=<project>`. Nếu chưa từng đặt, hoặc lệnh thất bại, `/sk:init` **cố ý để trống** hai trường này trong `sk/config.yaml` kèm comment nhắc điền, rồi báo lại cho bạn biết — đây là hành vi bình thường, không phải hỏng.
+
+Điền tay thì lấy `orgUrl` **đầy đủ**, đừng dựng lại từ tên ngắn: org kiểu cũ vẫn nằm ở `https://<org>.visualstudio.com/`, còn `https://dev.azure.com/<org>` là một endpoint khác — dùng nhầm dạng nào thì việc đọc work item sau này fail.
+
+```yaml
+ado:
+  orgUrl: "https://contoso.visualstudio.com/"   # copy nguyên từ az devops configure --list
+  project: "MyProject"
+```
 
 ## Một vòng làm việc
 
 Giả sử bạn được giao User Story **12345**.
 
-### 1. Lập kế hoạch
+### 1. Lập kế hoạch — `/sk:propose`
 
 ```
 /sk:propose AB#12345
 ```
 
-Nó đọc work item, dịch acceptance criteria thành đặc tả, và tạo ra:
+Nó đọc work item, dịch từng acceptance criterion thành một scenario kiểm chứng được, và ghi ra:
 
 ```
 sk/changes/us-12345-<tên-ngắn>/
-  proposal.md      tóm tắt + giả định + những chỗ chưa rõ
-  specs/<nhóm>/spec.md   đặc tả: hệ thống phải làm gì
-  tasks.md         danh sách việc cần làm
-  design.md        chỉ có khi thực sự cần chọn giữa các phương án kỹ thuật
+  proposal.md            tóm tắt yêu cầu, giả định đã đặt ra, và những chỗ AC chưa đủ rõ
+  specs/<nhóm>/spec.md   đặc tả: hệ thống phải làm gì, viết theo cặp Requirement/Scenario
+  tasks.md               danh sách việc cần làm, chia theo hạng mục, chưa việc nào được tick
+  design.md              chỉ xuất hiện khi phải chọn giữa các phương án kỹ thuật khác nhau
 ```
 
-**Bước này không sửa một dòng code nào.** Kể cả khi bạn bảo "làm luôn đi", nó vẫn chỉ lập kế hoạch rồi dừng. Đó là chủ ý: bạn xem kế hoạch trước khi code được viết.
+`<tên-ngắn>` không phải thứ bạn tự đặt — Claude tự rút gọn từ tiêu đề work item (ví dụ US 12345 "Add product attributes to field selector" → `us-12345-field-selector`), và nói tên đó ra trong câu trả lời khi kết thúc. Nếu bỏ lỡ, cứ mở `sk/changes/` mà xem tên thư mục.
+
+**Bước này không sửa một dòng code nào.** Kể cả khi bạn bảo "làm luôn đi", nó vẫn chỉ lập kế hoạch rồi dừng. Đó là chủ ý: bạn xem kế hoạch trước khi code được viết, vì sửa một file markdown luôn rẻ hơn sửa lại code đã viết ra theo kế hoạch sai.
 
 ### 2. Bạn đọc lại
 
-Đây là lúc rẻ nhất để sửa. Mở `specs/<nhóm>/spec.md` và đọc như thể bạn là người nghiệm thu:
+Đây là lúc rẻ nhất để sửa — chưa có code nào phải viết lại, chỉ có chữ trong file. Mở `specs/<nhóm>/spec.md` và đọc như thể bạn là người nghiệm thu:
 
 - Có scenario nào sai ý không?
 - Có yêu cầu nào trong US mà đặc tả bỏ sót không?
 - Có scenario nào *không* có trong US — tức nó tự nghĩ ra?
 
-Xem luôn mục **Gaps** trong `proposal.md`: đó là những chỗ nó thấy AC chưa đủ rõ. Sửa thẳng vào file, hoặc nói cho nó sửa.
+Xem luôn mục **Gaps** trong `proposal.md`: đó là những chỗ AC viết chưa đủ rõ để dịch thành scenario, không phải chỗ nó tự bịa cho đủ. Sửa thẳng vào file, hoặc nói cho nó sửa.
 
-### 3. Làm
+### 3. Làm — `/sk:apply`
 
 ```
 /sk:apply us-12345-<tên-ngắn>
 ```
 
-Nó làm từng task, tick `- [x]` khi xong. Nó sẽ **dừng lại hỏi** nếu task mơ hồ, nếu phát hiện lỗ hổng trong kế hoạch, hoặc nếu việc cần làm vượt quá những gì đặc tả mô tả — thay vì tự quyết rồi làm tắt.
+Nó đọc `tasks.md`, làm từng task theo thứ tự, và với mỗi task: sửa hoặc tạo file code thật trong repo — nằm ngoài `sk/`, ở đúng chỗ code của dự án — để khớp với spec, rồi tick `- [x]` vào đúng dòng task đó. Vì vậy `tasks.md` vừa là kế hoạch vừa là nhật ký tiến độ: mở lên là biết đang xong tới đâu, không cần hỏi lại.
 
-Xong thì chạy build/test của dự án như bình thường.
+Nó sẽ **dừng lại hỏi** nếu task mơ hồ, nếu phát hiện lỗ hổng trong kế hoạch, hoặc nếu việc cần làm vượt quá những gì đặc tả mô tả — thay vì tự quyết rồi làm tắt.
 
-### 4. Đóng lại
+Xong thì chạy build/test của dự án như bình thường — kit không tự chạy hộ.
+
+### 4. Đóng lại — `/sk:archive`
 
 ```
 /sk:archive us-12345-<tên-ngắn>
 ```
 
-Yêu cầu từ change này được gộp vào `sk/specs/` — bản đặc tả chung của hệ thống — và change được chuyển vào `sk/changes/archive/`.
+Hai việc xảy ra cùng lúc. Một, mỗi requirement trong `sk/changes/<id>/specs/` **thay nguyên khối** requirement cùng tên trong `sk/specs/<nhóm>/spec.md` — bản đặc tả sống, gộp yêu cầu của toàn hệ thống qua nhiều story. Hai, cả thư mục `sk/changes/<id>/` được chuyển sang `sk/changes/archive/<id>/`.
 
-Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ.
+Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
 ## Các file trong `sk/` nghĩa là gì
 
@@ -94,21 +128,37 @@ Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Clau
 | `sk/changes/<id>/` | Một thay đổi đang làm dở |
 | `sk/changes/archive/<id>/` | Thay đổi đã xong |
 
-Trong đặc tả, mỗi yêu cầu viết thế này:
+Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:propose` sinh ra:
 
 ```markdown
-### Requirement: Bộ chọn trường có kèm thuộc tính sản phẩm
+## ADDED Requirements
 
-Bộ chọn trường SHALL cho chọn các thuộc tính do hệ thống định nghĩa,
-bên cạnh những trường chuẩn.
+### Requirement: Field selector offers system-defined product attributes
 
-#### Scenario: Thuộc tính hiển thị thành nhóm riêng
+The "Select a field" dropdown in the Add field rule panel SHALL offer the system-defined
+product attributes available in the catalog portal in addition to the standard product fields.
 
-- **WHEN** người quản trị mở bộ chọn trường
-- **THEN** các thuộc tính SHALL nằm dưới một nhãn nhóm riêng
+#### Scenario: Attributes are selectable alongside standard fields
+
+- **WHEN** an administrator opens the "Select a field" dropdown in the Add field rule panel
+- **THEN** every system-defined product attribute available in the catalog portal SHALL be
+  offered for selection
+- **AND** the standard product fields SHALL still be offered
 ```
 
-Đọc từ trên xuống: *Requirement* là cam kết, *Scenario* là điều kiểm chứng được.
+Đọc từ trên xuống: *Requirement* là cam kết, *Scenario* là điều kiểm chứng được. Đặc tả luôn viết bằng tiếng Anh — kể cả khi work item và phần trao đổi với Claude là tiếng Việt — vì template mà skill dùng (`templates/spec-delta.md`) viết SHALL/WHEN/THEN bằng tiếng Anh và skill theo đúng khuôn đó.
+
+Sau khi `/sk:apply` chạy xong một task, `tasks.md` trông thế này — cũng trích từ output thật:
+
+```markdown
+## 1. Attribute source
+
+- [x] 1.1 Add `src/attribute-fields.ts` exporting `listAttributeFields()`, returning system-defined attributes with `key` and `label`
+```
+
+Task 1.1 khớp đúng với những gì đã xảy ra trong repo ở lần chạy đó: file `src/attribute-fields.ts` được tạo mới.
+
+`/sk:archive` thì thay nguyên khối, không nối thêm. Một requirement trong `sk/specs/` trước khi archive có 2 scenario; change đang được archive mang một bản delta 3 scenario cho cùng requirement đó; sau archive, requirement trong `sk/specs/` có đúng 3 scenario — bản 2 scenario cũ không còn dấu vết. Cơ chế thay-nguyên-khối này là lý do có quy tắc riêng ở mục "Có một quy tắc bạn cần nhớ" bên dưới.
 
 ## Khi nào nó sẽ hỏi bạn
 
@@ -132,7 +182,7 @@ Nếu bạn **tự tay sửa** file spec delta trong `sk/changes/<id>/specs/`, v
 
 > Phải giữ lại **toàn bộ** requirement, kể cả những scenario bạn không đụng tới.
 
-Vì lúc archive, requirement cũ trong `sk/specs/` bị thay nguyên khối bằng bản trong delta. Xoá bớt scenario ở đây đồng nghĩa xoá chúng khỏi đặc tả chung — mà không có cảnh báo nào, vì tên vẫn khớp.
+Vì lúc archive, requirement cũ trong `sk/specs/` bị thay nguyên khối bằng bản trong delta — đúng như ví dụ 2-scenario-thành-3-scenario ở trên. Xoá bớt scenario ở đây đồng nghĩa xoá chúng khỏi đặc tả chung — mà không có cảnh báo nào, vì tên vẫn khớp. `## MODIFIED Requirements` — khối nói ở phần trên — chính là chỗ quy tắc này áp dụng.
 
 Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên bản copy. (`/sk:archive` có kiểm nếu số scenario giảm đi, nhưng đừng dựa vào đó.)
 
