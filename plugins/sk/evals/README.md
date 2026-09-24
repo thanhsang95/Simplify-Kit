@@ -26,7 +26,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 | Tag | Cases | Scored graders | Threshold |
 |---|---|---|---|
 | `wi` | `propose-from-work-item` | 7 | 0.95 |
-| `init` | `init-sets-up-sk` | 3 | 0.85 |
+| `init` | `init-sets-up-sk` | 4 | 0.85 |
 | `core` | the other six: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply` | 2–3 each | 0.8 |
 
 `wi` sits at 0.95 deliberately. At 0.85 a grader that fails in **all three runs** still scores 6/7 = 0.857 and the case stays green — which would let the faithfulness and HTML-stripping graders die unnoticed.

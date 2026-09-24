@@ -3,7 +3,7 @@
 # real to read, with no sk/ workspace yet.
 set -eu
 
-mkdir -p src docs
+mkdir -p src docs .claude/rules
 
 cat > package.json <<'EOF'
 {
@@ -45,4 +45,21 @@ cat > README.md <<'EOF'
 
 TypeScript service for catalog listings. Build with `npm run build`, test with
 `npm test`. Conventions live in `docs/code-standards.md`.
+EOF
+
+cat > .claude/rules/backend-conventions.md <<'EOF'
+---
+paths: ["src/**"]
+---
+
+# Backend conventions
+
+- Named exports only; no default exports.
+EOF
+
+cat > .claude/CLAUDE.md <<'EOF'
+# catalog-service
+
+Path-scoped rules live under `.claude/rules/` — see `backend-conventions.md`
+for anything under `src/`.
 EOF

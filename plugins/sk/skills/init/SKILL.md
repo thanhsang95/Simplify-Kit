@@ -24,6 +24,8 @@ Read enough to fill `context` with facts, not placeholders. Look for:
 
 **Reference existing documentation instead of copying it.** If the repo already has `docs/code-standards.md`, `context` should say to read it — not restate it. Copied text goes stale; a pointer does not.
 
+**Do not point `context` at `CLAUDE.md` or `.claude/CLAUDE.md` itself, and do not enumerate the individual files under `.claude/rules/`.** Claude Code loads the repo's `CLAUDE.md` into every session automatically, so citing it in `context` is a no-op, not a pointer to something otherwise missed. If it indexes rule files by path, trust that index to route reading — repeating its contents in `context` just duplicates routing logic that already lives there.
+
 ## Step 3 — Read the Azure DevOps defaults
 
 `/sk:propose` needs an org URL. Get it from the machine's existing configuration:
