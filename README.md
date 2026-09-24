@@ -15,7 +15,7 @@ hệ thống hôm nay phải làm   merge  proposal + spec delta + tasks
 gì, tích luỹ qua nhiều US  (archive)
 ```
 
-**Spec** là nguồn sự thật, viết bằng **Requirement** — một cam kết ("hệ thống SHALL ...") — và mỗi Requirement có một hoặc nhiều **Scenario**: một ví dụ quan sát được, viết WHEN/THEN (thêm GIVEN khi có tiền đề, AND khi có thêm hệ quả). Requirement không có Scenario là một ước muốn; Scenario không ai kiểm được là văn xuôi.
+**Spec** là nguồn sự thật, viết bằng **Requirement** — một cam kết ("hệ thống SHALL ...") — và mỗi Requirement có một hoặc nhiều **Scenario**: một ví dụ quan sát được, viết WHEN/THEN (thêm GIVEN khi có tiền đề, AND khi có thêm hệ quả). Requirement không có Scenario là một ước muốn; Scenario không ai kiểm được là văn xuôi. Quy tắc đầy đủ — Requirement chỉ một câu SHALL, Scenario phải quan sát được, khi nào dùng GIVEN — nằm ở [`plugins/sk/reference/conventions.md`](plugins/sk/reference/conventions.md).
 
 **Change** không sửa spec trực tiếp. Nó viết một **delta** — khối `## ADDED Requirements` / `## MODIFIED Requirements` / `## REMOVED Requirements`, mô tả *chênh lệch* so với spec hiện tại, không phải toàn bộ hệ thống. `/sk:archive` áp delta đó: `ADDED` thêm Requirement mới, `MODIFIED` **thay nguyên khối** Requirement cùng tên (nên phải chép lại cả Scenario không đổi — chi tiết ở "Có một quy tắc bạn cần nhớ" bên dưới), `REMOVED` xoá hẳn.
 
@@ -176,7 +176,7 @@ product attributes available in the catalog portal in addition to the standard p
 - **AND** the standard product fields SHALL still be offered
 ```
 
-Đọc từ trên xuống: *Requirement* là cam kết, *Scenario* là điều kiểm chứng được. Đặc tả luôn viết bằng tiếng Anh — kể cả khi work item và phần trao đổi với Claude là tiếng Việt — vì template mà skill dùng (`templates/spec-delta.md`) viết SHALL/WHEN/THEN bằng tiếng Anh và skill theo đúng khuôn đó.
+Đọc từ trên xuống: *Requirement* là cam kết, *Scenario* là điều kiểm chứng được. Đặc tả luôn viết bằng tiếng Anh — kể cả khi work item và phần trao đổi với Claude là tiếng Việt — vì template mà skill dùng ([`plugins/sk/templates/spec-delta.md`](plugins/sk/templates/spec-delta.md)) viết SHALL/WHEN/THEN bằng tiếng Anh và skill theo đúng khuôn đó.
 
 Sau khi `/sk:apply` chạy xong một task, `tasks.md` trông thế này — cũng trích từ output thật:
 
