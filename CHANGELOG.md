@@ -34,6 +34,11 @@ own words that it was continuing because the request said the work was urgent.
   place across all eight cases. `prompt.md` frontmatter is read for tags as well,
   which is now recorded in the suite's gotchas
 
+`README.md` gains a "Khái niệm cốt lõi" section — the vocabulary (Spec, Change,
+Requirement, Scenario, Delta, Proposal, Archive) was only ever introduced piecemeal
+across the workflow walkthrough; a reader arriving cold had nowhere to look it up
+in one place. Modelled on OpenSpec's `docs/concepts.md`.
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.

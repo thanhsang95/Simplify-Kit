@@ -4,6 +4,36 @@ Bộ lệnh cho Claude Code giúp bạn đi từ **một User Story trên Azure 
 
 Bạn đưa nó mã work item. Nó đọc acceptance criteria từ board, viết ra bản đặc tả và danh sách việc cần làm, bạn xem lại, rồi nó làm. Những gì nó viết ra đều là file markdown nằm trong repo — review được trên PR như mọi thay đổi khác.
 
+## Khái niệm cốt lõi
+
+SimplifyKit tách rời hai thứ, giống mô hình specs/changes của OpenSpec — nhưng đầu vào là Azure DevOps, không phải một hộp thoại trống:
+
+```
+sk/specs/<nhóm>/spec.md          sk/changes/<id>/
+đặc tả đang hiệu lực       ◄────  một thay đổi đang đề xuất
+hệ thống hôm nay phải làm   merge  proposal + spec delta + tasks
+gì, tích luỹ qua nhiều US  (archive)
+```
+
+**Spec** là nguồn sự thật, viết bằng **Requirement** — một cam kết ("hệ thống SHALL ...") — và mỗi Requirement có một hoặc nhiều **Scenario**: một ví dụ quan sát được, viết WHEN/THEN (thêm GIVEN khi có tiền đề, AND khi có thêm hệ quả). Requirement không có Scenario là một ước muốn; Scenario không ai kiểm được là văn xuôi.
+
+**Change** không sửa spec trực tiếp. Nó viết một **delta** — khối `## ADDED Requirements` / `## MODIFIED Requirements` / `## REMOVED Requirements`, mô tả *chênh lệch* so với spec hiện tại, không phải toàn bộ hệ thống. `/sk:archive` áp delta đó: `ADDED` thêm Requirement mới, `MODIFIED` **thay nguyên khối** Requirement cùng tên (nên phải chép lại cả Scenario không đổi — chi tiết ở "Có một quy tắc bạn cần nhớ" bên dưới), `REMOVED` xoá hẳn.
+
+Khác biệt lớn nhất so với các công cụ spec-driven khác: **intent không được viết mới**. Nó đã tồn tại trên Azure DevOps dưới dạng acceptance criteria; `/sk:propose` chỉ dịch AC thành Requirement/Scenario, chưa từng tự nghĩ ra yêu cầu.
+
+| Thuật ngữ | Nghĩa |
+|---|---|
+| **Spec** | Đặc tả đang hiệu lực, tích luỹ qua nhiều User Story đã archive |
+| **Change** | Một thay đổi đang đề xuất — `proposal.md` + spec delta + `tasks.md`, sống riêng cho tới khi archive |
+| **Requirement** | Một cam kết: hệ thống SHALL làm gì |
+| **Scenario** | Một ví dụ quan sát được của Requirement |
+| **Delta** | Phần spec trong một change, khai bằng ADDED/MODIFIED/REMOVED — chênh lệch, không phải bản đầy đủ |
+| **Nhóm** (capability) | Một lát hành vi người đọc nhận ra ngay là một thứ, ví dụ `field-selector` — không phải một layer hay một sprint |
+| **Proposal** | `proposal.md` — tóm tắt yêu cầu, giả định đã đặt ra, và Gaps (AC chưa đủ rõ để dịch) |
+| **Archive** | Merge delta vào spec, rồi chuyển change sang `sk/changes/archive/<id>/` |
+
+Phần dưới đi vào từng bước bằng một ví dụ thật.
+
 ## Cài đặt
 
 Chạy một lần trên máy bạn:
