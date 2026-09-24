@@ -168,6 +168,13 @@ turned into one by picking a number.
   was never recorded in the first place. Making the seven token kinds a
   walked checklist turns the failure from "didn't notice" into "skipped a
   category", which is easier to review — it does not eliminate it
+- Also uncovered, for the structural reason already recorded in the suite's
+  own limits: anything needing a second user turn. Re-running `propose` to
+  reopen a reversed resolution, filling a slot from an off-board answer, and
+  `apply` building on a marked delta are all verified by hand, not here. The
+  single-spelling rule is likewise not an eval — it is a static invariant,
+  checked with a `grep` for the token outside `reference/conventions.md`,
+  the templates and the graders
 
 ## 0.1.0 — unreleased
 
