@@ -58,7 +58,7 @@ Take from `fields`:
 | `Microsoft.VSTS.TCM.ReproSteps` | Bugs only. **strip HTML** |
 | `System.AreaPath`, `System.IterationPath`, `System.Tags` | context only |
 
-And `relations[]` — `rel` (Parent / Child / Related / AttachedFile) plus the id at the end of `url`. `Parent` is read unconditionally when the item is a `Task` (below). `Related` is read conditionally, only when Branch B fires — see "A related item can already answer a Branch B gap" below.
+And `relations[]` — `rel` (Parent / Child / Related / AttachedFile) plus the id at the end of `url`. `Parent` is read unconditionally when the item is a `Task` (below). For every other type, `Parent` (`Hierarchy-Reverse`) is read conditionally, only when Branch B fires — see "A parent can narrow a Branch B gap when the item is not a Task" below. `Related` is read conditionally too, only when Branch B fires — see "A related item can already answer a Branch B gap" below.
 
 ## Fetch the comments
 
@@ -165,6 +165,75 @@ When Branch B fires:
 7. If the user confirms, continue as Branch A using the confirmed content, and
    move that entry from Gaps to a note recording which related item the
    criteria came from — the same way a Task names the parent it inherited from
+
+## A parent can narrow a Branch B gap when the item is not a Task
+
+The Task→parent cascade above only fires when `System.WorkItemType ==
+"Task"`. Everything else — `User Story`, `Bug`, `Feature` — reaches Branch B
+with its own `relations[]` still unread for `Hierarchy-Reverse`, even though
+a parent is exactly the kind of connected item the `Related` rule above
+already reads for the same gap. A `User Story` whose own AC is empty can sit
+directly under a `Feature` that already describes what the effort is about;
+asking a blank "what are the acceptance criteria?" ignores content one hop
+away, the same failure the `Related` rule exists to close.
+
+This only fires when Branch B has fired (`SKILL.md` — AC missing or
+unusable) **and** the current item is not a `Task` — a Task's parent was
+already read unconditionally in the fetch step above, with its fields taken
+directly, and this rule does not re-run on top of that.
+
+When both conditions hold:
+
+1. Look at `relations[]` for the entry where `rel ==
+   "System.LinkTypes.Hierarchy-Reverse"`. There is at most one parent
+2. Fetch it the same way as the primary item — `$expand=all`, HTML stripped,
+   checked for U+FFFD — and read its comments too; scope-defining discussion
+   usually happens there, the same reason the Task cascade reads parent
+   comments
+3. **One hop only.** Do not follow the parent's own `relations[]`, and do not
+   go up again if the parent's content also turns out to be thin. A second
+   hop trades an already-loose signal (a grandparent's scope is broader
+   still) for more crawl, in the wrong direction from the tightening this
+   rule is trying to do
+4. If the parent's own description and acceptance criteria are also empty or
+   too thin to say anything, there is nothing to surface. Fall through to the
+   plain "what are the acceptance criteria?" ask — noting the parent was
+   checked, if that is useful context, the same as a checked-and-unrelated
+   `Related` item
+
+**Do not treat a usable parent the way a usable `Related` item is treated.**
+A `Related` item is typically the same shape as the current one — another
+`User Story`, describing a comparable slice of behaviour — so confirming its
+content as this item's own AC is a reasonable question to ask. A parent one
+level up is structurally broader: a `Feature` describes the scope of
+everything under it, and a `User Story` is one slice of that scope. Asking
+"does the parent's acceptance criteria apply here?" invites a wholesale
+"yes," and lifting a `Feature`'s AC wholesale into one `User Story` overstates
+what that one story covers — the fabrication risk this whole workflow exists
+to avoid, just arriving from above instead of sideways.
+
+Ask a narrowing question instead: name the parent, say what it is about, and
+ask what part of that scope the current item covers. For example, a `User
+Story` with an empty AC field, sitting under a `Feature` about migrating a
+reporting pipeline to a new backend, is not "does the Feature's AC apply
+here" — it is "the parent Feature is about migrating reporting to the new
+backend; does this story cover part of that, and if so, which part should be
+verified?" The user's answer becomes the acceptance criteria to write, not
+the Feature's text verbatim.
+
+If both a `Related` item and a parent surface usable content in the same
+pass, combine them into one question naming both sources rather than asking
+twice.
+
+Record the parent in `proposal.md`'s Gaps section as soon as it is read,
+marked as a pending confirmation, the same as a `Related` item — and once the
+user answers, move that entry to a note recording that the parent supplied
+the context, together with what the user actually confirmed.
+
+A `Feature`'s own children (`Hierarchy-Forward`) are a separate, still-open
+gap: a `Feature` input's `User Story` children typically carry real AC of
+their own, but nothing here reads them. This rule does not close that — it
+only adds `Hierarchy-Reverse` (parent), the opposite direction of traversal.
 
 ## When a fetch fails
 

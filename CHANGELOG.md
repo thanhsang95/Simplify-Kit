@@ -77,6 +77,41 @@ entries in it.
   only `Related` item is unrelated in substance. Asserts the reply does not
   present that item's content as though it might answer the gap
 
+`propose` now also follows a `Hierarchy-Reverse` (parent) link in Branch B
+when the current item is **not** a `Task` — the shipped `Related` fix above
+did nothing for a `User Story` whose only connected items are a parent
+`Feature` and a child `Task`, with no `Related` entry at all. That shape is
+what the previous fix was believed to cover and did not; measured on a new
+eval case, the pre-fix instructions asked a blank question or offered to
+read the parent without reading it in 3/3 runs (case score 0.75, 0/3 passed);
+the fix reads the parent and asks an informed question in 3/3 runs (case
+score 1.0, 3/3 passed)
+
+- Gated on Branch B firing and the item not being a `Task` — a Task's parent
+  is already read unconditionally in the fetch step, and this rule does not
+  re-run on top of that
+- Bounded to one hop, the same as the `Related` rule: the parent's own
+  `relations[]` is not followed, and a thin parent is a dead end here, not a
+  reason to go up to a grandparent
+- Unlike a `Related` item, a parent's content is never offered as something
+  to confirm as this item's own acceptance criteria wholesale. A `Feature`
+  describes broader scope than any one item under it, so lifting its AC
+  wholesale onto a `User Story` would over-scope the story — the fix asks a
+  narrowing question instead (what part of the parent's scope this item
+  covers) and writes what the user answers, not the parent's text verbatim
+- Still a known, separate gap: a `Feature` input's own children
+  (`Hierarchy-Forward`), which are typically `User Story` items carrying real
+  AC, are not read. This fix adds the opposite direction of traversal
+  (`Hierarchy-Reverse`) and does not close that gap
+- New eval case `propose-parent-narrows-gap`: a `User Story` with empty
+  description, no AC field, and no `Related` link, under a `Hierarchy-Reverse`
+  parent `Feature` with real content and a `Hierarchy-Forward` child `Task`.
+  Asserts the reply names the parent, uses its content to ask a narrowing
+  question rather than a blank one, and does not lift the parent's
+  acceptance criteria wholesale as the story's own; regression-checked
+  against `propose-related-item-fills-gap`, `propose-related-item-is-noise`
+  and `propose-missing-ac-asks` (3/3 each, no change)
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
@@ -98,3 +133,5 @@ First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive
 - [x] **`propose-related-item-fills-gap/fixture.sh` reviewed** when it was added. Work items 20800 and 20801 and their bulk-export story are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
 
 - [x] **`propose-related-item-is-noise/fixture.sh` reviewed** when it was added. Work items 21000 and 21001 and their expiry-filter/dark-mode stories are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
+
+- [x] **`propose-parent-narrows-gap/fixture.sh` reviewed** when it was added. Work items 21200, 21201 and 21202 and their catalog-sync-migration story are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
