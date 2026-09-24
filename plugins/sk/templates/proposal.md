@@ -39,6 +39,17 @@ reconstructing it.
 ## Assumptions
 
 - <a small decision made without asking, and what it rests on>
+- Q<n> — <the concrete value used>. Source: <where it came from>. Verifiable: yes|no.
+
+## Open questions
+
+<!--
+One entry per unresolved decidable token — see reference/conventions.md
+("Ambiguous acceptance criteria"). The criterion is covered; the value isn't
+pinned down. Different from a Gap, which the AC doesn't cover at all.
+-->
+
+- Q<n> — <the question, and the marker's location in the delta>
 
 ## Gaps
 

@@ -69,7 +69,7 @@ Authorization: Bearer {token}
 
 Take `comments[].text` (strip HTML), author, and date.
 
-**Read these.** Comments are where scope gets cut after the description was written — "we agreed to skip X", "do this instead of that". Where a comment contradicts the description, **the comment wins**, and `proposal.md` records which comment overrode what. A spec built from the description alone can specify work the team already decided not to do.
+**Read these.** Comments are where scope gets cut after the description was written — "we agreed to skip X", "do this instead of that". Where a comment contradicts the description **or the acceptance criteria**, **the comment wins**, and `proposal.md` records which comment overrode what. A spec built from the description or AC alone can specify work the team already decided not to do — or leave an acceptance criterion looking undecided when a comment already settled it.
 
 ## Stripping HTML
 

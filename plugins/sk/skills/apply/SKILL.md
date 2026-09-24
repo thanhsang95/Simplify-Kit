@@ -43,6 +43,10 @@ For each unchecked task:
 
 **Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on.
 
+**When a task implements a scenario that still carries the open-question marker** (defined in `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`, present in the `specs/**/spec.md` you read above), **build against the reading recorded under that question's `## Assumptions` entry in `proposal.md`.** Tick the task as usual and note which question it leaned on: `- [x] 2.1 <task>  (built on Q3)`. That note is what lets whoever resolves `Q3` later find every task that assumed a particular answer.
+
+`/sk:apply` does not block on open questions — only `/sk:archive` does. This is a deliberate asymmetry, not an oversight: blocking here would add a second lock on the door the open question already locks at archive time, while `tasks.md` has no dependency graph to tell which tasks could safely proceed without that answer and which couldn't — refusing to tick any of them would stall the whole checklist on one open threshold.
+
 **Stop and ask** when:
 
 - A task is ambiguous — ask rather than pick a reading
@@ -52,7 +56,7 @@ For each unchecked task:
 
 ## Step 5 — Close out
 
-Report tasks completed this session and overall progress. Suggest running the repository's own build and tests — `sk` does not define its own; use what `sk/config.yaml` records.
+Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn. Suggest running the repository's own build and tests — `sk` does not define its own; use what `sk/config.yaml` records.
 
 When every task is ticked, tell the user the change is ready for `/sk:archive`, which merges its spec delta into `sk/specs/`.
 
@@ -63,4 +67,5 @@ When every task is ticked, tell the user the change is ready for `/sk:archive`, 
 - Tick immediately, and only for behaviour that actually works
 - Keep each edit scoped to the task in hand
 - Pause on ambiguity, blockers, and scope growth — do not guess and do not quietly shrink the work
+- Open questions in the spec delta do not block implementation — build against the recorded reading, tick normally, and note `(built on Q<n>)`; only `/sk:archive` stops for them
 - Do not touch Azure DevOps

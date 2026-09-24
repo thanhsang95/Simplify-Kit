@@ -7,6 +7,18 @@ Use only the sections you need. An unused section is omitted entirely, not left
 empty. /sk:archive reads these three headings and nothing else.
 -->
 
+<!--
+When a THEN's decidable token is unresolved, mark it inline — see
+reference/conventions.md ("Ambiguous acceptance criteria") for the marker and
+the two-step test that decides when to use it. Illustrative only; delete this
+block, it is not a slot to fill in:
+
+#### Scenario: Repeated failed sign-ins lock the account
+
+- **WHEN** a user fails to sign in [[OPEN:Q1]] times in a row
+- **THEN** the account SHALL be locked
+-->
+
 ## ADDED Requirements
 
 ### Requirement: <Short name in the imperative>

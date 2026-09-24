@@ -16,17 +16,23 @@ Same as `/sk:apply`: the id in the request → the one under discussion → the 
 
 ## Phase 1 — Validate. Write nothing.
 
-Read `sk/changes/<id>/tasks.md`, every `sk/changes/<id>/specs/**/spec.md`, and the matching `sk/specs/<capability>/spec.md` for each capability the change touches. Then run **all** of the checks below across **all** capabilities before writing anything. Collect every problem and report them together — do not fix one, write, and discover the next.
+Read `sk/changes/<id>/tasks.md`, every `sk/changes/<id>/specs/**/spec.md`, the matching `sk/specs/<capability>/spec.md` for each capability the change touches, and `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` — it defines the open-question marker check 2 below looks for. Then run **all** of the checks below across **all** capabilities before writing anything. Collect every problem and report them together — do not fix one, write, and discover the next.
 
 ### 1. Tasks are finished
 
 Any `- [ ]` left in `tasks.md` → stop. Report which tasks are open and point at `/sk:apply`.
 
-### 2. `ADDED` must not already exist
+### 2. No open questions remain in the delta
+
+Any scenario in `sk/changes/<id>/specs/**/spec.md` still carrying the open-question marker (`reference/conventions.md`) → stop. Write nothing, move nothing. Report exactly which question is still open — its `Q<n>` and the scenario it sits in, taken from `proposal.md`'s `## Open questions` — so the person resolving it knows precisely what to answer.
+
+This runs right after check 1, before any of the merge-shape checks below, because it is the cheapest check here and the one with the heaviest consequence if skipped: a marker that reaches `sk/specs/` stops being a flagged gap and becomes indistinguishable from a normal requirement — this is the one-way door the whole marker exists to keep shut.
+
+### 3. `ADDED` must not already exist
 
 A requirement under `## ADDED Requirements` whose name already appears in `sk/specs/<capability>/spec.md` → **stop and ask**. Merging it produces two requirements with the same name and nothing to distinguish them. The user decides whether it should have been `MODIFIED`, or whether one of them needs renaming.
 
-### 3. `MODIFIED` / `REMOVED` must have a target — and "missing" has two meanings
+### 4. `MODIFIED` / `REMOVED` must have a target — and "missing" has two meanings
 
 A requirement under `## MODIFIED Requirements` or `## REMOVED Requirements` that is not in `sk/specs/<capability>/spec.md`: **before concluding anything, search the other changes' deltas** — `sk/changes/*/specs/<capability>/spec.md`, excluding `archive/`.
 
@@ -35,7 +41,7 @@ A requirement under `## MODIFIED Requirements` or `## REMOVED Requirements` that
 
 Getting this distinction wrong turns an ordinary out-of-order archive into a false accusation that the delta is broken.
 
-### 4. A merge must not shrink a requirement
+### 5. A merge must not shrink a requirement
 
 For each `MODIFIED` requirement, merge it **in memory** and compare with the version in `sk/specs/`. If the result has **fewer scenarios** than the original → stop and ask.
 
@@ -43,7 +49,7 @@ For each `MODIFIED` requirement, merge it **in memory** and compare with the ver
 
 Say plainly that it is a net and not a proof: a delta that swaps one scenario for another keeps the count the same and passes. If anything about the delta looks partial, ask even when the count is fine.
 
-### 5. Two deltas must not contradict each other
+### 6. Two deltas must not contradict each other
 
 If two unarchived changes touch the same requirement in incompatible ways — both `MODIFIED` it differently, or one `MODIFIED` what another `REMOVED` — **stop and ask. Do not reconcile them yourself.**
 
@@ -74,6 +80,7 @@ Azure DevOps is not touched. Updating the work item's state is a person's job.
 ## Guardrails
 
 - Validate every capability before writing any file
+- An open question left in the delta → stop, write nothing, move nothing, name the question
 - `ADDED` onto an existing name → stop and ask
 - `MODIFIED`/`REMOVED` with no target → check unarchived deltas before calling it an error
 - Fewer scenarios after merge → stop and ask
