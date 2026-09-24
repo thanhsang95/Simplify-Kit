@@ -127,21 +127,42 @@ When Branch B fires:
    `relations[]`.** One hop only, the same shape of bound the Task cascade
    above already uses and for the same reason: unbounded traversal on a busy
    board does not stay small
-3. Ignore `System.LinkTypes.Hierarchy-Forward` (children) for this purpose. A
-   child is typically a `Task`, which per the section above carries an
-   implementation checklist and no acceptance criteria of its own —
-   descending into it does not fill the gap
+3. Ignore `System.LinkTypes.Hierarchy-Forward` (children) for this purpose,
+   whatever the current item's type. When the current item is a `User Story`
+   or `Bug`, its children are typically `Task`s, which per the section above
+   carry an implementation checklist and no acceptance criteria of their own
+   — descending would not fill the gap even if this rule allowed it.
+
+   That reasoning does not hold when the current item is a `Feature`: its
+   children are usually `User Story` items, which do carry acceptance
+   criteria of their own, and a `Feature` is a reachable input here (see the
+   type table above). This rule still does not follow them — `Related` is
+   the only traversal this fix adds, bounded the way point 1 and 2 describe.
+   A `Feature` with thin AC of its own and no `Related` item that answers the
+   gap falls through to asking the user directly, same as every Branch B case
+   did before this fix landed. Following `Hierarchy-Forward` for a `Feature`
+   is a known gap this rule does not close, not a case this rule's reasoning
+   covers
 4. If a related item's description or acceptance criteria look like they
    answer the current item's gap, **do not treat that as confirmation.** Name
    the item and quote or paraphrase what it says when Branch B asks the user,
    so the question becomes "does AB#\<id\>'s criteria apply here?" instead of a
    bare "what are the acceptance criteria?" A plausible-looking related item
    is not the same thing as the user's answer
-5. Record it in `proposal.md`'s Gaps section as soon as it is read — name the
+5. If a related item's content does **not** look like it answers the gap — it
+   concerns a different surface, is a stray bug report, or is linked `Related`
+   without actually bearing on this item's behaviour — do not manufacture a
+   confirmation question out of it anyway. Ask the same bare "what are the
+   acceptance criteria?" question Branch B always asks when no related item
+   helps. Noting that a related item was checked and found unrelated is fine;
+   presenting its unrelated content as something the user might confirm is
+   not — that misleads rather than helps, which is exactly what point 4
+   exists to prevent
+6. Record it in `proposal.md`'s Gaps section as soon as it is read — name the
    item and mark the confirmation as pending — even before the user answers.
    That is what makes the read visible to a reviewer instead of a fact only
    the chat transcript holds
-6. If the user confirms, continue as Branch A using the confirmed content, and
+7. If the user confirms, continue as Branch A using the confirmed content, and
    move that entry from Gaps to a note recording which related item the
    criteria came from — the same way a Task names the parent it inherited from
 
