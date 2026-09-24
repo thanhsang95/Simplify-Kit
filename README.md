@@ -6,20 +6,21 @@ Bạn đưa nó mã work item. Nó đọc acceptance criteria từ board, viết
 
 ## Khái niệm cốt lõi
 
-SimplifyKit tách rời hai thứ, giống mô hình specs/changes của OpenSpec — nhưng đầu vào là Azure DevOps, không phải một hộp thoại trống:
+SimplifyKit tách rời hai thứ: một **bản đặc tả sống lâu dài**, ghi hệ thống hôm nay phải làm gì; và một **thay đổi đang đề xuất**, chỉ ghi phần chênh lệch mà một User Story mới thêm vào. Tới khi bạn duyệt xong, thay đổi mới gộp vào đặc tả. Mô hình specs/changes này gần với OpenSpec — khác ở chỗ đầu vào luôn là một work item Azure DevOps thật, không phải một đề xuất người dùng tự viết từ đầu:
 
-```
-sk/specs/<nhóm>/spec.md          sk/changes/<id>/
-đặc tả đang hiệu lực       ◄────  một thay đổi đang đề xuất
-hệ thống hôm nay phải làm   merge  proposal + spec delta + tasks
-gì, tích luỹ qua nhiều US  (archive)
+```mermaid
+flowchart LR
+    C["sk/changes/&lt;id&gt;/<br/>thay đổi đang đề xuất<br/>proposal + spec delta + tasks"] -->|"/sk:archive<br/>merge"| S["sk/specs/&lt;nhóm&gt;/spec.md<br/>đặc tả đang hiệu lực<br/>tích luỹ qua nhiều User Story"]
 ```
 
-**Spec** là nguồn sự thật, viết bằng **Requirement** — một cam kết ("hệ thống SHALL ...") — và mỗi Requirement có một hoặc nhiều **Scenario**: một ví dụ quan sát được, viết WHEN/THEN (thêm GIVEN khi có tiền đề, AND khi có thêm hệ quả). Requirement không có Scenario là một ước muốn; Scenario không ai kiểm được là văn xuôi. Quy tắc đầy đủ — Requirement chỉ một câu SHALL, Scenario phải quan sát được, khi nào dùng GIVEN — nằm ở [`plugins/sk/reference/conventions.md`](plugins/sk/reference/conventions.md).
+**Spec** là nguồn sự thật, viết bằng **Requirement** — một cam kết ("hệ thống SHALL ..."). SHALL là từ khoá cố định nghĩa là "phải", viết hoa theo lối đặc tả kỹ thuật kiểu RFC/OpenSpec: câu nào có SHALL là chắc chắn một cam kết kiểm chứng được, không lẫn với câu mô tả suông — nên công cụ, và cả Claude khi đọc lại spec sau này, cứ nhìn từ khoá là nhận ra Requirement, không phải đoán ý. Mỗi Requirement có một hoặc nhiều **Scenario**: một ví dụ quan sát được, viết theo cặp WHEN/THEN — WHEN nêu chuyện gì xảy ra, THEN nêu điều quan sát được sau đó (thêm GIVEN khi có tiền đề, AND khi có thêm hệ quả). Ví dụ:
+
+> Requirement: hệ thống SHALL cho phép lọc sản phẩm theo màu.
+> Scenario: **WHEN** người dùng chọn màu đỏ, **THEN** chỉ hiện sản phẩm màu đỏ.
+
+Requirement không có Scenario là một ước muốn; Scenario không ai kiểm được là văn xuôi. Ví dụ đầy đủ nằm ở mục "Các file trong `sk/` nghĩa là gì" bên dưới. Quy tắc đầy đủ nằm ở [`plugins/sk/reference/conventions.md`](plugins/sk/reference/conventions.md) — gồm: mỗi Requirement chỉ một câu SHALL, Scenario phải quan sát được, và GIVEN chỉ xuất hiện khi có tiền đề đáng kể.
 
 **Change** không sửa spec trực tiếp. Nó viết một **delta** — khối `## ADDED Requirements` / `## MODIFIED Requirements` / `## REMOVED Requirements`, mô tả *chênh lệch* so với spec hiện tại, không phải toàn bộ hệ thống. `/sk:archive` áp delta đó: `ADDED` thêm Requirement mới, `MODIFIED` **thay nguyên khối** Requirement cùng tên (nên phải chép lại cả Scenario không đổi — chi tiết ở "Có một quy tắc bạn cần nhớ" bên dưới), `REMOVED` xoá hẳn.
-
-Khác biệt lớn nhất so với các công cụ spec-driven khác: **intent không được viết mới**. Nó đã tồn tại trên Azure DevOps dưới dạng acceptance criteria; `/sk:propose` chỉ dịch AC thành Requirement/Scenario, chưa từng tự nghĩ ra yêu cầu.
 
 | Thuật ngữ | Nghĩa |
 |---|---|
@@ -31,6 +32,16 @@ Khác biệt lớn nhất so với các công cụ spec-driven khác: **intent k
 | **Nhóm** (capability) | Một lát hành vi người đọc nhận ra ngay là một thứ, ví dụ `field-selector` — không phải một layer hay một sprint |
 | **Proposal** | `proposal.md` — tóm tắt yêu cầu, giả định đã đặt ra, và Gaps (AC chưa đủ rõ để dịch) |
 | **Archive** | Merge delta vào spec, rồi chuyển change sang `sk/changes/archive/<id>/` |
+
+## Vì sao thiết kế như vậy
+
+AC đã nằm sẵn trên Azure DevOps. Việc bắt người dùng gõ lại nó vào một prompt là tạo thêm một bản sao — hai bản ghi cho cùng một yêu cầu, sớm muộn cũng lệch nhau. Nên `/sk:propose` chỉ dịch AC có sẵn thành Requirement/Scenario kiểm chứng được, chưa rõ thì dừng lại hỏi (mục Gaps) chứ không bịa cho đủ.
+
+Từ đó ra cách chia bước: intent (ADO) → spec (`spec.md`) → kế hoạch (`tasks.md`) → code → review trên PR, mỗi bước để lại một file cho bước sau đọc. `/sk:propose` không đụng code dù bạn bảo "làm luôn đi", vì sửa một file markdown đỡ tốn công sức hơn sửa code đã viết sai; mọi artifact review được ngay trên PR, bạn không phải đoán xem bên trong đã xảy ra chuyện gì.
+
+Vì `sk/specs/` là bản đặc tả chung, gom qua hàng chục User Story, nên khi `archive` chạy, nó thay nguyên cả khối Requirement bằng bản trong delta, không vá từng mảnh.
+
+Cách `archive` nhận diện đúng Requirement cần thay là so tên. Vì vậy nếu delta viết thiếu một Scenario, Scenario đó biến mất khỏi đặc tả chung mà không có gì báo lỗi (chi tiết ở mục "Có một quy tắc bạn cần nhớ" bên dưới).
 
 Phần dưới đi vào từng bước bằng một ví dụ thật.
 
@@ -79,7 +90,7 @@ Sau đó, mỗi repo làm một lần:
 /sk:init
 ```
 
-Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` — file mô tả dự án cho Claude: stack dùng gì, lệnh build/test là gì, tài liệu nào nên đọc trước khi làm việc. Xem qua file đó một lượt ngay lúc này: nó là thứ Claude đọc mỗi lần chạy `/sk:*` sau này, nên nếu có chỗ nào tả sai dự án, sửa bây giờ rẻ hơn nhiều so với sửa sau khi đã có vài change dựa trên nó.
+Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` — file mô tả dự án cho Claude: stack dùng gì, lệnh build/test là gì, tài liệu nào nên đọc trước khi làm việc. Xem qua file đó một lượt ngay lúc này: nó là thứ Claude đọc mỗi lần chạy `/sk:*` sau này, nên nếu có chỗ nào tả sai dự án, sửa bây giờ đỡ tốn công sức hơn nhiều so với sửa sau khi đã có vài change dựa trên nó.
 
 Lệnh này cũng đụng tới một file bạn đã có sẵn: nó **append** một đoạn giới thiệu `sk/` vào `./CLAUDE.md`, hoặc vào `./.claude/CLAUDE.md` nếu `./CLAUDE.md` không tồn tại nhưng file kia có; nếu repo chưa có file nào trong hai file đó, nó **tạo mới `./CLAUDE.md`**. Nội dung cũ không bị viết đè hay sắp lại, chỉ nối thêm ở cuối. `/sk:apply` sau này cũng ghi ngoài `sk/` — nhưng đó là code bạn đã yêu cầu, ở bước bạn đang chờ sẵn. `/sk:init` thì khác: nó sửa một file bạn đã sở hữu từ trước mà không ai yêu cầu riêng, nên đáng nói ngay ở đây. `git diff CLAUDE.md` sau khi chạy `/sk:init` sẽ cho thấy đúng đoạn đó.
 
@@ -115,11 +126,11 @@ sk/changes/us-12345-<tên-ngắn>/
 
 `<tên-ngắn>` không phải thứ bạn tự đặt — Claude tự rút gọn từ tiêu đề work item (ví dụ US 12345 "Add product attributes to field selector" → `us-12345-field-selector`), và nói tên đó ra trong câu trả lời khi kết thúc. Nếu bỏ lỡ, cứ mở `sk/changes/` mà xem tên thư mục.
 
-**Bước này không sửa một dòng code nào.** Kể cả khi bạn bảo "làm luôn đi", nó vẫn chỉ lập kế hoạch rồi dừng. Đó là chủ ý: bạn xem kế hoạch trước khi code được viết, vì sửa một file markdown luôn rẻ hơn sửa lại code đã viết ra theo kế hoạch sai.
+**Bước này không sửa một dòng code nào.** Kể cả khi bạn bảo "làm luôn đi", nó vẫn chỉ lập kế hoạch rồi dừng — lý do nằm ở mục "Vì sao thiết kế như vậy" phía trên.
 
 ### 2. Bạn đọc lại
 
-Đây là lúc rẻ nhất để sửa — chưa có code nào phải viết lại, chỉ có chữ trong file. Mở `specs/<nhóm>/spec.md` và đọc như thể bạn là người nghiệm thu:
+Đây là lúc đỡ tốn công sức nhất để sửa — chưa code nào được viết, chỉ có chữ trong file. Mở `specs/<nhóm>/spec.md` và đọc như thể bạn là người nghiệm thu:
 
 - Có scenario nào sai ý không?
 - Có yêu cầu nào trong US mà đặc tả bỏ sót không?
@@ -145,7 +156,7 @@ Xong thì chạy build/test của dự án như bình thường — kit không t
 /sk:archive us-12345-<tên-ngắn>
 ```
 
-Hai việc xảy ra cùng lúc. Một, mỗi requirement trong `sk/changes/<id>/specs/` **thay nguyên khối** requirement cùng tên trong `sk/specs/<nhóm>/spec.md` — bản đặc tả sống, gộp yêu cầu của toàn hệ thống qua nhiều story. Hai, cả thư mục `sk/changes/<id>/` được chuyển sang `sk/changes/archive/<id>/`.
+Hai việc xảy ra cùng lúc: mỗi requirement trong `sk/changes/<id>/specs/` **thay nguyên khối** requirement cùng tên trong `sk/specs/<nhóm>/spec.md` — bản đặc tả sống, gộp yêu cầu của toàn hệ thống qua nhiều story. Đồng thời, cả thư mục `sk/changes/<id>/` được chuyển sang `sk/changes/archive/<id>/`.
 
 Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
@@ -212,7 +223,7 @@ Nếu bạn **tự tay sửa** file spec delta trong `sk/changes/<id>/specs/`, v
 
 > Phải giữ lại **toàn bộ** requirement, kể cả những scenario bạn không đụng tới.
 
-Vì lúc archive, requirement cũ trong `sk/specs/` bị thay nguyên khối bằng bản trong delta — đúng như ví dụ 2-scenario-thành-3-scenario ở trên. Xoá bớt scenario ở đây đồng nghĩa xoá chúng khỏi đặc tả chung — mà không có cảnh báo nào, vì tên vẫn khớp. `## MODIFIED Requirements` — khối nói ở phần trên — chính là chỗ quy tắc này áp dụng.
+Vì lúc archive, requirement cũ trong `sk/specs/` bị thay nguyên khối bằng bản trong delta — đúng như ví dụ 2-scenario-thành-3-scenario ở trên. Xoá bớt scenario ở đây đồng nghĩa xoá chúng khỏi đặc tả chung — mà không có cảnh báo nào, vì tên vẫn khớp.
 
 Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên bản copy. (`/sk:archive` có kiểm nếu số scenario giảm đi, nhưng đừng dựa vào đó.)
 
