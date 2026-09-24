@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: propose-parent-narrows-gap
+description: >-
+  A User Story with no acceptance criteria, no description, and no Related
+  link at all — only a Hierarchy-Reverse parent Feature with real content and
+  a Hierarchy-Forward child Task — makes /sk:propose read the parent and ask
+  an informed, narrowing question, instead of a blank one and instead of
+  lifting the Feature's broader acceptance criteria wholesale as the story's
+  own.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

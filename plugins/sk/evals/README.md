@@ -1,6 +1,6 @@
 # Eval suite
 
-Ten cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
+Eleven cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
 
 ## Running it
 
@@ -11,7 +11,7 @@ claude plugin eval . --allow-tools Write Edit --scaffold --no-publish
 
 ### On Windows, put Git Bash ahead of WSL on PATH
 
-`scaffold_script` is a Bash script and nine of ten cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
+`scaffold_script` is a Bash script and ten of eleven cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
 
 ```powershell
 $env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
@@ -27,7 +27,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 |---|---|---|---|
 | `wi` | `propose-from-work-item` | 7 | 0.95 |
 | `init` | `init-sets-up-sk` | 4 | 0.85 |
-| `core` | the other eight: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-related-item-fills-gap`, `propose-related-item-is-noise` | 2–4 each | 0.8 |
+| `core` | the other nine: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap` | 2–4 each | 0.8 |
 
 `wi` sits at 0.95 deliberately. At 0.85 a grader that fails in **all three runs** still scores 6/7 = 0.857 and the case stays green — which would let the faithfulness and HTML-stripping graders die unnoticed.
 
