@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: propose-marks-ambiguous-ac
+description: >-
+  AC mixing pinned-down and undecided criteria: /sk:propose marks the
+  undecided ones with the open-question marker, leaves the pinned-down ones
+  untouched, and still produces a real spec rather than falling back to
+  Branch B.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

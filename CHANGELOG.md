@@ -112,6 +112,63 @@ score 1.0, 3/3 passed)
   against `propose-related-item-fills-gap`, `propose-related-item-is-noise`
   and `propose-missing-ac-asks` (3/3 each, no change)
 
+Acceptance criteria that read as decided but are not — no retry count, no
+threshold for "very large" — used to pass through `propose` as confident
+`SHALL` sentences, get built, and merge into `sk/specs/` as requirements
+nobody agreed to. The Gaps route never caught them: Gaps takes what you
+*cannot* turn into observable behaviour, and an undecided threshold can be
+turned into one by picking a number.
+
+- An unresolved value is now marked inline in the sentence with a fixed
+  literal token, leaving the position **empty** rather than filled with a
+  guess. A filled placeholder ("a threshold to be determined") still reads as
+  a complete claim, so removing it without answering leaves a plausible,
+  wrong sentence; an empty slot leaves a visibly broken one
+- `propose` never stops for it. Marking is a per-criterion step inside
+  Branch A, not a third branch and not a reason to fall back to Branch B: a
+  skill command is one turn, so stopping to ask is stopping, and the person
+  who owns the threshold is not in the conversation
+- `archive` is the only blocker, and its Phase 1 now reads
+  `reference/conventions.md` — the check runs second, right after the
+  finished-tasks check, because it is the cheapest one here and the one whose
+  consequence is irreversible: a marker that reaches `sk/specs/` stops being
+  a flagged gap and becomes an ordinary requirement
+- `apply` does not block. It builds against the reading recorded under
+  `## Assumptions` and notes `(built on Q<n>)` on the task, so whoever later
+  overturns that answer can find what leaned on it. Blocking there would
+  stall a whole checklist on one open threshold — `tasks.md` has no
+  dependency graph to say which tasks could safely proceed
+- The token is spelled in exactly one file, `reference/conventions.md`; the
+  skills refer to it by role and never re-spell it. Two copies across the
+  `propose`→`archive` seam would be free to drift apart, and nothing in the
+  suite would catch it
+- A `THEN` naming none of the seven decidable-token kinds is not a scenario
+  with an open question in it — it is prose, and goes to Gaps. This is what
+  stops "SHALL handle large catalogs appropriately" from acquiring a marker
+  and looking like progress
+- Unresolved tokens are sorted before they are marked: one answerable by
+  lookup (`sk/specs/`, `sk/config.yaml`, or the item repeating the choice)
+  is decided and recorded as an assumption; only a product decision gets a
+  marker. Marking everything would make the `archive` block fire constantly
+- A comment now beats the **acceptance criteria** as well as the description
+  (`reference/azure-devops.md`), so a criterion a comment already settled is
+  not reported as undecided
+- Re-running `propose` on an existing change sweeps **every** `## Assumptions`
+  entry, not just open ones — a comment posted since the last run can reverse
+  a resolution that already looked settled, which reopens the slot. Already
+  ticked tasks are never unticked; a new task records what needs re-checking
+- Two eval cases: `propose-marks-ambiguous-ac` (AC mixing three pinned-down
+  criteria with two undecided — asserts the undecided ones carry the marker,
+  the pinned-down ones do not, and a real spec is still produced) and
+  `archive-blocks-open-question` (a change valid in every other way — all
+  tasks ticked, `ADDED` only, no name collision — so the open question is the
+  only thing to stop for)
+- **Not covered by any grader: detection recall.** No check can assert "you
+  should have noticed this was ambiguous", and nothing blocks ambiguity that
+  was never recorded in the first place. Making the seven token kinds a
+  walked checklist turns the failure from "didn't notice" into "skipped a
+  category", which is easier to review — it does not eliminate it
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
