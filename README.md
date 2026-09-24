@@ -60,6 +60,14 @@ Kiểm tra plugin đã bật:
 claude plugin list          # tìm dòng: sk@simplify … Status: enabled
 ```
 
+Plugin không tự cập nhật ngầm — muốn lấy version mới thì tự chạy:
+
+```
+/plugin update sk@simplify
+```
+
+Không có bước xem trước: chạy xong là nhận thẳng bản mới, không có gate cho xem skill nào đổi trước khi áp dụng. Nếu lệnh trên không nhận, cập nhật lại marketplace (`/plugin marketplace add thanhsang95/Simplify-Kit`) rồi cài lại (`/plugin install sk@simplify`).
+
 Nếu thấy `disabled` thì bật lên — lúc đang tắt, các lệnh `/sk:*` sẽ không xuất hiện:
 
 ```bash
