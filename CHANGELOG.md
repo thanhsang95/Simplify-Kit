@@ -39,6 +39,44 @@ Requirement, Scenario, Delta, Proposal, Archive) was only ever introduced piecem
 across the workflow walkthrough; a reader arriving cold had nowhere to look it up
 in one place. Modelled on OpenSpec's `docs/concepts.md`.
 
+`propose` now follows a `Related` link when a work item's own acceptance
+criteria are missing or too thin (Branch B), instead of asking a blank
+question while the answer sits one hop away on the board. `relations[]` was
+already fetched on every read but nothing before this consumed the `Related`
+entries in it.
+
+- Only fires in Branch B — a work item with usable AC of its own never reads
+  a related item, to keep the no-fabrication guardrail intact for the
+  four-in-five stories that already have what they need
+- Bounded the same way the Task→parent cascade already is: at most 3
+  `Related` items, one hop (a related item's own `relations[]` is not
+  followed), and `Hierarchy-Forward` (children) is still skipped regardless
+  of type. For a `User Story` or `Bug`, that's because children are
+  typically `Task`s with no acceptance criteria of their own; a `Feature`'s
+  children are usually `User Story` items that do carry their own AC, but
+  this fix does not follow them — that's a known gap, not a case this rule
+  claims to cover
+- A related item's content is never written to `specs/` on its own say-so —
+  it only sharpens the question Branch B asks, naming the item and what it
+  says. `proposal.md` names it in the Gaps section as soon as it is read,
+  marked as a pending confirmation, whether or not the user has answered
+  yet; only the user's confirmation moves that entry from Gaps to a note
+  recording the source
+- If the related item's content doesn't actually bear on the gap — a
+  different surface, a stray bug report — the instructions now say
+  explicitly not to manufacture a confirmation question out of it; Branch B
+  falls back to its plain "what are the acceptance criteria?" ask instead
+- New eval case `propose-related-item-fills-gap`: a work item with no AC,
+  `Related` to one that has full AC. Asserts the reply names the related item
+  and asks for confirmation rather than asserting its content as fact, that
+  `proposal.md` records it in Gaps, and that no `spec.md` is written without
+  that confirmation — the same single-turn boundary `propose-missing-ac-asks`
+  already checks, extended to prove a plausible related item does not bypass
+  it
+- New eval case `propose-related-item-is-noise`: the mirror case, where the
+  only `Related` item is unrelated in substance. Asserts the reply does not
+  present that item's content as though it might answer the gap
+
 ## 0.1.0 — unreleased
 
 First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`.
@@ -56,3 +94,7 @@ First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive
   The deadline for this is **before anyone installs**, not before the repo gets a remote: `evals/` ships inside the plugin, so every install copies the fixtures onto another machine.
 
 - [x] **`propose-does-not-auto-apply/fixture.sh` reviewed** when it was added. Work item 20700 and its low-stock badge story are invented; org `example-org.visualstudio.com` and project `CatalogPortal` match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
+
+- [x] **`propose-related-item-fills-gap/fixture.sh` reviewed** when it was added. Work items 20800 and 20801 and their bulk-export story are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
+
+- [x] **`propose-related-item-is-noise/fixture.sh` reviewed** when it was added. Work items 21000 and 21001 and their expiry-filter/dark-mode stories are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.

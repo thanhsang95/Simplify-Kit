@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: propose-related-item-fills-gap
+description: >-
+  When acceptance criteria are missing, /sk:propose reads a Related work item
+  that already specifies the behaviour and names it when asking the user to
+  confirm reuse — but still does not write a spec until that confirmation
+  arrives, so a related item is never silently treated as this item's own
+  acceptance criteria.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

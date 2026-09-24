@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: propose-related-item-is-noise
+description: >-
+  When acceptance criteria are missing and the work item's only Related link
+  points at something that does not actually bear on the gap, /sk:propose
+  does not manufacture a confirmation question out of that unrelated content
+  — it still asks the user directly for AB#21000's own acceptance criteria.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
