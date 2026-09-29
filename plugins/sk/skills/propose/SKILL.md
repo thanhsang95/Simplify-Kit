@@ -1,6 +1,6 @@
 ---
 name: propose
-description: "SimplifyKit (sk): start a change from an Azure DevOps work item — read it and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
+description: "SimplifyKit (sk): start a change from an Azure DevOps work item — read it and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
   version: "0.2.0"
@@ -78,7 +78,7 @@ Before asking, check `relations[]` for a `System.LinkTypes.Related` entry. Follo
 
 When the current item is not a `Task` (a Task's parent was already read unconditionally in Step 2), also check `relations[]` for a `System.LinkTypes.Hierarchy-Reverse` entry. Follow `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` ("A parent can narrow a Branch B gap when the item is not a Task") for how far to take that — one hop, and never presented as this item's own acceptance criteria wholesale. A parent's scope is broader than any one item under it, so a usable parent earns a narrowing question — what part of the parent's scope this item covers — not a bare "confirm reusing it" the way a same-shape related item does.
 
-Show the user what you did get — title, description, comments, parent, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item or parent, when one was found). **When a related item or parent was read, write `proposal.md` and name it in the Gaps section, marked as a pending confirmation, whether or not the user has answered yet** — that section exists for exactly this: a criterion not yet resolved. If neither was read, writing `proposal.md` before an answer arrives is optional, same as before. If they answer or confirm, continue as Branch A and set `**AC source:**` in `proposal.md` to say where the criteria came from (Step 4) instead of leaving it in Gaps. If they do not, `proposal.md` with `**AC source:** none yet` and that Gaps section is the whole output, and you stop — `/sk:continue` refuses to write a spec delta while it reads `none yet`.
+Show the user what you did get — title, description, comments, parent, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item or parent, when one was found). **When a related item or parent was read, write `proposal.md` and name it in the Gaps section, marked as a pending confirmation, whether or not the user has answered yet** — that section exists for exactly this: a criterion not yet resolved. If neither was read, writing `proposal.md` before an answer arrives is optional, same as before. If they answer or confirm, continue as Branch A and set `**AC source:**` in `proposal.md` to say where the criteria came from (Step 5) instead of leaving it in Gaps. If they do not, `proposal.md` with `**AC source:** none yet` and that Gaps section is the whole output, and you stop — `/sk:continue` refuses to write a spec delta while it reads `none yet`.
 
 ## Re-running on an existing change
 
@@ -90,7 +90,37 @@ Read **every** entry under the existing `proposal.md`'s `## Assumptions`, not on
 
 If a task in `tasks.md` is already ticked and the value it was built on changed, **do not untick it** — `tasks.md` has no dependency graph, and un-ticking work that actually landed destroys the record of what was done. Instead, name the affected task and **add a new task** that says what needs re-checking.
 
-## Step 4 — Write `proposal.md`
+## Step 4 — Grill before deciding
+
+Everything `proposal.md` records about *how the work item was read* is a decision, and until now this command made them silently and left the user to find out at review. Interview the user about them first. Steps 1–3 gathered the **facts**; never ask the user for something you could look up. Ask only about **decisions**.
+
+Work it as a decision tree, in rounds. The **frontier** is every decision whose prerequisites are already settled. Ask the whole frontier in one round — numbered, each with your recommended answer — then wait. A question whose answer depends on another still open in this round belongs to a later round. Number them `G1`, `G2`, … — **not** `Q<n>`, which is the open-question numbering `/sk:continue` owns inside `proposal.md` and the delta.
+
+```
+❓ **G1** - **<title>**: <the question, with the options it turns on>
+
+➡️ <your recommended answer>
+```
+
+**The first round is never skipped**, even when the acceptance criteria are grouped bullets and nothing looks ambiguous — then it is a short confirmation of the reading, not an interrogation. The decisions to draw questions from:
+
+- how the acceptance criteria split into requirements (grouped bullets: confirm the reading; Given/When/Then sentences and prose: propose the grouping)
+- which capability owns the work, and whether it is `Added` or `Modified` against `sk/specs/` and the unarchived deltas you read in Step 1
+- any comment that contradicts the description or the criteria, and whether the comment really wins
+- the `change-id` slug
+- every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from) — ask those here, in the same round, not as a separate exchange. Branch B's rule about writing `proposal.md` with a pending confirmation still applies as written
+
+Stop when the frontier is empty and the user has confirmed you share the same reading. Only then write `proposal.md`. Each answer lands where it belongs in Step 5 — the split under "How the acceptance criteria were read", ownership under Capabilities, a comment override under its own section — and is marked `confirmed` in `## Assumptions`.
+
+**When nobody can answer** — the request says so ("no one to ask", "just use your recommendations", "write it now"), which is what an unattended run looks like — write `proposal.md` using your recommended answer to every question, and mark each resulting entry in `## Assumptions` as `unconfirmed`. Never infer this from the request merely being terse, and never take it as licence to skip the round: the round still happens, and its questions still appear in your response. Without that statement, ask and stop; writing nothing yet is the correct outcome.
+
+This exists because a run of `/sk:propose` is one message in one turn. Without a stated fallback it either stops at the questions every time or answers them itself and calls the result confirmed. `unconfirmed` is what tells `/sk:continue` and the reviewer which readings a person has actually seen.
+
+When re-running on an existing change, ask only about decisions that reopened — a comment or a work item edit that contradicts an entry already `confirmed`. Do not re-ask what is settled.
+
+Grilling changes when `proposal.md` is written, never what else gets written. A round of questions, however many, does not open the door to a spec delta, design or tasks.
+
+## Step 5 — Write `proposal.md`
 
 Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/changes/<change-id>/proposal.md` — **and nothing else**.
 
@@ -103,16 +133,17 @@ Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/cha
 - `user, in conversation` — Branch B, when the user supplied criteria that are not on the board. **Write their text under `## Acceptance criteria not on the board`.** That is the only copy there will be
 - `none yet` — Branch B, still unanswered
 
-`## Assumptions` and `## Open questions` start empty here; `/sk:continue` fills them as it writes scenarios.
+`## Assumptions` holds only the decisions Step 4 settled, each marked `confirmed` or `unconfirmed`; `## Open questions` starts empty. `/sk:continue` adds its own `Q<n>` entries to both as it writes scenarios.
 
-## Step 5 — Close out
+## Step 6 — Close out
 
-List the file created and any Gaps. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. Do not run it yourself.
+List the file created, any Gaps, and how many `## Assumptions` entries are still `unconfirmed`. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. Do not run it yourself.
 
 ## Guardrails
 
 - Writes `proposal.md` only. No project code is edited, no spec delta, design or tasks are written, and neither `/sk:continue` nor `/sk:apply` is invoked from within this command, whatever the request said or however it justified going further
 - Never create `sk/` as a side effect
+- Ask before deciding: the first round of questions always happens, and an answer nobody gave is recorded `unconfirmed`, never `confirmed`
 - Never fabricate work item content, and never proceed from an empty AC field as if it were filled — Branch B asks instead
 - Ambiguity that changes scope, observable behaviour, compatibility, or which capability owns the work goes to the user, via Branch B or a Gap
 - Decide small conventions yourself and record the assumption

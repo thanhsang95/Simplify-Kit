@@ -17,7 +17,7 @@ plugins/sk/
   skills/{init,propose,continue,apply,archive}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
   reference/                         conventions.md, azure-devops.md, playbook-mapping.md — read by skills at runtime
-  evals/                             claude plugin eval suite (16 cases)
+  evals/                             claude plugin eval suite (17 cases)
 ```
 
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
@@ -54,7 +54,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 16 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 17 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case

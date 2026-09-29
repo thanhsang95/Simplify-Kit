@@ -51,8 +51,16 @@ reconstructing it.
 
 ## Assumptions
 
-- <a small decision made without asking, and what it rests on>
+- <a decision settled while reading the work item, and what it rests on> — confirmed | unconfirmed
 - Q<n> — <the concrete value used>. Source: <where it came from>. Verifiable: yes|no.
+
+<!--
+`confirmed`: /sk:propose asked and the user answered. `unconfirmed`: nobody
+could answer, so the recommended answer was written down; a reviewer should
+look at these first. Q<n> entries are /sk:continue's and carry their own
+provenance, so they take neither word.
+-->
+
 
 ## Open questions
 
