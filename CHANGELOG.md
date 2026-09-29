@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1 — unreleased
+## 0.1.1 — 2026-09-29
 
 Work items are read over REST instead of the `az` CLI, after a pilot on the real
 org found corrupted characters reaching a generated spec.
