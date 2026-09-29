@@ -1,6 +1,6 @@
 ---
 name: archive
-description: "SimplifyKit (sk): close a finished change — merge its spec delta into the living spec under sk/specs/, record its design decision as an ADR and its new terms in sk/context.md, and move the change into sk/changes/archive/. Use when the user says \"sk archive\", \"archive the change\", or a change's tasks are all complete and its requirements should become part of the project's specification."
+description: "SimplifyKit (sk): close a finished change — merge its spec delta into the living spec under sk/specs/, record its design decision as an ADR and its new terms in sk/context.md, and move the change into sk/changes/archive/. Use when the user says \"sk archive\", \"archive the change\", or a change's tasks are all complete and its requirements should become part of the project's specification. Also \"sk archive backfill\", or an id that is already archived: writes the ADR and glossary records for changes archived earlier, without merging or moving anything."
 metadata:
   author: Simplify
   version: "0.2.0"
@@ -13,6 +13,13 @@ This is the only SimplifyKit command that overwrites and moves things. So it run
 ## Step 1 — Select the change
 
 Same as `/sk:apply`: the id in the request → the one under discussion → the only open change → otherwise list and ask. Exclude `archive/` when listing. Announce `Archiving change: <id>`.
+
+**Two requests are not an archive at all — go straight to [Records mode](#records-mode) and skip Phase 1 and Phase 2:**
+
+- the id names a change that already sits under `sk/changes/archive/`. Re-running the merge would only report that everything is already there, which helps nobody, so the useful thing left to do for it is its records. The request does not need to say "ADR" or "glossary": an already-archived id *is* the request
+- the request says `backfill`, or asks for the records of every archived change (`/sk:archive backfill`). It covers every directory under `sk/changes/archive/`
+
+This is a real observed failure, not a hypothetical: `/sk:archive <id>` on an archived change validated, found the spec already merged, stopped with "already archived", and only offered to read the proposal if asked.
 
 ## Phase 1 — Validate. Write nothing.
 
@@ -68,7 +75,21 @@ Show the draft ADR and each draft term, and ask the user in **one round** to con
 
 **When nobody can answer** — the request says so, which is what an unattended run looks like — write neither. Merge and move as normal, and list what you skipped in Step 3 along with the full drafts as response text, so a person can apply them. Do not read silence as consent: an ADR and a glossary are the only long-lived record left once the change is archived, and they should not carry rationale nobody has seen.
 
-**A change that is already archived.** If the request names a change that sits under `sk/changes/archive/` and asks only for its ADR or glossary, skip Phase 1's checks and Phase 2's merge and move: run this step, write what is confirmed, and stop. Before writing an ADR, search `sk/adr/` for an existing one carrying the change id — never write a second.
+Before writing an ADR, search `sk/adr/` for an existing one carrying the change id — never write a second.
+
+## Records mode
+
+For changes that are already archived: writes the ADR and glossary records and nothing else. **No merge, no move, no validation checks, and `sk/specs/` is not touched.**
+
+1. Read, for each change in scope, its `proposal.md`, its spec delta and its `design.md` if present, plus the existing `sk/adr/` and `sk/context.md`
+2. Draft as described in the step above, with these additions for more than one change:
+   - **One glossary draft for all of them.** The same term defined the same way in several changes is one entry, listing each source change. A term defined *differently* in two changes is a conflict: put it in the questions with both wordings and their changes, never pick one
+   - **An ADR per change that has a `design.md` and passes all three criteria.** For each that does not, one line saying which criterion failed or that there is no `design.md`
+   - Skip any change that already has its ADR (an existing one carrying its id)
+3. Ask **once** for the whole batch: confirm, edit or drop each entry. When it is long, group by capability inside that single round rather than asking repeatedly
+4. Write what is confirmed, then stop
+
+Unattended, write nothing and print the drafts, as above.
 
 ## Phase 2 — Merge, record, then move
 
@@ -108,5 +129,6 @@ Azure DevOps is not touched. Updating the work item's state is a person's job.
 - Never reorder or reformat `sk/specs/` beyond the requirement being changed
 - No ADR without a `design.md`, none unless all three criteria hold, and none written unattended; never a second ADR for the same change
 - Never `git mv` into an ignored archive
+- An id already under `archive/`, or `backfill`, is Records mode: no validation, no merge, no move, `sk/specs/` untouched. Never answer it with "already archived" and stop
 - Report an incomplete move; never let it pass silently
 - No Azure DevOps writes

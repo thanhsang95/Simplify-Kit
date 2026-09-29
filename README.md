@@ -190,7 +190,7 @@ Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Clau
 
 Chạy lại `/sk:init` trong repo đã có `sk/`. Lệnh này **không bao giờ ghi đè** `config.yaml`; nó chỉ kiểm tra workspace có gì khác bản hiện tại và đề xuất các thay đổi kiểu *append*: thêm `sk/changes/archive/` vào `.gitignore`, đánh dấu `## Design` "Skipped" cho các change đã lên kế hoạch từ trước khi có `/sk:continue`, và thêm dòng `**AC source:** none yet` cho change đang chờ AC. Nó hiện toàn bộ kế hoạch và hỏi bạn **một lần**; chạy không có người trả lời thì chỉ áp dụng ba việc trên.
 
-Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn đang bị git theo dõi (in ra lệnh `git rm -r --cached sk/changes/archive` — chạy nó làm đồng đội mất các thư mục đó khi pull, nên là quyết định của cả nhóm), và các change đã archive có `design.md` (chạy `/sk:archive <id>` cho từng cái để ghi ADR **trước khi** bỏ theo dõi).
+Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn đang bị git theo dõi (in ra lệnh `git rm -r --cached sk/changes/archive` — chạy nó làm đồng đội mất các thư mục đó khi pull, nên là quyết định của cả nhóm), và các change đã archive chưa có ADR/glossary: chạy **một lần** `/sk:archive backfill` — nó đọc mọi change đã archive, gộp và bỏ trùng thuật ngữ thành một bản nháp `sk/context.md`, soạn ADR cho từng change có `design.md` xứng đáng, và hỏi bạn **một lần** (thuật ngữ hai change định nghĩa khác nhau sẽ được hỏi lại, không tự chọn). Làm việc này **trước khi** bỏ theo dõi. Cũng có thể chạy `/sk:archive <id>` với một change đã archive để chỉ soạn bản ghi cho riêng nó.
 
 ## Các file trong `sk/` nghĩa là gì
 
