@@ -8,7 +8,7 @@ Dành cho người bảo trì SimplifyKit. Người dùng kit thì đọc `READM
 .claude-plugin/marketplace.json     khai báo marketplace `simplify`
 plugins/sk/
   .claude-plugin/plugin.json        manifest: tên, version, mô tả
-  skills/{init,propose,apply,archive}/SKILL.md
+  skills/{init,propose,continue,apply,archive}/SKILL.md
   templates/                        khung file mà skill copy vào repo người dùng
   reference/                        tài liệu skill đọc lúc chạy
   evals/                            bộ test hành vi
@@ -51,6 +51,10 @@ claude plugin eval . --allow-tools Write Edit --scaffold --no-publish
 $env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
 ```
 
+**Chi phí:** mặc định mỗi case chạy thêm nhánh không-plugin (`--ablation`), nên gấp đôi. Chạy theo `--tag` có thể chạm trần `--max-cost-usd` giữa chừng và bỏ dở các case sau; muốn chắc chạy hết thì chạy từng `--case` với `--ablation none`.
+
+**Viết case mới:** mỗi run chỉ có **một message của người dùng** rồi agent tự chạy tới khi dừng hoặc hỏi. Vì `propose`, `archive` và `init` giờ hỏi trước khi ghi, một case cần file được ghi ra phải nói trong prompt rằng không ai trả lời được; case kiểm việc hỏi thì để nguyên và assert rằng chưa file nào được ghi.
+
 Ngưỡng chia theo nhóm vì số grader khác nhau — chi tiết và các bẫy khi viết grader nằm trong `plugins/sk/evals/README.md`.
 
 ### Eval không đo được gì
@@ -58,7 +62,7 @@ Ngưỡng chia theo nhóm vì số grader khác nhau — chi tiết và các b�
 Hai vùng, đều phải kiểm tay:
 
 - **Đường gọi Azure DevOps** — mỗi run eval không có Bash, nên không gọi `az` được
-- **Cạnh tranh skill** — mỗi run chỉ nạp đúng plugin này, nên Claude thấy 4 skill. Trong repo thật nó có thể thấy gần trăm skill với mô tả bị cắt ngắn
+- **Cạnh tranh skill** — mỗi run chỉ nạp đúng plugin này, nên Claude thấy 5 skill. Trong repo thật nó có thể thấy gần trăm skill với mô tả bị cắt ngắn
 
 Cả hai đã được kiểm bằng một đợt pilot trên repo thật: chạy hết vòng `init → propose` với work item thật, và đo việc chọn skill trong hai môi trường chỉ khác nhau một biến (có và không có rule định tuyến) — `sk:propose` thắng cả hai lần. Khi thêm skill mới, hai vùng này vẫn phải kiểm tay như vậy.
 
@@ -91,6 +95,18 @@ Về chi phí thì không đáng kể — eval không phải skill hay command n
 **Payload work item nằm trong heredoc bên trong `plugins/sk/evals/**/fixture.sh`** — không có file `.json` fixture độc lập nào, nên `grep` theo `*.json` sẽ trả về rỗng và không chứng minh được gì. Chúng giữ nguyên *cấu trúc HTML* của work item thật, đó là giá trị của chúng; còn tên sản phẩm, tên khách hàng, org URL và mã work item đều đã thay bằng dữ liệu bịa.
 
 Mỗi bản cài là một bản sao trên một máy khác, nên **mốc rà lại là trước khi ai đó cài**, không phải trước khi push. Thêm fixture mới thì rà lại từ đầu; checklist nằm trong `CHANGELOG.md`.
+
+## Kiểm nhanh trước khi commit
+
+```bash
+cd plugins/sk && claude plugin validate .     # cần dấu `.` — thiếu đường dẫn thì báo missing required argument
+```
+
+Kiểm thêm hai manifest parse được JSON và mỗi `name` trong `SKILL.md` khớp tên thư mục.
+
+## Release note và CHANGELOG
+
+`CHANGELOG.md` là nhật ký cho người bảo trì: đầy đủ, kể cả số đo eval và những gì chưa giải thích được. Release note cho người dùng nằm riêng ở `docs/release-notes/v<version>.md`: ngắn, chỉ nói cái gì đổi, có gì mới và cách nâng cấp — không chứa chi tiết nội bộ.
 
 ## Quy ước khi viết skill
 

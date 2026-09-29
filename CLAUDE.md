@@ -49,7 +49,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 1. **Always cheap:**
    ```bash
-   claude plugin validate    # run from plugins/sk
+   claude plugin validate .  # run from plugins/sk; the path argument is required
    ```
    Also spot-check the two manifests parse as JSON (`.claude-plugin/marketplace.json`, `plugins/sk/.claude-plugin/plugin.json`) and that every `SKILL.md` frontmatter `name` matches its directory.
 

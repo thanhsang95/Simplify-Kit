@@ -31,11 +31,15 @@ Requirement không có Scenario là một ước muốn; Scenario không ai ki�
 | **Delta** | Phần spec trong một change, khai bằng ADDED/MODIFIED/REMOVED — chênh lệch, không phải bản đầy đủ |
 | **Nhóm** (capability) | Một lát hành vi người đọc nhận ra ngay là một thứ, ví dụ `field-selector` — không phải một layer hay một sprint |
 | **Proposal** | `proposal.md` — tóm tắt yêu cầu, giả định đã đặt ra, và Gaps (AC chưa đủ rõ để dịch) |
-| **Archive** | Merge delta vào spec, rồi chuyển change sang `sk/changes/archive/<id>/` |
+| **Archive** | Merge delta vào spec, ghi lại ADR và thuật ngữ nếu có, rồi chuyển change sang `sk/changes/archive/<id>/` |
+| **ADR** | Một quyết định thiết kế khó đảo ngược, ghi lại lúc archive (`sk/adr/`) để lý do không mất theo `design.md` |
+| **Glossary** | `sk/context.md` — thuật ngữ riêng của dự án, chỉ những từ mà một change thực sự định nghĩa |
 
 ## Vì sao thiết kế như vậy
 
 AC đã nằm sẵn trên Azure DevOps. Việc bắt người dùng gõ lại nó vào một prompt là tạo thêm một bản sao — hai bản ghi cho cùng một yêu cầu, sớm muộn cũng lệch nhau. Nên `/sk:propose` chỉ dịch AC có sẵn thành Requirement/Scenario kiểm chứng được, chưa rõ thì dừng lại hỏi (mục Gaps) chứ không bịa cho đủ.
+
+Cũng vì vậy `/sk:propose` **hỏi trước khi quyết định**: cách tách AC thành requirement, capability nào sở hữu việc này, comment nào ghi đè mô tả — mỗi câu kèm đáp án nó đề xuất, để bạn chỉ cần gật hoặc sửa. Những thứ nó vẫn tự tra được (nội dung work item, spec hiện có) thì nó không hỏi.
 
 Từ đó ra cách chia bước: intent (ADO) → spec (`spec.md`) → kế hoạch (`tasks.md`) → code → review trên PR, mỗi bước để lại một file cho bước sau đọc. `/sk:propose` và `/sk:continue` không đụng code dù bạn bảo "làm luôn đi", và mỗi lần chỉ tạo một artifact để bạn duyệt từng bước, vì sửa một file markdown đỡ tốn công sức hơn sửa code đã viết sai; mọi artifact review được ngay trên PR, bạn không phải đoán xem bên trong đã xảy ra chuyện gì.
 
@@ -65,6 +69,8 @@ Plugin không tự cập nhật ngầm — muốn lấy version mới thì tự 
 ```
 /plugin update sk@simplify
 ```
+
+Đang dùng bản 0.1.x? Cập nhật xong, xem mục [Nâng cấp từ bản cũ](#nâng-cấp-từ-bản-cũ-01x) — repo đã có `sk/` cần chạy lại `/sk:init` một lần.
 
 Không có bước xem trước: chạy xong là nhận thẳng bản mới, không có gate cho xem skill nào đổi trước khi áp dụng. Nếu lệnh trên không nhận, cập nhật lại marketplace (`/plugin marketplace add thanhsang95/Simplify-Kit`) rồi cài lại (`/plugin install sk@simplify`).
 
@@ -102,6 +108,8 @@ Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` — file mô tả d�
 
 Lệnh này cũng đụng tới một file bạn đã có sẵn: nó **append** một đoạn giới thiệu `sk/` vào `./CLAUDE.md`, hoặc vào `./.claude/CLAUDE.md` nếu `./CLAUDE.md` không tồn tại nhưng file kia có; nếu repo chưa có file nào trong hai file đó, nó **tạo mới `./CLAUDE.md`**. Nội dung cũ không bị viết đè hay sắp lại, chỉ nối thêm ở cuối. `/sk:apply` sau này cũng ghi ngoài `sk/` — nhưng đó là code bạn đã yêu cầu, ở bước bạn đang chờ sẵn. `/sk:init` thì khác: nó sửa một file bạn đã sở hữu từ trước mà không ai yêu cầu riêng, nên đáng nói ngay ở đây. `git diff CLAUDE.md` sau khi chạy `/sk:init` sẽ cho thấy đúng đoạn đó.
 
+Nó cũng **append một dòng vào `.gitignore`** (tạo file nếu chưa có): `sk/changes/archive/`, vì change đã xong được ghi lại bằng spec, ADR và glossary nên bản sao đã archive chỉ là nhiễu. Các change đang mở dưới `sk/changes/<id>/` thì vẫn được commit.
+
 Để lấy `ado.orgUrl` và `ado.project`, `/sk:init` chạy `az devops configure --list` — lệnh này chỉ trả về gì đó nếu máy bạn từng đặt defaults bằng `az devops configure --defaults organization=<org-url> project=<project>`. Nếu chưa từng đặt, hoặc lệnh thất bại, `/sk:init` **cố ý để trống** hai trường này trong `sk/config.yaml` kèm comment nhắc điền, rồi báo lại cho bạn biết — đây là hành vi bình thường, không phải hỏng.
 
 Điền tay thì lấy `orgUrl` **đầy đủ**, đừng dựng lại từ tên ngắn: org kiểu cũ vẫn nằm ở `https://<org>.visualstudio.com/`, còn `https://dev.azure.com/<org>` là một endpoint khác — dùng nhầm dạng nào thì việc đọc work item sau này fail.
@@ -122,7 +130,9 @@ Giả sử bạn được giao User Story **12345**.
 /sk:propose AB#12345
 ```
 
-Nó đọc work item và chỉ ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
+Nó đọc work item, **hỏi bạn một lượt câu hỏi** về cách đọc nó (mỗi câu đánh số `G1`, `G2`… kèm đáp án nó đề xuất), rồi sau khi bạn xác nhận mới ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
+
+Lượt hỏi đầu tiên luôn có, kể cả khi AC đã gom nhóm rõ — lúc đó nó chỉ là một lần xác nhận ngắn. Chạy tự động, không ai trả lời được, thì nó ghi đáp án đề xuất và đánh dấu từng mục trong `## Assumptions` là `unconfirmed`, để người duyệt biết mục nào chưa ai xem.
 
 ```
 sk/changes/us-12345-<tên-ngắn>/
@@ -184,6 +194,8 @@ Ba việc xảy ra theo thứ tự: mỗi requirement trong `sk/changes/<id>/spe
 
 Chạy không có ai trả lời (ví dụ tự động hoá) thì archive vẫn merge và chuyển như thường nhưng **bỏ qua hai thứ này** và in bản nháp ra để bạn áp dụng sau: ADR và glossary là bản ghi dài hạn duy nhất còn lại, không nên chứa lý do chưa ai đọc.
 
+Change đã archive từ trước khi có bước này thì chạy `/sk:archive backfill` một lần để ghi bù (xem "Nâng cấp từ bản cũ").
+
 Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
 ## Nâng cấp từ bản cũ (0.1.x)
@@ -203,7 +215,7 @@ Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn 
 | `sk/adr/NNNN-<tên>.md` | Quyết định thiết kế đã chốt, ghi lại lúc archive |
 | `sk/context.md` | Bảng thuật ngữ riêng của dự án, cập nhật lúc archive |
 
-Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:propose` sinh ra:
+Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:continue` sinh ra:
 
 ```markdown
 ## ADDED Requirements
@@ -238,6 +250,9 @@ Task 1.1 khớp đúng với những gì đã xảy ra trong repo ở lần ch�
 ## Khi nào nó sẽ hỏi bạn
 
 Kit được thiết kế để **dừng lại hỏi** thay vì đoán. Vài tình huống hay gặp:
+
+**"Bạn muốn đọc work item này thế nào?"**
+Trước khi ghi `proposal.md`, `/sk:propose` hỏi cách tách AC, capability và các comment ghi đè, kèm đáp án đề xuất. Đây là hành vi bình thường, không phải lỗi — và là chỗ rẻ nhất để chỉnh, trước khi có spec nào dựng lên trên cách đọc đó.
 
 **"Work item này không có acceptance criteria."**
 Khoảng 1/5 số User Story rơi vào đây. Nó sẽ đưa ra những gì lấy được (tiêu đề, mô tả, comment) rồi hỏi tiêu chí nghiệm thu. Nó **không** tự bịa ra đặc tả từ một ô trống — nếu bạn thấy nó làm vậy, đó là lỗi, báo lại.
@@ -276,6 +291,8 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 | `/sk:propose` bảo chạy `/sk:init` trước | Repo chưa có `sk/`. Chạy `/sk:init`. Kit cố ý không tự tạo `sk/` |
 | Nó hỏi lại thay vì viết đặc tả | Work item thiếu acceptance criteria. Đây là hành vi đúng |
 | Nó báo lỗi khi đọc work item | Kiểm `az login`, và `ado.orgUrl` trong `sk/config.yaml` có đúng URL đầy đủ không |
+| `/sk:propose` hỏi mà không ghi file | Đúng thiết kế: nó chờ bạn xác nhận. Không có ai trả lời được (script) thì nói rõ trong yêu cầu, nó sẽ ghi đáp án đề xuất và đánh dấu `unconfirmed` |
+| `git status` hiện `sk/changes/archive/` là untracked | Repo chưa ignore nó: chạy lại `/sk:init` (nó sẽ đề xuất thêm dòng vào `.gitignore`) |
 | `/sk:archive` dừng giữa chừng | Nó phát hiện xung đột và đang chờ bạn quyết. Đọc thông báo — nó nói rõ requirement nào |
 
 ## Muốn sửa chính bộ kit này?
