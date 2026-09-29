@@ -1,6 +1,6 @@
 ---
 name: init
-description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", or asks to start using SimplifyKit here. Creates sk/config.yaml, sk/specs/ and sk/changes/, and appends a short pointer to the repo's CLAUDE.md. Run this once per repository, before /sk:propose."
+description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", or asks to start using SimplifyKit here. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
   version: "0.1.0"
@@ -46,10 +46,17 @@ Create, using `${CLAUDE_PLUGIN_ROOT}/templates/config.yaml` as the structure:
 sk/config.yaml
 sk/specs/.gitkeep
 sk/changes/.gitkeep
-sk/changes/archive/.gitkeep
 ```
 
-`sk/specs/` is empty at this point by design. It fills up when `/sk:archive` merges a change's spec delta into it.
+`sk/specs/` is empty at this point by design. It fills up when `/sk:archive` merges a change's spec delta into it. `sk/changes/archive/` is not created here: `/sk:archive` creates it on first use, and it is not committed (next step).
+
+`sk/context.md` (glossary) and `sk/adr/` (decision records) are not created here either. `/sk:archive` writes them the first time there is something to record.
+
+## Step 4b — Keep archived changes out of git
+
+Append `sk/changes/archive/` to the repository's `.gitignore`, under a one-line comment saying why: finished changes are recorded by the merged spec, `sk/adr/` and `sk/context.md`, so the archived copies would only be noise. Create `.gitignore` if there is none. **Append only** — never reorder or rewrite existing lines, and do nothing if the entry is already there.
+
+Open changes under `sk/changes/<id>/` stay committed: they are what a teammate reviews and what `/sk:propose` and `/sk:archive` read to see other people's unarchived work. Ignore `sk/changes/` as a whole and both stop working across machines.
 
 ## Step 5 — Point CLAUDE.md at it
 
@@ -72,13 +79,14 @@ Do not edit `.claude/rules/`. Do not add a new rule file to out-vote the existin
 
 ## Step 7 — Close out
 
-Report the files created, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>`.
+Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>`.
 
 ## Guardrails
 
 - Never overwrite an existing `sk/`
 - Never touch configuration belonging to another coding agent
 - Never edit `.claude/rules/`
-- Append to CLAUDE.md, never overwrite
+- Append to CLAUDE.md and `.gitignore`, never overwrite
+- Ignore `sk/changes/archive/` only — never `sk/changes/` as a whole
 - Fill `context` from what you actually read; an unedited placeholder is worse than an empty field
 - Store the full ADO org URL, never a reconstructed one

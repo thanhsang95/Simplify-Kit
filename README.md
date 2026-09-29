@@ -175,7 +175,14 @@ Xong thì chạy build/test của dự án như bình thường — kit không t
 /sk:archive us-12345-<tên-ngắn>
 ```
 
-Hai việc xảy ra cùng lúc: mỗi requirement trong `sk/changes/<id>/specs/` **thay nguyên khối** requirement cùng tên trong `sk/specs/<nhóm>/spec.md` — bản đặc tả sống, gộp yêu cầu của toàn hệ thống qua nhiều story. Đồng thời, cả thư mục `sk/changes/<id>/` được chuyển sang `sk/changes/archive/<id>/`.
+Ba việc xảy ra theo thứ tự: mỗi requirement trong `sk/changes/<id>/specs/` **thay nguyên khối** requirement cùng tên trong `sk/specs/<nhóm>/spec.md` — bản đặc tả sống, gộp yêu cầu của toàn hệ thống qua nhiều story; rồi lưu lại những gì việc merge một mình sẽ làm mất (xem dưới); cuối cùng cả thư mục `sk/changes/<id>/` được chuyển sang `sk/changes/archive/<id>/`.
+
+**`sk/changes/archive/` không được commit** (`/sk:init` thêm nó vào `.gitignore`). Nên sau khi archive, thứ git giữ lại của change chỉ còn spec đã merge — còn lý do của một quyết định thiết kế (nằm trong `design.md`) và các thuật ngữ change đó đưa vào sẽ biến mất cùng thư mục. Vì vậy trước khi chuyển, `/sk:archive` soạn sẵn và **hỏi bạn xác nhận** hai thứ:
+
+- **ADR** (`sk/adr/NNNN-<tên>.md`) từ `design.md` — chỉ khi change có `design.md` *và* quyết định đó khó đảo ngược, sẽ gây ngạc nhiên nếu thiếu ngữ cảnh, và là kết quả của một sự đánh đổi thật. Không có `design.md` thì không có ADR
+- **Thuật ngữ** trong `sk/context.md` — chỉ những từ delta/proposal thực sự định nghĩa và riêng cho dự án này
+
+Chạy không có ai trả lời (ví dụ tự động hoá) thì archive vẫn merge và chuyển như thường nhưng **bỏ qua hai thứ này** và in bản nháp ra để bạn áp dụng sau: ADR và glossary là bản ghi dài hạn duy nhất còn lại, không nên chứa lý do chưa ai đọc.
 
 Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
@@ -185,8 +192,10 @@ Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Clau
 |---|---|
 | `sk/config.yaml` | Mô tả dự án cho Claude: stack, lệnh build/test, tài liệu nên đọc, thông tin ADO |
 | `sk/specs/<nhóm>/spec.md` | **Đặc tả đang hiệu lực** — hệ thống hôm nay phải làm gì. Tích luỹ qua nhiều story |
-| `sk/changes/<id>/` | Một thay đổi đang làm dở |
-| `sk/changes/archive/<id>/` | Thay đổi đã xong |
+| `sk/changes/<id>/` | Một thay đổi đang làm dở — **có commit**, để đồng đội review và để kit thấy việc chưa archive của người khác |
+| `sk/changes/archive/<id>/` | Thay đổi đã xong — **chỉ nằm trên máy**, bị `.gitignore` |
+| `sk/adr/NNNN-<tên>.md` | Quyết định thiết kế đã chốt, ghi lại lúc archive |
+| `sk/context.md` | Bảng thuật ngữ riêng của dự án, cập nhật lúc archive |
 
 Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:propose` sinh ra:
 

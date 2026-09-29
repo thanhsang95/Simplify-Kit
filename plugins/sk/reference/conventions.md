@@ -11,6 +11,15 @@ sk/changes/<id>/specs/<capability>/spec.md   a delta against it
 
 `sk/specs/` is written only by `/sk:archive`. Nothing else edits it.
 
+Beside the specs, `/sk:archive` also keeps two records that outlive a change:
+
+```
+sk/adr/NNNN-<slug>.md     a design decision: hard to reverse, surprising without context, a real trade-off
+sk/context.md             the glossary of terms specific to this project
+```
+
+`sk/changes/archive/` is not committed, so after archiving these two and the merged spec are all that remain of a change. They are written from the change's `design.md`, spec delta and `proposal.md` — never invented — and only after a person has seen the draft. See `archive/SKILL.md`.
+
 ## Capability names
 
 A capability is a slice of behaviour a reader would recognise as one thing — `field-selector`, `catalog-download`, `edi-inbound`. Not a layer (`services`), not a file, not a sprint.
