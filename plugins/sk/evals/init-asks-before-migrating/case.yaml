@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: init-asks-before-migrating
+description: >-
+  On a workspace made by SimplifyKit 0.1.x, with a person present, /sk:init
+  lists what it found and the exact edits in one round and writes nothing until
+  they answer.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
