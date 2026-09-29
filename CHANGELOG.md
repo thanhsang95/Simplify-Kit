@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.2.0 — unreleased
+
+Planning is split into steps, after OpenSpec's `/opsx:continue`. `/sk:propose` used to write proposal, spec delta and tasks in one go, so the first thing a reviewer could check was a finished spec built on a reading of the acceptance criteria they had never seen.
+
+- **Breaking: `/sk:propose` now writes `proposal.md` only.** It still fetches the work item, picks Branch A or B, and follows `Related` and parent links in Branch B. It no longer writes the spec delta, `design.md` or `tasks.md`
+- **New `/sk:continue`** creates the next artifact — spec delta, then design, then tasks — and stops after one. There is no status command; what is done is read off the files on disk. `design.md` counts as done when it exists, or when `proposal.md` has a `## Design` section saying it was skipped and why
+- `proposal.md` gains an `**AC source:**` line (`work item`, `related`/`parent` after confirmation, `user, in conversation`, or `none yet`). `/sk:continue` reads it to know where the criteria live, and refuses to write a spec delta while it says `none yet`. When the user supplied criteria that are not on the board, their text goes under `## Acceptance criteria not on the board`, because it is the only copy
+- `/sk:continue` re-fetches the work item before writing the spec delta (REST, U+FFFD scan), since the board may have moved since `proposal.md` was written. It never starts a change: no `proposal.md`, no run
+- The "Planning boundary" paragraph now exists in both skills, extended with "never a second artifact in the same invocation". Its wording was measured for `propose` before this split; the `continue` copy is **not yet measured**
+- Evals: 13 → 16 cases. `propose-from-work-item` now asserts `proposal.md` exists, records `AC source`, and that no spec or tasks were written. The faithfulness, HTML-stripping and scenario graders moved to the new `continue-writes-spec-delta`; `propose-marks-ambiguous-ac` became `continue-marks-ambiguous-ac`; `propose-does-not-auto-apply` now also asserts neither `continue` nor `apply` fired. New: `continue-one-artifact-per-call` and `continue-refuses-without-ac`
+- Measured once each (`--runs 1`, so a smoke test, not a rate): `propose-from-work-item`, `continue-writes-spec-delta`, `continue-one-artifact-per-call`, `continue-refuses-without-ac` and `propose-does-not-auto-apply` all scored 1.00 (total ≈ $1.4). The new `exists: false` graders on glob paths work. `ac-faithfulness` passed on a split judge vote (FAIL PASS PASS)
+- **`continue-marks-ambiguous-ac` scores 0.75 and fails `selective-marking` (judge FAIL ×3). This predates the split**: the original `propose-marks-ambiguous-ac` on `main` fails the same grader identically in 2/2 runs. The skill marks criteria 1 (visible rows: page or all pages) and 2 (date time zone) as open questions, which the grader treats as over-marking of criteria it considers pinned down. Whether the grader or the skill is wrong is undecided and left open; it is not a regression from this change
+- Still unmeasured: the `continue` planning-boundary wording under adversarial requests (only `propose`'s was measured at scale), and the design-skipped path
+
 ## 0.1.1 — 2026-09-29
 
 Work items are read over REST instead of the `az` CLI, after a pilot on the real

@@ -49,3 +49,30 @@ cat > work-item-31200.json <<'EOF'
   "url": "https://example-org.visualstudio.com/_apis/wit/workItems/31200"
 }
 EOF
+
+mkdir -p sk/changes/us-31200-csv-export
+cat > sk/changes/us-31200-csv-export/proposal.md <<'EOF'
+# 31200 — Export product list to CSV
+
+**Work item:** https://example-org.visualstudio.com/CatalogPortal/_workitems/edit/31200
+**Type / State:** User Story / Active
+**AC source:** work item
+
+## Summary
+
+Catalog users can export the currently visible product rows to a CSV file.
+
+## Capabilities
+
+**Added:** csv-export — export the filtered product list
+
+## How the acceptance criteria were read
+
+Five criteria, one requirement each: row content, file name, retry on failure, progress for large exports, and who may export.
+
+## Assumptions
+
+## Open questions
+
+## Gaps
+EOF

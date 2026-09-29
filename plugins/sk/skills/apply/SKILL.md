@@ -1,6 +1,6 @@
 ---
 name: apply
-description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose already planned."
+description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
 metadata:
   author: Simplify
   version: "0.1.0"
@@ -26,7 +26,7 @@ Read all of these, from disk, even if you saw them earlier in this conversation 
 - `sk/changes/<id>/tasks.md`
 - `sk/config.yaml` — its `context` and `rules` apply while you implement
 
-If `tasks.md` is missing or has no tasks, stop and point the user at `/sk:propose`. Do not improvise a task list from the spec: the point of the checklist is that a human approved it.
+If `tasks.md` is missing or has no tasks, stop and point the user at `/sk:continue <id>` (or `/sk:propose` if there is no `proposal.md` either). Do not improvise a task list from the spec: the point of the checklist is that a human approved it.
 
 ## Step 3 — Report where you are
 

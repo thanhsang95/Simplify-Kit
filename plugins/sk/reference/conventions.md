@@ -1,6 +1,6 @@
 # Spec conventions
 
-How SimplifyKit writes specifications. Read by `/sk:propose` and `/sk:archive`.
+How SimplifyKit writes specifications. Read by `/sk:propose`, `/sk:continue` and `/sk:archive`.
 
 ## Where specs live
 

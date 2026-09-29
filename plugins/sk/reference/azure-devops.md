@@ -1,6 +1,6 @@
 # Reading an Azure DevOps work item
 
-Used by `/sk:propose`. Azure DevOps is **read-only** throughout SimplifyKit: no comments, no new work items, no state changes, regardless of what is asked.
+Used by `/sk:propose` and `/sk:continue` (which re-fetches the work item before writing a spec delta). Azure DevOps is **read-only** throughout SimplifyKit: no comments, no new work items, no state changes, regardless of what is asked.
 
 Every rule here exists because it has already gone wrong on this org's real data. None of it is optional polish.
 

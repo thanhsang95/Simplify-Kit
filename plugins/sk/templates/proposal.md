@@ -2,6 +2,13 @@
 
 **Work item:** <full URL>
 **Type / State:** <User Story | Bug | Task> / <state>
+**AC source:** <work item | related AB#<id>, confirmed | parent AB#<id>, narrowed | user, in conversation | none yet>
+
+<!--
+`/sk:continue` reads the AC source line to know where the criteria live, and
+refuses to write a spec delta while it says "none yet". Only when the source is
+"user, in conversation" is there a section below holding the text itself.
+-->
 
 ## Summary
 
@@ -29,6 +36,12 @@ reconstructing it.
 -->
 
 <How AC were grouped into requirements and scenarios, when it needed judgement.>
+
+## Acceptance criteria not on the board
+
+<!-- Only when the AC source is "user, in conversation". Drop otherwise. -->
+
+<The criteria as the user gave them.>
 
 ## Comments that override the description
 
@@ -60,6 +73,15 @@ close a gap is not.
 -->
 
 - <the criterion, and what is unclear about it>
+
+## Design
+
+<!--
+Written by /sk:continue only when it decides no design.md is needed, so the next
+invocation knows that artifact is done. Drop when design.md exists.
+-->
+
+Skipped — <the reason>.
 
 ## Impact
 

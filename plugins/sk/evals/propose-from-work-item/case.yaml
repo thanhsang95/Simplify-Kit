@@ -1,8 +1,9 @@
 schema_version: "1.1"
 name: propose-from-work-item
 description: >-
-  /sk:propose turns a work item's acceptance criteria into a spec delta and
-  tasks, strips the HTML they arrive in, and touches no project code.
+  /sk:propose reads a work item and writes proposal.md only — it records where
+  the acceptance criteria live, writes no spec delta or tasks, and touches no
+  project code.
 tags: [wi]
 context:
   scaffold_script: fixture.sh

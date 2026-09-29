@@ -3,7 +3,7 @@ Implementation checklist. /sk:apply works this list top to bottom and ticks
 each box as the specified behaviour lands.
 
 Write tasks a reviewer can judge as done or not done. "Explore the codebase"
-and "make a plan" are not tasks — that work happened during /sk:propose. A
+and "make a plan" are not tasks — that work happened during /sk:propose and /sk:continue. A
 follow-up investigation is a task only when it names the specific question
 left open.
 -->
