@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 # A planned change, fully specified, with every task still open.
 #
+# "Fully specified" includes the data: task 1.1 lists the attributes and task
+# 1.2 the group labels. Without them /sk:apply correctly stops to ask instead of
+# inventing values, and the case scores 0 on a run where nothing is wrong with
+# the skill. Measured: 0/3 on the fixture as it was, on both 0.1.1 and 0.2.0.
 # Task 1.1 requires a NEW file outside sk/ — that is deliberate: file_exists
 # only sees files created during the run, and the write-path grader needs a
 # legitimate write outside sk/ to prove its pattern matches anything at all.
@@ -73,6 +77,6 @@ EOF
 cat > "$CHANGE/tasks.md" <<'EOF'
 ## 1. Attribute source
 
-- [ ] 1.1 Add `src/attribute-fields.ts` exporting `listAttributeFields()`, returning system-defined attributes with `key` and `label`
-- [ ] 1.2 Extend `listStandardFields` usage in `src/field-selector.ts` with a `listSelectableFields()` export that returns standard fields and attributes as two labelled groups
+- [ ] 1.1 Add `src/attribute-fields.ts` exporting `listAttributeFields()`, returning exactly these system-defined attributes as `{ key, label }`: `brand` / "Brand", `sku` / "SKU", `weight_kg` / "Weight (kg)"
+- [ ] 1.2 Extend `listStandardFields` usage in `src/field-selector.ts` with a `listSelectableFields()` export that returns two groups, `{ label: 'Standard fields', fields }` then `{ label: 'Attributes', fields }`
 EOF

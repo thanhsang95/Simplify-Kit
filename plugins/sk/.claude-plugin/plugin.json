@@ -1,7 +1,7 @@
 {
   "name": "sk",
   "displayName": "SimplifyKit",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Spec-driven workflow for Claude Code: read an Azure DevOps work item, turn its acceptance criteria into a spec delta and tasks, implement, then merge the delta into the living spec.",
   "author": {
     "name": "Simplify"

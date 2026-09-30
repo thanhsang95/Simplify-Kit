@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages four skills (`/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
+SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages five skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
 
 Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for maintainer structure before making non-trivial changes.
 
@@ -14,10 +14,10 @@ Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for mai
 .claude-plugin/marketplace.json      marketplace "simplify"
 plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
-  skills/{init,propose,apply,archive}/SKILL.md
+  skills/{init,propose,continue,apply,archive}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
   reference/                         conventions.md, azure-devops.md, playbook-mapping.md — read by skills at runtime
-  evals/                             claude plugin eval suite (13 cases)
+  evals/                             claude plugin eval suite (23 cases)
 ```
 
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
@@ -39,20 +39,23 @@ Editing one without checking the other two is the easiest way to break this repo
 - `description` must start with `"SimplifyKit (sk):"` and state when to use it — this is what lets Claude Code pick the skill over other installed skills without the user typing its name.
 - Keep `SKILL.md` short; push detail into `reference/`.
 - If a rule exists because of a real observed failure, say so inline — an unexplained rule gets "simplified" away by someone later.
+- Planning is split in two steps: `/sk:propose` writes `proposal.md` only; `/sk:continue` then writes one artifact per invocation (spec delta → design → tasks), deriving what is done from the files on disk — there is no status CLI. `/sk:continue` never starts a change and refuses a spec delta while `proposal.md` says `**AC source:** none yet`
+- The "Planning boundary" paragraph appears in both `propose` and `continue`. Its wording was measured against real violations (see `CHANGELOG.md`), so change both together and re-run `propose-does-not-auto-apply`
 - `/sk:propose` only accepts `AB#<id>` or a work item URL — never a bare integer, since bare numbers already mean PR id in this repo's own conventions.
 - `/sk:archive` is the only skill with a destructive operation (directory move, full-block requirement replacement); it validates everything before writing anything (see `plugins/sk/skills/archive/SKILL.md`).
+- In a consuming repo `sk/changes/archive/` is gitignored (set up by `/sk:init`) but open changes under `sk/changes/<id>/` are committed — ignoring all of `sk/changes/` breaks teammates' review and the cross-change checks in `propose` and `archive`. Because the archive is local-only, `/sk:archive` writes the rationale that would otherwise vanish to `sk/adr/` and `sk/context.md`, only after a person confirms, never unattended. It also must not `git mv` into the ignored archive: that stages the copy despite the ignore rule.
 
 ## Verifying a change (cheap → expensive)
 
 1. **Always cheap:**
    ```bash
-   claude plugin validate    # run from plugins/sk
+   claude plugin validate .  # run from plugins/sk; the path argument is required
    ```
    Also spot-check the two manifests parse as JSON (`.claude-plugin/marketplace.json`, `plugins/sk/.claude-plugin/plugin.json`) and that every `SKILL.md` frontmatter `name` matches its directory.
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 13 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 23 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case

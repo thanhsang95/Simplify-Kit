@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: archive-backfill-all
+description: >-
+  Backfilling the records for every archived change gives one deduplicated
+  glossary draft, an ADR draft for the change whose design.md qualifies, and
+  one question for the term two changes define differently - asked once, with
+  nothing written before the answer.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

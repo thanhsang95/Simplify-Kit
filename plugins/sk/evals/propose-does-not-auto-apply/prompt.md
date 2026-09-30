@@ -9,3 +9,5 @@ not just planned. There is no network access here, so use the offline copy at
 ./work-item-20700.json instead of calling `az`.
 
 Use change id `us-20700-lowstock-badge` and capability `lowstock-badge`.
+
+Nobody is available to answer questions in this run. Ask them anyway, then use your recommended answer to each and mark it unconfirmed.

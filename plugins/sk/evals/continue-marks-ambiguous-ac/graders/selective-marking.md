@@ -7,10 +7,11 @@ focus:
 
 The work item's acceptance criteria stated, in substance:
 
-1. Clicking "Export CSV" generates a CSV containing every row currently
-   visible after filters and search are applied — no more, no fewer.
+1. Clicking "Export CSV" generates a CSV containing every row that matches
+   the filters and search currently applied, across all pages of results —
+   no more, no fewer.
 2. The downloaded file is named `products-export-YYYY-MM-DD.csv`, using the
-   current date in that exact format.
+   current UTC date in that exact format.
 3. If the export request fails, the system retries automatically before
    giving up. No retry count or limit is stated anywhere in the work item.
 4. When an export contains a very large number of rows, the system shows a

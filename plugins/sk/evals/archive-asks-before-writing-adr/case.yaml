@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: archive-asks-before-writing-adr
+description: >-
+  A finished change that has a design.md recording a real trade-off. With
+  nobody having said they cannot answer, /sk:archive drafts the ADR from it and
+  asks the person to confirm before merging or writing anything.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

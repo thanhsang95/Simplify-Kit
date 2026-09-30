@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: archive-already-archived-drafts-records
+description: >-
+  /sk:archive on a change that is already archived does not stop at "already
+  archived": it drafts the glossary terms (and an ADR if design.md qualifies)
+  and asks before writing, without merging or moving anything.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

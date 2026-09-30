@@ -43,9 +43,36 @@ cat > work-item-31200.json <<'EOF'
     "System.Title": "Make CSV export from the products list reliable",
     "System.AreaPath": "CatalogPortal\\Delivery",
     "System.Description": "<div>Exporting the products list to CSV sometimes fails silently on large catalogs, and admins have no indication it is working while it processes.</div>",
-    "Microsoft.VSTS.Common.AcceptanceCriteria": "<ol dir=ltr><li>When an administrator clicks &quot;Export CSV&quot; on the products list, the system generates a CSV file containing every row currently visible after all filters and search have been applied &mdash; no more rows and no fewer. </li><li>The downloaded file is named <code>products-export-YYYY-MM-DD.csv</code>, using the current date in that exact format. </li><li>If the export request fails, the system retries the request automatically before giving up. </li><li>When an export contains a very large number of rows, the system shows a progress indicator instead of blocking the UI. </li><li>Only users with the Catalog Manager role can trigger an export &mdash; the &quot;Export CSV&quot; button is not shown to anyone else. </li></ol>"
+    "Microsoft.VSTS.Common.AcceptanceCriteria": "<ol dir=ltr><li>When an administrator clicks &quot;Export CSV&quot; on the products list, the system generates a CSV file containing every row that matches the filters and search currently applied, across all pages of results &mdash; no more rows and no fewer. </li><li>The downloaded file is named <code>products-export-YYYY-MM-DD.csv</code>, using the current UTC date in that exact format. </li><li>If the export request fails, the system retries the request automatically before giving up. </li><li>When an export contains a very large number of rows, the system shows a progress indicator instead of blocking the UI. </li><li>Only users with the Catalog Manager role can trigger an export &mdash; the &quot;Export CSV&quot; button is not shown to anyone else. </li></ol>"
   },
   "relations": [],
   "url": "https://example-org.visualstudio.com/_apis/wit/workItems/31200"
 }
+EOF
+
+mkdir -p sk/changes/us-31200-csv-export
+cat > sk/changes/us-31200-csv-export/proposal.md <<'EOF'
+# 31200 — Export product list to CSV
+
+**Work item:** https://example-org.visualstudio.com/CatalogPortal/_workitems/edit/31200
+**Type / State:** User Story / Active
+**AC source:** work item
+
+## Summary
+
+Catalog users can export the currently visible product rows to a CSV file.
+
+## Capabilities
+
+**Added:** csv-export — export the filtered product list
+
+## How the acceptance criteria were read
+
+Five criteria, one requirement each: row content, file name, retry on failure, progress for large exports, and who may export.
+
+## Assumptions
+
+## Open questions
+
+## Gaps
 EOF

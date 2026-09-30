@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: continue-writes-spec-delta
+description: >-
+  /sk:continue reads the acceptance criteria named by proposal.md, writes them
+  as a spec delta with the HTML stripped, faithful to the source, and stops
+  before tasks — one artifact per invocation.
+tags: [wi]
+context:
+  scaffold_script: fixture.sh

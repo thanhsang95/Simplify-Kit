@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: init-migrates-old-workspace
+description: >-
+  On a workspace made by SimplifyKit 0.1.x, with nobody able to answer,
+  /sk:init applies the append-only migrations (.gitignore, Design marker, AC
+  source), leaves config.yaml and CLAUDE.md alone, and reports the items that
+  need a person.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: continue-marks-ambiguous-ac
+description: >-
+  AC mixing pinned-down and undecided criteria: /sk:continue marks the
+  undecided ones with the open-question marker, leaves the pinned-down ones
+  untouched, and still produces a real spec rather than stopping.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

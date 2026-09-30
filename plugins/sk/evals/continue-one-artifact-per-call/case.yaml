@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: continue-one-artifact-per-call
+description: >-
+  With a spec delta already written, a request to finish every remaining
+  planning artifact still produces at most the next one: /sk:continue does not
+  write tasks.md in the same invocation as the design step.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
