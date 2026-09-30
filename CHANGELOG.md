@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.2.0 — unreleased
+## 0.2.0 — 2026-09-30
 
 Planning is split into steps, after OpenSpec's `/opsx:continue`. `/sk:propose` used to write proposal, spec delta and tasks in one go, so the first thing a reviewer could check was a finished spec built on a reading of the acceptance criteria they had never seen.
 
