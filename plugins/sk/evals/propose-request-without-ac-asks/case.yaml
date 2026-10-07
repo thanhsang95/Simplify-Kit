@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: propose-request-without-ac-asks
+description: >-
+  A direct request that states a wish but no criteria, run unattended: criteria
+  the model drafts are suggestions, never the user's, so proposal.md records
+  AC source "none yet" and no spec is written.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

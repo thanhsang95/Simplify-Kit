@@ -1,6 +1,6 @@
-# <Work item id> — <Work item title>
+# <Work item id | req> — <Work item title | short title of the request>
 
-**Work item:** <full URL>
+**Work item:** <full URL | none — direct request>
 **Type / State:** <User Story | Bug | Task> / <state>
 **AC source:** <work item | related AB#<id>, confirmed | parent AB#<id>, narrowed | user, in conversation | none yet>
 
@@ -8,7 +8,17 @@
 `/sk:continue` reads the AC source line to know where the criteria live, and
 refuses to write a spec delta while it says "none yet". Only when the source is
 "user, in conversation" is there a section below holding the text itself.
+Drop the Type / State line for a direct request — there is no work item to have one.
 -->
+
+## Request
+
+<!--
+Only for a direct request (no work item): the request exactly as the user gave
+it. Nothing else holds it, so this is the only copy. Drop otherwise.
+-->
+
+<The request, verbatim.>
 
 ## Summary
 
@@ -18,7 +28,8 @@ refuses to write a spec delta while it says "none yet". Only when the source is
 This file is a pointer, not a restatement. The why and the what already live on
 the board; a second copy here only gives the two somewhere to drift apart.
 What belongs here is what the board does NOT hold: how the criteria were read,
-what was assumed, and what is still open.
+what was assumed, and what is still open. A direct request has no board, which
+is why its text is kept under ## Request above.
 -->
 
 ## Capabilities

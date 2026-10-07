@@ -3,7 +3,7 @@ name: continue
 description: "SimplifyKit (sk): create the next planning artifact of an existing change — spec delta, then design, then tasks — one per invocation, without touching project code. Use when the user says \"sk continue\", \"continue us-12345-...\", \"next artifact\", or has a change under sk/changes/ that /sk:propose started and wants it taken one step further. Planning only; implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 Create the next planning artifact of one change, then stop. **One artifact per invocation.**
@@ -50,9 +50,9 @@ Refuses to run while `proposal.md` records unresolved Gaps that mean the accepta
 **Read the acceptance criteria from where `proposal.md`'s `**AC source:**` line says they live**:
 
 - `work item` → fetch it again, following `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` exactly (REST, not `az boards`; strip HTML; read comments; **scan for U+FFFD before writing anything and stop if one is present**). The board keeps moving after `proposal.md` was written; this re-fetch is what keeps the delta from being built on stale text. A comment that now contradicts the acceptance criteria wins — record that in `proposal.md`
-- any other source → use the text `proposal.md` recorded under it. It is the only copy, because the board does not hold it
+- any other source → use the text `proposal.md` recorded under it. It is the only copy, because the board does not hold it. This includes a direct request (`**Work item:** none — direct request`): its criteria are under `## Acceptance criteria not on the board`, never in `## Request` itself or in suggestions still listed under Gaps
 
-Never invent the contents of a work item. If a fetch fails, report the real error and ask the user to paste the contents.
+Never invent the contents of a work item or of a request. If a fetch fails, report the real error and ask the user to paste the contents.
 
 Derive the delta from the split `proposal.md` records under "How the acceptance criteria were read". Read `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` for the full mapping rules. The three shapes you will meet:
 
@@ -92,7 +92,7 @@ Read the delta and, if present, `design.md`. Use `${CLAUDE_PLUGIN_ROOT}/template
 
 Show what was created, which of the four artifacts are now done, and what is next. Tell the user to review the file just written, then run `/sk:continue <change-id>` again for the next one — or `/sk:apply <change-id>` when planning is complete.
 
-**When `## Open questions` in `proposal.md` is non-empty, close with a numbered list ready to paste into the work item's comments** — one line per `Q<n>`, the question, and your suggested answer. This is response text only: it is never written to a file, it is never posted to Azure DevOps, and neither `/sk:apply` nor `/sk:archive` may depend on it existing — the marker in the delta is what actually blocks, not this list.
+**When `## Open questions` in `proposal.md` is non-empty, close with a numbered list ready to paste into the work item's comments** — one line per `Q<n>`, the question, and your suggested answer. For a direct request there is no work item to paste into: give the same list as questions for the user. This is response text only: it is never written to a file, it is never posted to Azure DevOps, and neither `/sk:apply` nor `/sk:archive` may depend on it existing — the marker in the delta is what actually blocks, not this list.
 
 ## Guardrails
 

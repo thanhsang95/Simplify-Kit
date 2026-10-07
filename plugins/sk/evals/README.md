@@ -1,6 +1,6 @@
 # Eval suite
 
-Twenty-three cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
+Twenty-eight cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
 
 ## Running it
 
@@ -11,7 +11,7 @@ claude plugin eval . --allow-tools Write Edit --scaffold --no-publish
 
 ### On Windows, put Git Bash ahead of WSL on PATH
 
-`scaffold_script` is a Bash script and twenty-two of twenty-three cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
+`scaffold_script` is a Bash script and twenty-seven of twenty-eight cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
 
 ```powershell
 $env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
@@ -27,7 +27,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 |---|---|---|---|
 | `wi` | `propose-from-work-item`, `continue-writes-spec-delta` | 8 each | 0.95 |
 | `init` | `init-sets-up-sk` | 6 | 0.85 |
-| `core` | the other twenty: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac` | 2–4 each | 0.8 |
+| `core` | the other twenty-five: `apply-implements-tasks`, `verify-reports-missing-requirement`, `verify-passes-complete-change`, `verify-flags-open-question`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac`, `propose-from-request`, `propose-request-without-ac-asks` | 2–4 each | 0.8 |
 
 `wi` sits at 0.95 deliberately. At 0.85 a grader that fails in **all three runs** still scores 7/8 = 0.875 and the case stays green — which would let the faithfulness and HTML-stripping graders (both in `continue-writes-spec-delta`) die unnoticed.
 
@@ -36,7 +36,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 - **`regex` targets one literal file.** Only `file_exists` takes a glob. That is why every prompt pins the change id and capability
 - **Regex is JavaScript without multiline.** `^` matches the start of the whole string, not of a line. Use `flags: m`, or drop the anchor
 - **`file_exists` counts files created during the run.** Anything the scaffold made, or the model only edited, is invisible to it
-- **`tool_used` counts calls that MATCH `input_match`.** A pattern broken so it matches nothing passes a `min: 0, max: 0` check. The write-path pattern in `propose-from-work-item`, `continue-writes-spec-delta`, `continue-one-artifact-per-call` and `propose-does-not-auto-apply` (all `min: 0, max: 0`) is therefore repeated verbatim in `apply-implements-tasks` with `min: 1`, where the run is supposed to write outside `sk/`. **Change one, change all five**
+- **`tool_used` counts calls that MATCH `input_match`.** A pattern broken so it matches nothing passes a `min: 0, max: 0` check. The write-path pattern in `propose-from-work-item`, `continue-writes-spec-delta`, `continue-one-artifact-per-call`, `propose-does-not-auto-apply` and the three `verify-*` cases (all `min: 0, max: 0`) is therefore repeated verbatim in `apply-implements-tasks` with `min: 1`, where the run is supposed to write outside `sk/`. **Change one, change all eight**
 - **`arm: both` only does something on a `tool_used: Skill` grader.** Elsewhere it is a no-op
 - **A case that needs a file written must say nobody can answer.** A run is one user message, and `propose`, `archive` and `init` now ask before writing. Prompts of cases that write end with "Nobody is available to answer questions in this run…"; cases that test the asking leave it out and assert that nothing was written
 - **The default also runs the without-plugin arm**, doubling the cost; a `--tag` run can hit `--max-cost-usd` and skip the remaining cases. For a reliable pass over many cases run each `--case` with `--ablation none`
@@ -51,7 +51,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 
 ## What this suite cannot tell you
 
-Each run loads only this plugin, so Claude sees five skills with full descriptions. In a real repository it may see ninety-five, truncated. Whether `sk:propose` wins that competition is not measurable here and is checked by hand in the host repo.
+Each run loads only this plugin, so Claude sees six skills with full descriptions. In a real repository it may see ninety-five, truncated. Whether `sk:propose` wins that competition is not measurable here and is checked by hand in the host repo.
 
 Each case is also one initial user message; the agent then runs on its own — tool calls, not further user turns — until it stops, asks a question, or hits `max_turns`/`timeout_seconds`. Nothing here can script a second user message. That rules out a *real* propose → apply handoff, where propose's actual output (not a fixture standing in for it) becomes apply's actual input in a later turn. `propose-does-not-auto-apply` tests the adjacent thing this runner **can** see in one turn: a request spanning both skills' territory still produces only one of them, because `propose`'s own guardrail refuses to chain into `continue` or `apply` without a new request. It proves the boundary holds; it does not prove a real handoff works once the user gives that new request.
 

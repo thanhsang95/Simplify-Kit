@@ -58,7 +58,7 @@ For each unchecked task:
 
 Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn. Suggest running the repository's own build and tests — `sk` does not define its own; use what `sk/config.yaml` records.
 
-When every task is ticked, tell the user the change is ready for `/sk:archive`, which merges its spec delta into `sk/specs/`.
+When every task is ticked, tell the user the next step is `/sk:verify <change-id>`, which checks the code against the spec delta without changing anything, and then `/sk:archive`, which merges the delta into `sk/specs/`. Verifying is recommended, not required.
 
 ## Guardrails
 

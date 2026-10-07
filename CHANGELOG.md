@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.4.0 — 2026-10-07
+
+New `/sk:verify`: a read-only check of a change's implementation against its own artifacts, between `/sk:apply` and `/sk:archive`. It fills the Stage 4 gap `reference/playbook-mapping.md` recorded ("There is no `/sk:verify` yet").
+
+- **Adapted from OpenSpec's `openspec-verify-change`** (MIT): the three dimensions — Completeness (tasks, requirements backed by code), Correctness (scenarios handled and tested), Coherence (`design.md`, `sk/config.yaml` → `rules`) — the CRITICAL / WARNING / SUGGESTION severities, the "when unsure, rank lower" rule and graceful degradation. The CLI parts (`openspec status`, `openspec instructions`, store selection) are dropped; artifacts are read from disk as `/sk:apply` does
+- **Two ideas from `mattpocock/skills`' `code-review`** (MIT): review the diff since a fixed point (default: the merge-base with the main branch) instead of keyword-searching the whole codebase, and report behaviour no requirement or task asked for — where scope `/sk:apply` should have surfaced shows up when it was absorbed. Without a shell it reads the code the tasks point at and says the scope check was skipped
+- A ticked task with no code behind it is CRITICAL: the checkbox is the claim, verify is where it is checked. Open-question markers still in the delta are reported as CRITICAL because `/sk:archive` will stop on them, with every `(built on Q<n>)` task listed
+- **Not a gate.** `/sk:archive` is unchanged and does not require it; verify does not repeat archive's merge checks (scenario count, conflicts), so the `MODIFIED` invariant still lives in exactly three places. It writes nothing, ticks nothing, and never invokes `/sk:apply` or `/sk:archive`
+- `/sk:apply` now suggests `/sk:verify` before `/sk:archive`; `/sk:init` lists it in the section it appends to `CLAUDE.md` (existing workspaces need no migration — the skill is found by its description)
+- Evals: 25 → 28 cases, all `core`, all asserting nothing is written or edited (reusing the write/edit-outside-`sk/` pattern whose canary is in `apply-implements-tasks`). `verify-reports-missing-requirement`: every task ticked, one of two requirements absent from the code → flagged critical, not ready for archive. `verify-passes-complete-change`: the same change actually finished → no critical issue, ready for archive; without it a verify that always says "not ready" would pass, and a reviewer whose alarms are false gets ignored. `verify-flags-open-question`: built and tested, but `[[OPEN:Q1]]` left in the delta → critical because `/sk:archive` stops on it, naming Q1 and the task built on it, without resolving it
+- Measured once each (`--runs 1 --ablation none`, so a smoke test, not a rate): `verify-reports-missing-requirement` 1.00 (judge PASS×3; the transcript shows it read `conventions.md` through `${CLAUDE_PLUGIN_ROOT}`, announced the no-shell path, and scored 1/2 requirements), `verify-passes-complete-change` 1.00 (2/2 requirements, 3/3 scenarios, no critical), `verify-flags-open-question` 1.00 (Q1 critical at `spec.md:11`), and the regression/canary case `apply-implements-tasks` 1.00 (Write outside `sk/` 1×, so the reused pattern still matches); total ≈ $0.77
+- Still manual: the shell path (diff, merge-base, the scope check, running the test command), which eval runs on Windows cannot reach
+- Research behind the choice, and which other `mattpocock/skills` are worth adapting next: `docs/research/mattpocock-skills-integration.md`
+
+## 0.3.0 — 2026-10-07
+
+`/sk:propose` accepts a direct request, for work that has no work item — refactors, tech debt, spikes, or work not yet on the board. The work item path is unchanged.
+
+- **New Branch R in `/sk:propose`.** Only when the user explicitly invokes the command with a request (`/sk:propose <request>`, "sk propose: …"); a feature described in ordinary conversation still starts nothing. That is what kept this out before — competing with other planning skills (`docs/PLAN.md` risk 6) — so the skill description is deliberately not widened to fire on any feature description. Change id is `req-<slug>`; a bare integer is still asked about as a possible PR id
+- **Criteria must be the user's.** Criteria stated in the request are used as written (`**AC source:** user, in conversation`, text under `## Acceptance criteria not on the board`). When the request states none, `propose` suggests criteria as grilling questions; until a person confirms them `**AC source:**` stays `none yet`, the suggestions go under Gaps, and `/sk:continue` refuses a spec delta. This is the one exception to the unattended `unconfirmed` fallback: criteria nobody wrote are not a reading to review later
+- `templates/proposal.md` gains `## Request` (the request verbatim — the only copy, since no board holds it) and a `**Work item:** none — direct request` form without the Type / State line. `/sk:continue` reads a direct request's criteria from `proposal.md` like any non-board source, and gives open questions to the user instead of "paste into the work item's comments". `/sk:archive` accepts the recorded request as the source for a glossary `_Avoid_` word. `/sk:init` mentions the new entry in its close-out. No workspace migration is needed
+- Evals: 23 → 25 cases, both `core`. `propose-from-request` (criteria in the request → `user, in conversation`, request and criteria recorded) and `propose-request-without-ac-asks` (a wish with no criteria, unattended → `none yet`, no spec, suggestions not presented as agreed)
+- Measured once each (`--runs 1 --ablation none`, so a smoke test, not a rate): `propose-from-request`, `propose-request-without-ac-asks` (judge PASS×3), and the regression cases `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-from-work-item`, `propose-missing-ac-asks`, `continue-refuses-without-ac` all scored 1.00 (total ≈ $1.5)
+- Still manual: whether an ordinary feature description in a real repository, with many skills installed, leaves `sk:propose` alone
+
 ## 0.2.0 — 2026-09-30
 
 Planning is split into steps, after OpenSpec's `/opsx:continue`. `/sk:propose` used to write proposal, spec delta and tasks in one go, so the first thing a reviewer could check was a finished spec built on a reading of the acceptance criteria they had never seen.
@@ -220,6 +245,8 @@ First round. Four commands: `/sk:init`, `/sk:propose`, `/sk:apply`, `/sk:archive
 - [x] **`propose-does-not-auto-apply/fixture.sh` reviewed** when it was added. Work item 20700 and its low-stock badge story are invented; org `example-org.visualstudio.com` and project `CatalogPortal` match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
 
 - [x] **`propose-related-item-fills-gap/fixture.sh` reviewed** when it was added. Work items 20800 and 20801 and their bulk-export story are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
+
+- [x] **The three `verify-*/fixture.sh` reviewed** when they were added. They carry no work item HTML: `us-12345-field-selector` reuses the invented change from `apply-implements-tasks`, and work item 20001 with its CSV-retry story is invented, after `archive-blocks-open-question`. Org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
 
 - [x] **`propose-related-item-is-noise/fixture.sh` reviewed** when it was added. Work items 21000 and 21001 and their expiry-filter/dark-mode stories are invented; org and project match the invented names already used elsewhere. No personal names, emails, customer names or contract identifiers.
 

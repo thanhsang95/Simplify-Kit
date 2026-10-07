@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: verify-flags-open-question
+description: >-
+  /sk:verify reports an open-question marker left in the delta as blocking
+  /sk:archive, names the question and the task built on it, and resolves
+  nothing itself.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

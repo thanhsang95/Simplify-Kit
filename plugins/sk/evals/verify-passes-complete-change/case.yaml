@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: verify-passes-complete-change
+description: >-
+  /sk:verify finds nothing critical in a change whose requirements are all
+  implemented and tested, and says it is ready for /sk:archive.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
