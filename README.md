@@ -192,9 +192,25 @@ Nó đọc `tasks.md`, làm từng task theo thứ tự, và với mỗi task: s
 
 Nó sẽ **dừng lại hỏi** nếu task mơ hồ, nếu phát hiện lỗ hổng trong kế hoạch, hoặc nếu việc cần làm vượt quá những gì đặc tả mô tả — thay vì tự quyết rồi làm tắt.
 
-Xong thì chạy build/test của dự án như bình thường — kit không tự chạy hộ.
+Xong thì chạy build/test của dự án như bình thường, hoặc để `/sk:verify` chạy lệnh test ghi trong `sk/config.yaml` ở bước sau.
 
-### 4. Đóng lại — `/sk:archive`
+### 4. Kiểm — `/sk:verify`
+
+```
+/sk:verify us-12345-<tên-ngắn>
+```
+
+Trước khi archive, lệnh này so code với chính những gì change đã hứa và **chỉ báo cáo, không sửa gì**: không đổi code, không đụng artifact, không tick hay bỏ tick task. Nó kiểm ba chiều:
+
+- **Completeness** — mọi task đã tick chưa, và mỗi requirement có code thật đứng sau không. Tick rồi mà không có code vẫn bị báo, vì ô đã tick chỉ là một lời khẳng định
+- **Correctness** — mỗi scenario có được code xử lý và có test chưa; diff có làm thêm thứ gì mà không requirement nào yêu cầu; còn open question nào khiến `/sk:archive` sẽ dừng
+- **Coherence** — code có theo `design.md` và các `rules` trong `sk/config.yaml` không
+
+Mỗi vấn đề được xếp mức CRITICAL (phải sửa trước khi archive), WARNING hoặc SUGGESTION, kèm `file:dòng` và một việc cụ thể cần làm. Có shell thì nó so trên diff từ merge-base với nhánh chính và chạy lệnh test ghi trong `sk/config.yaml`. Không có shell thì nó đọc code theo tasks và delta, và nói rõ đã bỏ qua phần nào.
+
+Bước này nên chạy, nhưng không bắt buộc: `/sk:archive` không đòi phải verify trước, và vẫn tự chạy các kiểm tra merge của nó.
+
+### 5. Đóng lại — `/sk:archive`
 
 ```
 /sk:archive us-12345-<tên-ngắn>

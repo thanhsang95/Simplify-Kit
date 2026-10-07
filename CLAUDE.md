@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages five skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
+SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages six skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:verify`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
 
 Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for maintainer structure before making non-trivial changes.
 
@@ -14,10 +14,10 @@ Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for mai
 .claude-plugin/marketplace.json      marketplace "simplify"
 plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
-  skills/{init,propose,continue,apply,archive}/SKILL.md
+  skills/{init,propose,continue,apply,verify,archive}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
   reference/                         conventions.md, azure-devops.md, playbook-mapping.md — read by skills at runtime
-  evals/                             claude plugin eval suite (25 cases)
+  evals/                             claude plugin eval suite (28 cases)
 ```
 
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
@@ -55,7 +55,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 25 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 28 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case

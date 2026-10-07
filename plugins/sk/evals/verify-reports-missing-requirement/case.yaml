@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: verify-reports-missing-requirement
+description: >-
+  /sk:verify reports a requirement with no implementation as critical even
+  though every task is ticked, and writes nothing.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

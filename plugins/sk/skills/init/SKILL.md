@@ -67,7 +67,7 @@ Find the repository's Claude Code instructions in this order and use the **first
 
 **Append** a short section to it. Never overwrite, never reflow the existing content, never reorder it. If neither file exists, create `./CLAUDE.md` containing only the new section.
 
-The appended section should say what `sk/` is, list the four commands, and state when to use them — a handful of lines, not a manual. The details live in this plugin, not in the host repo.
+The appended section should say what `sk/` is, list the commands (`/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:verify`, `/sk:archive`), and state when to use them — a handful of lines, not a manual. The details live in this plugin, not in the host repo.
 
 ## Step 6 — Report a planning-system conflict, do not resolve it
 

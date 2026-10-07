@@ -8,7 +8,7 @@ Dành cho người bảo trì SimplifyKit. Người dùng kit thì đọc `READM
 .claude-plugin/marketplace.json     khai báo marketplace `simplify`
 plugins/sk/
   .claude-plugin/plugin.json        manifest: tên, version, mô tả
-  skills/{init,propose,continue,apply,archive}/SKILL.md
+  skills/{init,propose,continue,apply,verify,archive}/SKILL.md
   templates/                        khung file mà skill copy vào repo người dùng
   reference/                        tài liệu skill đọc lúc chạy
   evals/                            bộ test hành vi
