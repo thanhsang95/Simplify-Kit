@@ -19,3 +19,6 @@ docs/PLAN.md
 
 # Internal room protocol, not part of the kit
 docs/WORKSPACE_PROTOCOL.md
+.agents/
+.claude/
+skills-lock.json
