@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: propose-from-request
+description: >-
+  Explicitly invoked with a direct request that states its own acceptance
+  criteria, /sk:propose starts a req- change, keeps the request verbatim and
+  records the user's criteria as the AC source — with no work item involved.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

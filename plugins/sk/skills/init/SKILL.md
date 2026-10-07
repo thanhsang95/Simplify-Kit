@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 Set up the `sk/` workspace for SimplifyKit in the current repository.
@@ -73,13 +73,13 @@ The appended section should say what `sk/` is, list the four commands, and state
 
 Check `.claude/rules/` for rules that already mandate a planning workflow — for example a rule that requires delegating to a `planner` agent and writing plans into a different directory.
 
-If you find one, **report it**: name the file, quote the line, and tell the user that until a person adds an exception to that rule for work that starts from an Azure DevOps work item, that rule still wins and `/sk:apply` will be competing with it.
+If you find one, **report it**: name the file, quote the line, and tell the user that until a person adds an exception to that rule for work that goes through `/sk:propose`, that rule still wins and `/sk:apply` will be competing with it.
 
 Do not edit `.claude/rules/`. Do not add a new rule file to out-vote the existing one — precedence between two rule files in the same directory is undefined, so a second file adds a second voice rather than an answer. This is a repository configuration change and it belongs to whoever owns the repository.
 
 ## Step 7 — Close out
 
-Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>`.
+Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>` — or `/sk:propose <request>` for work that has no work item.
 
 ## Migrating an existing workspace
 

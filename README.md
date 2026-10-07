@@ -2,11 +2,11 @@
 
 Bộ lệnh cho Claude Code giúp bạn đi từ **một User Story trên Azure DevOps** đến code đã xong, mà không phải viết lại yêu cầu lần thứ hai.
 
-Bạn đưa nó mã work item. Nó đọc acceptance criteria từ board, viết ra bản đặc tả và danh sách việc cần làm, bạn xem lại, rồi nó làm. Những gì nó viết ra đều là file markdown nằm trong repo — review được trên PR như mọi thay đổi khác.
+Bạn đưa nó mã work item — hoặc, với việc không có work item, gọi `/sk:propose` kèm yêu cầu viết trực tiếp. Nó đọc acceptance criteria từ board, viết ra bản đặc tả và danh sách việc cần làm, bạn xem lại, rồi nó làm. Những gì nó viết ra đều là file markdown nằm trong repo — review được trên PR như mọi thay đổi khác.
 
 ## Khái niệm cốt lõi
 
-SimplifyKit tách rời hai thứ: một **bản đặc tả sống lâu dài**, ghi hệ thống hôm nay phải làm gì; và một **thay đổi đang đề xuất**, chỉ ghi phần chênh lệch mà một User Story mới thêm vào. Tới khi bạn duyệt xong, thay đổi mới gộp vào đặc tả. Mô hình specs/changes này gần với OpenSpec — khác ở chỗ đầu vào luôn là một work item Azure DevOps thật, không phải một đề xuất người dùng tự viết từ đầu:
+SimplifyKit tách rời hai thứ: một **bản đặc tả sống lâu dài**, ghi hệ thống hôm nay phải làm gì; và một **thay đổi đang đề xuất**, chỉ ghi phần chênh lệch mà một User Story mới thêm vào. Tới khi bạn duyệt xong, thay đổi mới gộp vào đặc tả. Mô hình specs/changes này gần với OpenSpec — khác ở chỗ đầu vào chính là một work item Azure DevOps thật; yêu cầu viết trực tiếp là cửa phụ, chỉ mở khi bạn gọi rõ lệnh:
 
 ```mermaid
 flowchart LR
@@ -145,6 +145,21 @@ sk/changes/us-12345-<tên-ngắn>/
 
 Work item không có AC thì `proposal.md` ghi `AC source: none yet` cùng mục Gaps, và `/sk:continue` sẽ không viết spec cho tới khi giải quyết xong.
 
+#### Việc không có work item — yêu cầu trực tiếp
+
+Refactor, tech debt, spike, hay việc chưa kịp lên board:
+
+```
+/sk:propose Xuất báo cáo tồn kho ra CSV. Khi quá 10.000 dòng thì gửi file qua email thay vì tải trực tiếp.
+```
+
+Phần còn lại giống hệt luồng work item: hỏi `G1`, `G2`…, ghi `proposal.md` rồi dừng. Khác biệt:
+
+- Change-id là `req-<tên-ngắn>` (ví dụ `req-inventory-csv-export`), không có số
+- `proposal.md` chép **nguyên văn** yêu cầu vào `## Request` — không có board nào giữ hộ, nên đây là bản duy nhất
+- **AC phải là của bạn.** Tiêu chí bạn viết trong yêu cầu được dùng luôn (`AC source: user, in conversation`). Yêu cầu không có tiêu chí ("làm cho tải báo cáo nhanh hơn") thì nó đề xuất AC dưới dạng câu hỏi, và chỉ dùng sau khi bạn xác nhận. Chạy tự động không ai xác nhận thì ghi `AC source: none yet`, và `/sk:continue` sẽ không viết spec — khác với các quyết định khác, AC do model tự soạn không bao giờ được ghi `unconfirmed` rồi đi tiếp
+- Chỉ kích hoạt khi bạn **gọi rõ** `/sk:propose` (hoặc nói "sk propose …"). Mô tả một tính năng trong lúc trò chuyện bình thường sẽ không tạo change nào
+
 ### 2. Đọc `proposal.md`, rồi đi tiếp từng bước — `/sk:continue`
 
 Mở `proposal.md`: nó nhóm AC thành các requirement như thế nào? Có AC nào bị bỏ sót, hoặc nhóm sai? Sửa thẳng vào file, hoặc nói cho nó sửa. Xong thì:
@@ -280,7 +295,7 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 
 - **Không sửa code ở bước `propose` hay `continue`, và không viết hai artifact trong một lần gọi** — kể cả khi bạn yêu cầu trong cùng câu lệnh
 - **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state. Cập nhật board vẫn là việc của bạn
-- **Không nhận mô tả tự do** — `/sk:propose` cần `AB#<id>` hoặc URL work item. Việc không có work item (refactor, tech debt, spike) thì dùng cách bạn vẫn làm
+- **Không tự nhận mô tả tự do** — một yêu cầu không có work item chỉ thành change khi bạn gọi rõ `/sk:propose <yêu cầu>`, và AC của nó phải do bạn viết hoặc xác nhận
 - **Không nhận số trần** — `12345` là mơ hồ, vì trong repo này số trần đã mang nghĩa mã PR. Gõ `AB#12345`
 
 ## Gỡ rối
@@ -289,7 +304,8 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 |---|---|
 | Không thấy lệnh `/sk:*` nào | Plugin đang tắt: `claude plugin list` rồi `claude plugin enable sk@simplify` |
 | `/sk:propose` bảo chạy `/sk:init` trước | Repo chưa có `sk/`. Chạy `/sk:init`. Kit cố ý không tự tạo `sk/` |
-| Nó hỏi lại thay vì viết đặc tả | Work item thiếu acceptance criteria. Đây là hành vi đúng |
+| Nó hỏi lại thay vì viết đặc tả | Work item thiếu acceptance criteria, hoặc yêu cầu trực tiếp chưa có tiêu chí bạn viết/xác nhận. Đây là hành vi đúng |
+| `proposal.md` của change `req-…` ghi `AC source: none yet` | Yêu cầu không có tiêu chí và chưa ai xác nhận AC nó đề xuất (thường do chạy tự động). Chạy lại `/sk:propose req-…` và xác nhận các tiêu chí trong mục Gaps |
 | Nó báo lỗi khi đọc work item | Kiểm `az login`, và `ado.orgUrl` trong `sk/config.yaml` có đúng URL đầy đủ không |
 | `/sk:propose` hỏi mà không ghi file | Đúng thiết kế: nó chờ bạn xác nhận. Không có ai trả lời được (script) thì nói rõ trong yêu cầu, nó sẽ ghi đáp án đề xuất và đánh dấu `unconfirmed` |
 | `git status` hiện `sk/changes/archive/` là untracked | Repo chưa ignore nó: chạy lại `/sk:init` (nó sẽ đề xuất thêm dòng vào `.gitignore`) |

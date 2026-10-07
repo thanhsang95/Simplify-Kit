@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0 — 2026-10-07
+
+`/sk:propose` accepts a direct request, for work that has no work item — refactors, tech debt, spikes, or work not yet on the board. The work item path is unchanged.
+
+- **New Branch R in `/sk:propose`.** Only when the user explicitly invokes the command with a request (`/sk:propose <request>`, "sk propose: …"); a feature described in ordinary conversation still starts nothing. That is what kept this out before — competing with other planning skills (`docs/PLAN.md` risk 6) — so the skill description is deliberately not widened to fire on any feature description. Change id is `req-<slug>`; a bare integer is still asked about as a possible PR id
+- **Criteria must be the user's.** Criteria stated in the request are used as written (`**AC source:** user, in conversation`, text under `## Acceptance criteria not on the board`). When the request states none, `propose` suggests criteria as grilling questions; until a person confirms them `**AC source:**` stays `none yet`, the suggestions go under Gaps, and `/sk:continue` refuses a spec delta. This is the one exception to the unattended `unconfirmed` fallback: criteria nobody wrote are not a reading to review later
+- `templates/proposal.md` gains `## Request` (the request verbatim — the only copy, since no board holds it) and a `**Work item:** none — direct request` form without the Type / State line. `/sk:continue` reads a direct request's criteria from `proposal.md` like any non-board source, and gives open questions to the user instead of "paste into the work item's comments". `/sk:archive` accepts the recorded request as the source for a glossary `_Avoid_` word. `/sk:init` mentions the new entry in its close-out. No workspace migration is needed
+- Evals: 23 → 25 cases, both `core`. `propose-from-request` (criteria in the request → `user, in conversation`, request and criteria recorded) and `propose-request-without-ac-asks` (a wish with no criteria, unattended → `none yet`, no spec, suggestions not presented as agreed)
+- Measured once each (`--runs 1 --ablation none`, so a smoke test, not a rate): `propose-from-request`, `propose-request-without-ac-asks` (judge PASS×3), and the regression cases `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-from-work-item`, `propose-missing-ac-asks`, `continue-refuses-without-ac` all scored 1.00 (total ≈ $1.5)
+- Still manual: whether an ordinary feature description in a real repository, with many skills installed, leaves `sk:propose` alone
+
 ## 0.2.0 — 2026-09-30
 
 Planning is split into steps, after OpenSpec's `/opsx:continue`. `/sk:propose` used to write proposal, spec delta and tasks in one go, so the first thing a reviewer could check was a finished spec built on a reading of the acceptance criteria they had never seen.

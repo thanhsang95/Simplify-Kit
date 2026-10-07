@@ -1,6 +1,6 @@
 # Eval suite
 
-Twenty-three cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
+Twenty-five cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
 
 ## Running it
 
@@ -11,7 +11,7 @@ claude plugin eval . --allow-tools Write Edit --scaffold --no-publish
 
 ### On Windows, put Git Bash ahead of WSL on PATH
 
-`scaffold_script` is a Bash script and twenty-two of twenty-three cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
+`scaffold_script` is a Bash script and twenty-four of twenty-five cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
 
 ```powershell
 $env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
@@ -27,7 +27,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 |---|---|---|---|
 | `wi` | `propose-from-work-item`, `continue-writes-spec-delta` | 8 each | 0.95 |
 | `init` | `init-sets-up-sk` | 6 | 0.85 |
-| `core` | the other twenty: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac` | 2–4 each | 0.8 |
+| `core` | the other twenty-two: `apply-implements-tasks`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac`, `propose-from-request`, `propose-request-without-ac-asks` | 2–4 each | 0.8 |
 
 `wi` sits at 0.95 deliberately. At 0.85 a grader that fails in **all three runs** still scores 7/8 = 0.875 and the case stays green — which would let the faithfulness and HTML-stripping graders (both in `continue-writes-spec-delta`) die unnoticed.
 

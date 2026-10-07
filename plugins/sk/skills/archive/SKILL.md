@@ -3,7 +3,7 @@ name: archive
 description: "SimplifyKit (sk): close a finished change — merge its spec delta into the living spec under sk/specs/, record its design decision as an ADR and its new terms in sk/context.md, and move the change into sk/changes/archive/. Use when the user says \"sk archive\", \"archive the change\", or a change's tasks are all complete and its requirements should become part of the project's specification. Also \"sk archive backfill\", or an id that is already archived: writes the ADR and glossary records for changes archived earlier, without merging or moving anything."
 metadata:
   author: Simplify
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 Merge a finished change's spec delta into `sk/specs/`, record what the merge alone would lose (an ADR, glossary terms), then move the change into `sk/changes/archive/`.
@@ -69,7 +69,7 @@ Only once every check above has passed. **Still writes nothing.**
 `sk/changes/archive/` is gitignored (`/sk:init` sets that up), so once this command finishes, the merged spec is all git keeps of the change. Its `design.md` — the only place the reason for a trade-off is written down — and the terms it introduced would vanish with it. Two records are therefore written under `sk/`, both committed:
 
 - **An ADR**, `sk/adr/NNNN-<slug>.md`, from `sk/changes/<id>/design.md`. **No `design.md`, no ADR.** With one, all three must hold or you skip it and say which failed: the decision is *hard to reverse*; it is *surprising without context* (a reader would wonder why it was done this way); it is *the result of a real trade-off* (genuine alternatives, chosen for stated reasons). Use `${CLAUDE_PLUGIN_ROOT}/templates/adr.md`. Number it one above the highest under `sk/adr/`, four digits, starting at `0001`. Say only what `design.md` says — condensed, never embellished
-- **Glossary terms**, in `sk/context.md`, for terms the delta or `proposal.md` *defines* and that are specific to this project. General programming concepts and implementation detail do not belong. Use `${CLAUDE_PLUGIN_ROOT}/templates/context.md`. A term already in the file with a different meaning is a conflict: put it in the question, never overwrite. Never invent a term, and never invent an `_Avoid_` word — one needs a source where the work item actually used it
+- **Glossary terms**, in `sk/context.md`, for terms the delta or `proposal.md` *defines* and that are specific to this project. General programming concepts and implementation detail do not belong. Use `${CLAUDE_PLUGIN_ROOT}/templates/context.md`. A term already in the file with a different meaning is a conflict: put it in the question, never overwrite. Never invent a term, and never invent an `_Avoid_` word — one needs a source where the work item — or, for a direct request, the request recorded in `proposal.md` — actually used it
 
 Show the draft ADR and each draft term, and ask the user in **one round** to confirm, edit or drop each. Nothing is written yet. If there is nothing to draft, say so in a line and do not ask.
 

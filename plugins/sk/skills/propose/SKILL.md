@@ -1,12 +1,12 @@
 ---
 name: propose
-description: "SimplifyKit (sk): start a change from an Azure DevOps work item — read it and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
+description: "SimplifyKit (sk): start a change from an Azure DevOps work item — or, only when the user explicitly invokes /sk:propose with it, from a direct request that has no work item — and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
-Read an Azure DevOps work item and start one change: write `proposal.md`, then stop. The spec delta, design and tasks are created afterwards, one per invocation, by `/sk:continue`.
+Read an Azure DevOps work item — or take a direct request the user gave explicitly — and start one change: write `proposal.md`, then stop. The spec delta, design and tasks are created afterwards, one per invocation, by `/sk:continue`.
 
 ## Planning boundary — read this first
 
@@ -23,7 +23,7 @@ Accepted: `AB#12345`, or a work item URL such as `https://<org>/<project>/_worki
 
 **Not accepted: a bare integer.** In this codebase `#123` and a bare integer already mean *pull request id* (see the repo's `azure-devops-pr-review` skill). If the user gives a bare number, ask whether they mean a work item or a PR before doing anything.
 
-**Also not accepted: a free-form feature description with no work item.** SimplifyKit's scope is work that starts from the board. If the user describes something with no work item behind it, say so plainly and let them plan it whichever way they normally would — do not invent a change id and do not create anything under `sk/`.
+**Also accepted: a direct request, but only when the user explicitly invoked this command with it** — `/sk:propose <description>`, or "sk propose: <description>". This is Branch R in Step 3. A feature described in ordinary conversation, without the user naming this command, is **not** an invocation: answer it on its own terms and create nothing under `sk/`. Without that line, every "add a button that…" in a repository with `sk/` would turn into a change directory nobody asked for. A request that is only a number is still the bare-integer case above, not a direct request.
 
 ## Step 1 — Preconditions
 
@@ -36,6 +36,8 @@ Read, in this order:
 - `sk/changes/*/specs/**/spec.md` — changes that are planned but **not yet archived**. Their requirements are not in `sk/specs/` yet and you will miss them otherwise
 
 ## Step 2 — Fetch the work item
+
+**Skip this step entirely for a direct request** (Branch R): there is nothing to fetch, so no `az`, no REST call. The request text as the user gave it is the source.
 
 Follow `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` exactly — it encodes fixes for failures this project has already hit. In summary:
 
@@ -53,6 +55,7 @@ Look at the acceptance criteria you actually got.
 
 - **Usable AC** → Branch A
 - **AC field empty, or AC too thin to describe observable behaviour** → Branch B
+- **Direct request, no work item** → Branch R
 
 Roughly one story in five has no acceptance criteria at all. Branch B is a normal path, not an error.
 
@@ -80,11 +83,24 @@ When the current item is not a `Task` (a Task's parent was already read uncondit
 
 Show the user what you did get — title, description, comments, parent, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item or parent, when one was found). **When a related item or parent was read, write `proposal.md` and name it in the Gaps section, marked as a pending confirmation, whether or not the user has answered yet** — that section exists for exactly this: a criterion not yet resolved. If neither was read, writing `proposal.md` before an answer arrives is optional, same as before. If they answer or confirm, continue as Branch A and set `**AC source:**` in `proposal.md` to say where the criteria came from (Step 5) instead of leaving it in Gaps. If they do not, `proposal.md` with `**AC source:** none yet` and that Gaps section is the whole output, and you stop — `/sk:continue` refuses to write a spec delta while it reads `none yet`.
 
+### Branch R — direct request
+
+Derive `change-id` as `req-<short slug>`, for example `req-csv-export`. The `req-` prefix keeps it apart from `us-<id>` changes at a glance. If that change already exists, ask whether to continue it or create a new one.
+
+A request is not acceptance criteria. Read it for criteria **the user wrote themselves** — observable behaviour stated in their words ("when an export has more than 10,000 rows, it is emailed instead of downloaded").
+
+- **The request states observable criteria** → treat them as usable AC and continue as Branch A, deciding the split the same way. `**AC source:**` is `user, in conversation`, and their text goes verbatim under `## Acceptance criteria not on the board`
+- **It does not** ("make catalog downloads faster") → propose criteria yourself, as Step 4 questions, each clearly labelled a suggestion. Once the user confirms them — as written or edited — `**AC source:**` is `user, in conversation` and the confirmed text goes under `## Acceptance criteria not on the board`. **Until they do, `**AC source:**` is `none yet`** and your suggestions go under Gaps, marked `suggested, pending confirmation`. `/sk:continue` then refuses to write a spec delta, exactly as for Branch B
+
+**This is a deliberate exception to Step 4's unattended fallback.** When nobody can answer, every other decision is written with your recommendation and marked `unconfirmed`; criteria you drafted are not. A one-line request turned into criteria nobody agreed to, then into a spec, is the fabrication that looks like analysis this kit exists to stop — `unconfirmed` would let `/sk:continue` build on it anyway.
+
+Everything else — capabilities, Gaps, grilling, the planning boundary — works as for a work item.
+
 ## Re-running on an existing change
 
 When Step 3 finds the change already exists and you're told to re-run `/sk:propose` on it (not `/sk:continue`, which moves forward), don't treat the artifacts already on disk as settled — re-verify them against the work item's current state instead of only adding to them.
 
-Fetch the work item and its comments again, the same way as Step 2: the same REST path, the same U+FFFD scan, no shortcut just because a change directory already exists. The board keeps moving after a change is created; that is exactly what this re-fetch is for.
+For a `req-` change there is nothing to re-fetch: re-read `## Request` and every `## Assumptions` entry, and ask only about what the user's new message reopens. For a work item change, fetch the work item and its comments again, the same way as Step 2: the same REST path, the same U+FFFD scan, no shortcut just because a change directory already exists. The board keeps moving after a change is created; that is exactly what this re-fetch is for.
 
 Read **every** entry under the existing `proposal.md`'s `## Assumptions`, not only the questions still open. A comment posted since the last run can contradict a resolution that already looked settled. When that happens, **reopen it** — put the marker back in the delta (when one exists yet) and the question back under `## Open questions` — rather than silently leaving the stale resolution in place, and rather than silently overwriting it with the new one either: a resolution changing after tasks were built on it is exactly what a reviewer needs to see, not something to infer later from a diff.
 
@@ -108,7 +124,8 @@ Work it as a decision tree, in rounds. The **frontier** is every decision whose 
 - which capability owns the work, and whether it is `Added` or `Modified` against `sk/specs/` and the unarchived deltas you read in Step 1
 - any comment that contradicts the description or the criteria, and whether the comment really wins
 - the `change-id` slug
-- every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from) — ask those here, in the same round, not as a separate exchange. Branch B's rule about writing `proposal.md` with a pending confirmation still applies as written
+- every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from) — ask those here, in the same round, not as a separate exchange.
+- for Branch R: the criteria you suggest when the request states none, each labelled a suggestion — see Branch R for why an unanswered one never becomes `user, in conversation` Branch B's rule about writing `proposal.md` with a pending confirmation still applies as written
 
 Stop when the frontier is empty and the user has confirmed you share the same reading. Only then write `proposal.md`. Each answer lands where it belongs in Step 5 — the split under "How the acceptance criteria were read", ownership under Capabilities, a comment override under its own section — and is marked `confirmed` in `## Assumptions`.
 
@@ -124,14 +141,14 @@ Grilling changes when `proposal.md` is written, never what else gets written. A 
 
 Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/changes/<change-id>/proposal.md` — **and nothing else**.
 
-`proposal.md` is a pointer, not a restatement. The work item already holds the why and the what; duplicating it here only creates a second copy to drift. It carries: the link, id and title; two or three sentences of summary; the capabilities the change adds or modifies; how the acceptance criteria were read; any comment that overrode the description; the Gaps; and, when Branch B reused a related item's or a parent's content, which item it came from and what the user actually confirmed.
+`proposal.md` is a pointer, not a restatement. The work item already holds the why and the what; duplicating it here only creates a second copy to drift. **A direct request is the exception:** nothing else holds it, so write it verbatim under `## Request`, set `**Work item:**` to `none — direct request`, and drop the `**Type / State:**` line. It carries: the link, id and title; two or three sentences of summary; the capabilities the change adds or modifies; how the acceptance criteria were read; any comment that overrode the description; the Gaps; and, when Branch B reused a related item's or a parent's content, which item it came from and what the user actually confirmed.
 
 **Record where the acceptance criteria live** on the `**AC source:**` line, because `/sk:continue` reads that line to know where to get them:
 
 - `work item` — Branch A
 - `related AB#<id>, confirmed` or `parent AB#<id>, narrowed` — Branch B, after the user confirmed
-- `user, in conversation` — Branch B, when the user supplied criteria that are not on the board. **Write their text under `## Acceptance criteria not on the board`.** That is the only copy there will be
-- `none yet` — Branch B, still unanswered
+- `user, in conversation` — Branch B, when the user supplied criteria that are not on the board; Branch R, when the request stated criteria or the user confirmed suggested ones. **Write their text under `## Acceptance criteria not on the board`.** That is the only copy there will be
+- `none yet` — Branch B, still unanswered; Branch R, while suggested criteria are unconfirmed
 
 `## Assumptions` holds only the decisions Step 4 settled, each marked `confirmed` or `unconfirmed`; `## Open questions` starts empty. `/sk:continue` adds its own `Q<n>` entries to both as it writes scenarios.
 
@@ -145,6 +162,7 @@ List the file created, any Gaps, and how many `## Assumptions` entries are still
 - Never create `sk/` as a side effect
 - Ask before deciding: the first round of questions always happens, and an answer nobody gave is recorded `unconfirmed`, never `confirmed`
 - Never fabricate work item content, and never proceed from an empty AC field as if it were filled — Branch B asks instead
+- A direct request starts a change only when the user explicitly invoked this command with it, and criteria you drafted for it are never recorded as the user's until they confirm them
 - Ambiguity that changes scope, observable behaviour, compatibility, or which capability owns the work goes to the user, via Branch B or a Gap
 - Decide small conventions yourself and record the assumption
 - Read dependency artifacts from disk each time, not from memory of this conversation
