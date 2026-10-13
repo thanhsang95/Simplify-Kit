@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 Set up the `sk/` workspace for SimplifyKit in the current repository.
@@ -98,7 +98,7 @@ A workspace made by SimplifyKit 0.1.x differs from a current one, and nothing in
 
 If none of the six applies, say the workspace is up to date and stop.
 
-**With a person present:** show every item found, with the exact text it would add and to which file, in **one round**, and ask them to confirm the lot or drop some. Items 4 and 5 are informational and are shown regardless. Write nothing before the answer.
+**With a person present:** show every item found, with the exact text it would add and to which file, in **one round**, and ask them to confirm the lot or drop some — the items as text first, then the question, as `${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md` describes. Items 4 and 5 are informational and are shown regardless, never as a question. Write nothing before the answer.
 
 **When nobody can answer** — the request says so — apply items 1–3, which only append and need no judgement, and skip 4–6, printing them instead. Report exactly what was applied.
 

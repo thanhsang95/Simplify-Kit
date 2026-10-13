@@ -130,7 +130,7 @@ Giả sử bạn được giao User Story **12345**.
 /sk:propose AB#12345
 ```
 
-Nó đọc work item, **hỏi bạn một lượt câu hỏi** về cách đọc nó (mỗi câu đánh số `G1`, `G2`… kèm đáp án nó đề xuất), rồi sau khi bạn xác nhận mới ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
+Nó đọc work item, **hỏi bạn một lượt câu hỏi** về cách đọc nó (mỗi câu đánh số `G1`, `G2`… kèm đáp án nó đề xuất — qua hộp chọn `AskUserQuestion` của Claude Code khi có, đáp án đề xuất đứng đầu; câu hỏi mở hoặc phiên không có tool thì hỏi bằng text), rồi sau khi bạn xác nhận mới ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
 
 Lượt hỏi đầu tiên luôn có, kể cả khi AC đã gom nhóm rõ — lúc đó nó chỉ là một lần xác nhận ngắn. Chạy tự động, không ai trả lời được, thì nó ghi đáp án đề xuất và đánh dấu từng mục trong `## Assumptions` là `unconfirmed`, để người duyệt biết mục nào chưa ai xem.
 

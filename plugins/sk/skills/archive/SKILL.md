@@ -3,7 +3,7 @@ name: archive
 description: "SimplifyKit (sk): close a finished change — merge its spec delta into the living spec under sk/specs/, record its design decision as an ADR and its new terms in sk/context.md, and move the change into sk/changes/archive/. Use when the user says \"sk archive\", \"archive the change\", or a change's tasks are all complete and its requirements should become part of the project's specification. Also \"sk archive backfill\", or an id that is already archived: writes the ADR and glossary records for changes archived earlier, without merging or moving anything."
 metadata:
   author: Simplify
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 Merge a finished change's spec delta into `sk/specs/`, record what the merge alone would lose (an ADR, glossary terms), then move the change into `sk/changes/archive/`.
@@ -71,7 +71,7 @@ Only once every check above has passed. **Still writes nothing.**
 - **An ADR**, `sk/adr/NNNN-<slug>.md`, from `sk/changes/<id>/design.md`. **No `design.md`, no ADR.** With one, all three must hold or you skip it and say which failed: the decision is *hard to reverse*; it is *surprising without context* (a reader would wonder why it was done this way); it is *the result of a real trade-off* (genuine alternatives, chosen for stated reasons). Use `${CLAUDE_PLUGIN_ROOT}/templates/adr.md`. Number it one above the highest under `sk/adr/`, four digits, starting at `0001`. Say only what `design.md` says — condensed, never embellished
 - **Glossary terms**, in `sk/context.md`, for terms the delta or `proposal.md` *defines* and that are specific to this project. General programming concepts and implementation detail do not belong. Use `${CLAUDE_PLUGIN_ROOT}/templates/context.md`. A term already in the file with a different meaning is a conflict: put it in the question, never overwrite. Never invent a term, and never invent an `_Avoid_` word — one needs a source where the work item — or, for a direct request, the request recorded in `proposal.md` — actually used it
 
-Show the draft ADR and each draft term, and ask the user in **one round** to confirm, edit or drop each. Nothing is written yet. If there is nothing to draft, say so in a line and do not ask.
+Show the draft ADR and each draft term, and ask the user in **one round** to confirm, edit or drop each — the drafts as text first, then the question, as `${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md` describes. Nothing is written yet. If there is nothing to draft, say so in a line and do not ask.
 
 **When nobody can answer** — the request says so, which is what an unattended run looks like — write neither. Merge and move as normal, and list what you skipped in Step 3 along with the full drafts as response text, so a person can apply them. Do not read silence as consent: an ADR and a glossary are the only long-lived record left once the change is archived, and they should not carry rationale nobody has seen.
 
@@ -86,7 +86,7 @@ For changes that are already archived: writes the ADR and glossary records and n
    - **One glossary draft for all of them.** The same term defined the same way in several changes is one entry, listing each source change. A term defined *differently* in two changes is a conflict: put it in the questions with both wordings and their changes, never pick one
    - **An ADR per change that has a `design.md` and passes all three criteria.** For each that does not, one line saying which criterion failed or that there is no `design.md`
    - Skip any change that already has its ADR (an existing one carrying its id)
-3. Ask **once** for the whole batch: confirm, edit or drop each entry. When it is long, group by capability inside that single round rather than asking repeatedly
+3. Ask **once** for the whole batch: confirm, edit or drop each entry. When it is long, group by capability inside that single round rather than asking repeatedly (several `AskUserQuestion` calls in a row, when a round is longer than one call holds, are still that single round)
 4. Write what is confirmed, then stop
 
 Unattended, write nothing and print the drafts, as above.

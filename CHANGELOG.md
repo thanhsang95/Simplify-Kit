@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.0 — 2026-10-12
+
+`/sk:propose`, `/sk:archive` and `/sk:init` ask their rounds of questions through Claude Code's `AskUserQuestion` when it is available, instead of only as text.
+
+- **New `reference/asking-the-user.md`**, shared by the three skills. Questions with discrete answers go through the tool, recommended answer first and labelled `(Recommended)`, at most 4 per call — a longer round is several calls but still one round. Anything the person must read to decide (draft ADR, glossary terms, migration text, the AC split) is shown as text before the call. Open questions (missing criteria, a replacement definition) stay in text
+- **Hybrid, not mandatory.** The tool takes at most 4 questions of 2–4 options and is absent in headless runs and the eval runner, so the existing text format (`❓ G<n> … ➡️` in `propose`) remains the fallback. Unattended runs are unchanged: no tool call, questions printed, answers recorded `unconfirmed` / drafts skipped as before. No rule about *what* is asked or *when* a round ends changed; the "Planning boundary" wording is untouched
+- The grilling step had always asked in text. Nothing recorded why; it was inherited from `mattpocock/skills`' `grilling`, which asks in text
+- Evals unchanged (28 cases). No case allows `AskUserQuestion`, so the asking cases keep measuring the text fallback; the tool path is verified by hand in a real session
+
 ## 0.4.0 — 2026-10-07
 
 New `/sk:verify`: a read-only check of a change's implementation against its own artifacts, between `/sk:apply` and `/sk:archive`. It fills the Stage 4 gap `reference/playbook-mapping.md` recorded ("There is no `/sk:verify` yet").

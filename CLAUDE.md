@@ -16,7 +16,7 @@ plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
   skills/{init,propose,continue,apply,verify,archive}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
-  reference/                         conventions.md, azure-devops.md, playbook-mapping.md — read by skills at runtime
+  reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md — read by skills at runtime
   evals/                             claude plugin eval suite (28 cases)
 ```
 
