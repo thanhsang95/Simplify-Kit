@@ -24,6 +24,7 @@ Phím trong bảng `/sk-status`:
 | `o` | Đổi thứ tự: sửa gần nhất ↔ gần archive nhất |
 | `p` `s` `d` `t` | Đọc `proposal.md`, spec delta, `design.md`, `tasks.md` ngay trong bảng; `b` quay lại |
 | `n` | Chạy lệnh tiếp theo |
+| `f` | `/sk:ff`: viết hết các artifact lập kế hoạch còn thiếu trong một lần. Chỉ hiện ở bước spec/design/tasks, cạnh `n`, không thay cho `/sk:continue`. Bảng không phân biệt được item nhỏ hay lớn nên người dùng tự chọn |
 | `a` | `/sk:archive`: hiện hộp xác nhận, bấm `a` lần nữa mới chạy, `c` huỷ |
 | `e` | Điền lệnh tiếp theo vào ô prompt để sửa trước khi chạy |
 | Esc | Đóng bảng |

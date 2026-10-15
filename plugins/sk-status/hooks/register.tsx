@@ -588,6 +588,11 @@ export const register: Register = on => {
                 label={`n: Run /sk:${nextSkill}`}
                 onPress={() => void runSk($, nextSkill, active.id)}
               />
+              {/* /sk:ff is never the default next step: the mod cannot tell a small item
+                  from a large one, so it is offered next to /sk:continue, not instead of it. */}
+              {(active.step === 'spec' || active.step === 'design' || active.step === 'tasks') && (
+                <Button key="ff" hotkey="f" label="f: Run /sk:ff" plain onPress={() => void runSk($, 'ff', active.id)} />
+              )}
               {active.step === 'verify' && (
                 <Button key="archive" hotkey="a" label="Archive…" plain onPress={() => void update($, confirmAtom, () => active.id)} />
               )}

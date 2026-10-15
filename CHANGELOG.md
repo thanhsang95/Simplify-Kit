@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.6.0 / sk-status 0.1.1 — 2026-10-15
+
+New `/sk:ff <change-id>`: writes every planning artifact a change is still missing (spec delta → design or its Skipped note → tasks) in one invocation, then stops before `/sk:apply`. Small work items went through three `/sk:continue` calls and three review stops, which cost more than they gave.
+
+- **A separate skill, not a flag on `/sk:continue`.** `continue`'s one-artifact stop and its Planning boundary wording were measured against real violations (`continue-one-artifact-per-call`, `propose-does-not-auto-apply`); a flag would have meant rewording them. `continue`'s text is untouched
+- **Only a person can start it.** `disable-model-invocation: true` keeps it out of the model's reach, so "finish all the remaining artifacts" still lands on `/sk:continue` and still produces one
+- **No copy of the rules.** `ff` reads `continue` Step 3 from `skills/continue/SKILL.md` at run time for each artifact (AC-source refusal, re-fetch and U+FFFD check, open-question markers, `MODIFIED` restated in full, design only for a real trade-off), so the two cannot drift
+- **Stops after the delta** when the delta has `## MODIFIED Requirements` — the easiest place to lose specification, so a person reviews it before tasks are built on it — or raised a Gap. Unresolved decidable tokens are marked, not a reason to stop
+- **Where it is offered.** `/sk:propose`'s close-out names it as the alternative to `/sk:continue` for small items (one sentence, Planning boundary untouched). `sk-status` 0.1.1 adds an `f: Run /sk:ff` button at the spec, design and tasks steps, beside `n`; the Tab suggestion stays `/sk:continue`, since the mod cannot tell a small item from a large one
+- README gains "Item nhỏ": the `ff` path, and the work that needs no `sk` at all — no change to observable behaviour (typo, refactor, dependency bump, a bug fix that restores what `sk/specs/` already says); a commit with `AB#<id>` is enough
+- Evals: 28 → 29. New `ff-writes-remaining-artifacts` (`core`), seeded with `continue-one-artifact-per-call`'s fixture minus the spec delta. It has no `tool_used: Skill` grader: a `disable-model-invocation` skill is started by the slash command in the prompt, not the Skill tool. The runner does expand the slash command. Measured (1 run each, `--ablation none`): `ff-writes-remaining-artifacts` 1.00 ($0.54), `continue-one-artifact-per-call` re-run with `ff` present 1.00. Two earlier runs did the right thing but failed one LLM grader 3/3 both times — it bundled design, the `/sk:apply` hand-off and "without running it" into one judgement for Haiku, and the runner records no judge rationale. Replaced by a deterministic `apply-not-fired` (`tool_used`, same pattern as `propose-does-not-auto-apply`) plus a one-question `design-decided`
+
 ## sk-status 0.1.0 — 2026-10-13
 
 New optional plugin `sk-status@simplify`, separate from `sk`: a Claude Code mod that shows where each change stands, because people forgot which `/sk:*` command came next and could not see a change's progress without opening its files.

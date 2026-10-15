@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: ff-writes-remaining-artifacts
+description: >-
+  /sk:ff, typed explicitly on a change that has only proposal.md, writes the
+  spec delta, the design decision (design.md or a Skipped note) and tasks.md in
+  one invocation, and stops before /sk:apply without touching project code.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
