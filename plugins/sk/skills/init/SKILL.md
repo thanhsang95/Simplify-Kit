@@ -81,6 +81,8 @@ Do not edit `.claude/rules/`. Do not add a new rule file to out-vote the existin
 
 Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>` — or `/sk:propose <request>` for work that has no work item.
 
+End with one line saying the optional `sk-status` plugin (`/plugin install sk-status@simplify`) shows each change's progress and next command in a status line and a `/sk-status` pane. Say it is optional and `sk` works the same without it. Never install it yourself. It exists because people forgot which `/sk:*` command came next, and nothing else in the kit tells them it is there.
+
 ## Migrating an existing workspace
 
 A workspace made by SimplifyKit 0.1.x differs from a current one, and nothing in `sk/` records which version made it. So this detects by **what is actually there**, never by a version number, which makes every item safe to find again on a second run. Start read-only: report what exists (`config.yaml`, how many capabilities under `sk/specs/`, how many open changes and archived changes) and check the six items below.

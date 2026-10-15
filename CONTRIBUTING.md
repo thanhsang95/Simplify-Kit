@@ -12,7 +12,13 @@ plugins/sk/
   templates/                        khung file mà skill copy vào repo người dùng
   reference/                        tài liệu skill đọc lúc chạy
   evals/                            bộ test hành vi
+plugins/sk-status/                  plugin phụ (mod): status line, gợi ý Tab, bảng /sk-status
+  .claude-plugin/plugin.json
+  hooks/register.tsx                toàn bộ logic: đọc sk/changes/, vẽ bảng
+  types/index.d.ts                  khai báo các giá trị $.state của mod
 ```
+
+`sk-status` cố ý tách khỏi `sk`: API mod của Claude Code còn ở giai đoạn early access, nên `sk` phải chạy được dù `sk-status` có được cài hay load được hay không. Nó chép lại các luật suy ra trạng thái của skill (thứ tự artifact theo `continue`, luật checkbox theo `verify`, `[[OPEN:Q<n>]]`, `AC source: none yet`). Sửa một luật trong skill thì phải sửa `register.tsx` theo; không có test nào bắt được chỗ lệch. Để thử khi đang sửa: `claude --plugin-dir plugins/sk-status`, sửa file là tự reload. Kiểm tra bằng `claude plugin validate .` và `tsc -p . --noEmit` trong `plugins/sk-status`.
 
 Skill trỏ tới reference và template bằng `${CLAUDE_PLUGIN_ROOT}/...`. **Đừng dùng đường dẫn tương đối** — một lần chạy thật cho thấy model resolve `reference/conventions.md` thành `skills/propose/reference/conventions.md` và không đọc được gì, trong khi kết quả nhìn vẫn có vẻ đúng.
 

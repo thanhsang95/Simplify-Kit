@@ -1,5 +1,16 @@
 # Changelog
 
+## sk-status 0.1.0 — 2026-10-13
+
+New optional plugin `sk-status@simplify`, separate from `sk`: a Claude Code mod that shows where each change stands, because people forgot which `/sk:*` command came next and could not see a change's progress without opening its files.
+
+- **Status line, Tab suggestion and `/sk-status` pane.** The status line names the most recently edited change, its step, task count, open questions and next command. After each turn the next command is offered as a Tab suggestion. The pane lists open changes (most recently edited first, `o` to order by progress), shows the selected change's pipeline, reads `proposal.md` / spec delta / `design.md` / `tasks.md` in place (`p` `s` `d` `t`), and runs the next command on `n`
+- **State is read off disk, not stored.** Same rules as the skills: artifact order from `/sk:continue` Step 2, `AC source: none yet` → `/sk:propose`, the `/sk:verify` checkbox rule, `[[OPEN:Q<n>]]` markers, `archive/` excluded. A 4-second rescan picks up edits made outside Claude and writes state only when something changed
+- **Read-only, and commands run only on a press.** It writes no file and never calls Azure DevOps. A press is the person's own request, the same as typing the command, so it does not cross the planning boundary, which forbids the *model* from chaining into `/sk:apply`. `/sk:archive`, the one destructive step, needs a second press in a confirmation box whose focus starts on Cancel. When the `sk` command cannot be found the press only fills the prompt
+- **Kept out of `plugins/sk` on purpose.** Merging was weighed: a module that fails to load only skips its hooks, so the skills would survive on any Claude Code that supports mods. Three reasons decided it. It is unverified how a Claude Code older than mod support treats a `hooks.json` with `modules`, and the bad case is losing `sk` itself. Merged, it could not be turned off without turning off `sk`. And every mods-API fix would force an `sk` release. `sk` stays markdown-only
+- **`sk` 0.5.1: `/sk:init` mentions it.** One line at the end of the close-out says `sk-status` exists, is optional, and how to install it. `init` never installs it. Without this the plugin is only findable by reading the README. No eval asserts the line
+- Verified: `claude plugin validate` and `tsc --noEmit` pass; the pane was checked by hand on Claude Code 2.1.286 against a real change at the verify step. Not verified: whether `$.command.run` resolves the skill's name as `sk:<skill>` on every install (the fallback fills the prompt), the multi-change list against a real repository, and the Desktop / VS Code surfaces. Not covered by the eval suite
+
 ## 0.5.0 — 2026-10-12
 
 `/sk:propose`, `/sk:archive` and `/sk:init` ask their rounds of questions through Claude Code's `AskUserQuestion` when it is available, instead of only as text.

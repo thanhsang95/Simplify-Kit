@@ -18,7 +18,14 @@ plugins/sk/
   templates/                         file skeletons skills copy into the consuming repo
   reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md — read by skills at runtime
   evals/                             claude plugin eval suite (28 cases)
+plugins/sk-status/                   optional companion mod (TypeScript hooks module) — see below
 ```
+
+### `sk-status` is optional and must stay that way
+
+`plugins/sk-status/` is a separate plugin in the same marketplace: a Claude Code mod (`hooks/register.tsx`) that reads `sk/changes/` and shows a status line, a Tab suggestion and a `/sk-status` pane. It is deliberately **not** inside `plugins/sk`: the mods API is early access and changes between Claude Code releases, and `sk` must keep working, markdown-only, whether or not `sk-status` is installed or loads. Never make an `sk` skill depend on it, and never add a hooks module to `plugins/sk`.
+
+It re-implements the state rules the skills use (artifact order from `continue` Step 2, the checkbox rule from `verify`, the `[[OPEN:Q<n>]]` marker, `AC source: none yet`, skipping `archive/`). **Change one of those rules in a skill and update `register.tsx` to match** — nothing tests the two against each other. It stays read-only: it writes no file, never calls Azure DevOps, and only runs an `/sk:*` command when the person presses a key (`/sk:archive` needs two presses). Verify with `claude plugin validate .` from `plugins/sk-status` and `tsc -p . --noEmit` (Claude Code writes the types into `.claude-plugin/types/` when it loads the folder with `--plugin-dir`; they are gitignored). It is not covered by the eval suite.
 
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
 

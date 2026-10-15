@@ -80,6 +80,22 @@ Nếu thấy `disabled` thì bật lên — lúc đang tắt, các lệnh `/sk:*
 claude plugin enable sk@simplify
 ```
 
+### Tuỳ chọn: bảng trạng thái `sk-status`
+
+Không nhớ bước tiếp theo là lệnh gì? Cài thêm plugin phụ `sk-status`:
+
+```
+/plugin install sk-status@simplify
+```
+
+Nó thêm vào Claude Code:
+
+- **Status line**: change đang làm, đang ở bước nào, bao nhiêu task đã xong, lệnh tiếp theo
+- **Gợi ý bằng Tab**: sau mỗi lượt, ô prompt hiện mờ lệnh tiếp theo (`/sk:continue …`, `/sk:apply …`); nhấn Tab để lấy
+- **`/sk-status`**: mở bảng gồm danh sách change, pipeline từng bước, đọc `proposal.md` / spec / design / tasks ngay trong bảng (`p` `s` `d` `t`), `n` chạy lệnh tiếp theo. `/sk:archive` phải bấm hai lần mới chạy
+
+`sk-status` chỉ đọc `sk/`, không ghi file nào và chỉ chạy lệnh khi bạn bấm. Đây là plugin riêng: không cài thì `sk` vẫn chạy y như cũ, còn nếu nó lỗi thì 6 lệnh `/sk:*` không bị ảnh hưởng. Nó dùng tính năng mod của Claude Code, vốn còn mới và có thể đổi giữa các bản; đã thử trên Claude Code 2.1.286. Chi tiết: [`plugins/sk-status/README.md`](plugins/sk-status/README.md).
+
 ### Azure DevOps: chuẩn bị trước khi chạy `/sk:init`
 
 `/sk:init` đọc org/project mặc định qua Azure CLI, còn `/sk:propose` sau này dùng token do CLI cấp để đọc work item qua REST. Vì vậy hãy cài CLI và đăng nhập từ trước — đừng đợi tới lúc lỗi mới làm:
