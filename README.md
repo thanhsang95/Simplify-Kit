@@ -220,9 +220,11 @@ Lệnh này viết **mọi artifact còn thiếu trong một lần** (spec delta
 
 Nó đọc `tasks.md`, làm từng task theo thứ tự, và với mỗi task: sửa hoặc tạo file code thật trong repo — nằm ngoài `sk/`, ở đúng chỗ code của dự án — để khớp với spec, rồi tick `- [x]` vào đúng dòng task đó. Vì vậy `tasks.md` vừa là kế hoạch vừa là nhật ký tiến độ: mở lên là biết đang xong tới đâu, không cần hỏi lại.
 
+**Test trước, code sau:** với mỗi `#### Scenario` trong spec delta, nó viết test từ chính scenario đó trước khi viết code, chạy để thấy test fail đúng lý do, rồi code cho tới khi test pass mới tick. Lệnh test lấy từ dòng `Test:` trong `sk/config.yaml`; `sk` không tự cài test framework. Không có shell thì nó vẫn viết test nhưng nói rõ là **chưa chạy**, không bao giờ báo kết quả của một lần chạy không có thật. Repo chưa có test nào và config không ghi lệnh test thì nó hỏi bạn một lần (chạy không người thì bỏ bước này và nói lý do). Chi tiết: `plugins/sk/reference/tdd.md`.
+
 Nó sẽ **dừng lại hỏi** nếu task mơ hồ, nếu phát hiện lỗ hổng trong kế hoạch, hoặc nếu việc cần làm vượt quá những gì đặc tả mô tả — thay vì tự quyết rồi làm tắt.
 
-Xong thì chạy build/test của dự án như bình thường, hoặc để `/sk:verify` chạy lệnh test ghi trong `sk/config.yaml` ở bước sau.
+Xong thì chạy toàn bộ build/test của dự án như bình thường, hoặc để `/sk:verify` chạy lệnh test ghi trong `sk/config.yaml` ở bước sau.
 
 ### 4. Kiểm — `/sk:verify`
 

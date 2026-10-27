@@ -1,9 +1,9 @@
 ---
 name: apply
-description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
+description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, test-first per spec scenario, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
 metadata:
   author: Simplify
-  version: "0.1.0"
+  version: "0.8.0"
 ---
 
 Implement the tasks of one change under `sk/changes/`.
@@ -24,7 +24,8 @@ Read all of these, from disk, even if you saw them earlier in this conversation 
 - `sk/changes/<id>/specs/**/spec.md`
 - `sk/changes/<id>/design.md`, if present
 - `sk/changes/<id>/tasks.md`
-- `sk/config.yaml` — its `context` and `rules` apply while you implement
+- `sk/config.yaml` — its `context` and `rules` apply while you implement; its `Test:` line is the test command
+- `${CLAUDE_PLUGIN_ROOT}/reference/tdd.md` — how each scenario gets its test
 
 If `tasks.md` is missing or has no tasks, stop and point the user at `/sk:continue <id>` (or `/sk:propose` if there is no `proposal.md` either). Do not improvise a task list from the spec: the point of the checklist is that a human approved it.
 
@@ -32,16 +33,22 @@ If `tasks.md` is missing or has no tasks, stop and point the user at `/sk:contin
 
 Show the change id, progress as `N/M tasks complete`, and what remains.
 
+If the repository has no test setup (as `tdd.md` defines it) and a person can answer, ask now, once, how they want tests handled — not per task.
+
 ## Step 4 — Work the list
+
+Test first: every `#### Scenario` the task implements gets a test from that scenario before its code, seen failing for the right reason, then seen passing. `${CLAUDE_PLUGIN_ROOT}/reference/tdd.md` has the loop and its exceptions (no shell, no test setup, nothing testable). The test is a step inside the task; `tasks.md` gains no task and no marker.
 
 For each unchecked task:
 
 1. Say which task you are on
-2. Make the change the task calls for, and no more
-3. Tick it — `- [ ]` → `- [x]` — immediately, in `tasks.md`
-4. Move to the next
+2. Write the failing test for each scenario this task is the first to touch, and run it when a shell is available
+3. Make the change the task calls for, and no more
+4. Run those tests again, when a shell is available
+5. Tick it — `- [ ]` → `- [x]` — immediately, in `tasks.md`
+6. Move to the next
 
-**Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on.
+**Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on. When its scenario's test could be run, working means that test passes; a test that will not pass is a blocker, never a reason to loosen the test.
 
 **When a task implements a scenario that still carries the open-question marker** (defined in `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`, present in the `specs/**/spec.md` you read above), **build against the reading recorded under that question's `## Assumptions` entry in `proposal.md`.** Tick the task as usual and note which question it leaned on: `- [x] 2.1 <task>  (built on Q3)`. That note is what lets whoever resolves `Q3` later find every task that assumed a particular answer.
 
@@ -56,7 +63,9 @@ For each unchecked task:
 
 ## Step 5 — Close out
 
-Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn. Suggest running the repository's own build and tests — `sk` does not define its own; use what `sk/config.yaml` records.
+Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn.
+
+Report the tests: which scenarios got a test and whether you saw it fail then pass; tests written but **not run**, and why (no shell); scenarios given no test, and why; and test-first skipped for lack of a test setup, if it was. Never report a run that did not happen. Then suggest running the repository's full build and test suite — `sk` defines no runner of its own; use what `sk/config.yaml` records.
 
 When every task is ticked, tell the user the next step is `/sk:verify <change-id>`, which checks the code against the spec delta without changing anything, and then `/sk:archive`, which merges the delta into `sk/specs/`. Verifying is recommended, not required.
 
@@ -65,6 +74,7 @@ When every task is ticked, tell the user the next step is `/sk:verify <change-id
 - Keep going until done or genuinely blocked
 - Read the artifacts from disk before starting
 - Tick immediately, and only for behaviour that actually works
+- Test each scenario before its code; never claim a test run you did not make, never install a test framework, never weaken a test to make it pass
 - Keep each edit scoped to the task in hand
 - Pause on ambiguity, blockers, and scope growth — do not guess and do not quietly shrink the work
 - Open questions in the spec delta do not block implementation — build against the recorded reading, tick normally, and note `(built on Q<n>)`; only `/sk:archive` stops for them

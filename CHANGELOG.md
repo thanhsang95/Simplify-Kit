@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.8.0 — 2026-10-27
+
+`/sk:apply` works test-first: each `#### Scenario` in the spec delta gets a test written from that scenario before its code, seen failing for the right reason, then seen passing. Before this, nothing tied the code to the scenarios except a ticked box, and the close-out only suggested running the tests. The rules are in the new `reference/tdd.md`, adapted from `mattpocock/skills`' `tdd` (MIT): red before green, one slice at a time, test at the public seam, expected values from the scenario rather than computed the way the code computes them.
+
+- **The seam is the scenario, not asked again.** The source skill confirms each seam with the user before any test. Here the spec review already did that, and asking would block every unattended run
+- **No shell, no claim.** Without Bash (eval runs, restricted sessions) the test is still written but not run, and the close-out says so. "Saw it fail" or "it passes" about a run that did not happen is forbidden, the same rule `/sk:verify` Step 7 keeps
+- **No test setup, no install.** With no `Test:` line (or the template's `<command>`) and no tests in the repo, `apply` never installs a framework or invents a command. It asks once in Step 3 with a person present, and skips test-first with the reason when nobody can answer
+- **Exceptions are written down:** tasks that change no behaviour, scenarios that cannot be tested automatically (named in the close-out, never a fake test), `REMOVED` (delete the tests with the code), `MODIFIED` (new tests only for changed scenarios, rerun the rest), a test that passes before the code, a test that will not pass (a blocker, never loosened), a scenario spread over several tasks (red until its last task)
+- **`tasks.md` is unchanged.** The test is a step inside a task, so no task, marker or status is added. `/sk:verify`, `sk-status` and the `pre-push` hook still read only `- [ ]` / `- [x]`, and the template's "Tests covering the scenarios" task is ticked once those tests exist
+- Evals: `apply-implements-tasks` gains `writes-test-file` (a `Write` outside `sk/` to a test path, `min: 1`) and `no-false-test-claim` (LLM: the reply claims no test run, since the run has no shell). Measured with `--ablation none`, 3 runs: 1.00, $0.78. In every run the reply listed each scenario's test as "written, not run". Planned with three read-only research agents (source skill, apply/verify contracts, edge cases). Not verified: a real run with a shell, where the red → green loop actually executes
+
 ## 0.7.0 — 2026-10-15
 
 Optional git `pre-push` hook, set up by `/sk:init`, that stops a push when someone forgot `/sk:archive`. The only reminder was the close-out line of `/sk:apply`, and no skill is running when a person types `git push`.
