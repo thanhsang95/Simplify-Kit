@@ -1,0 +1,12 @@
+schema_version: "1.1"
+name: propose-bug-reads-repro-steps
+description: >-
+  A Bug with no acceptance criteria field but an expected result in its repro
+  steps goes to Branch A: /sk:propose reads the repro steps as the criteria
+  (AC source: work item), records the actual result as the symptom and the
+  steps under ## Repro steps, picks the bug- prefix itself (the prompt gives
+  only the slug; every path grader expects bug-21100-hide-expired), and
+  writes proposal.md only.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

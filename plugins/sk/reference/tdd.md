@@ -25,6 +25,20 @@ A scenario split over several tasks stays red until its last task: tick the earl
 
 **A test that will not pass** after a reasonable attempt is a blocker: stop and ask, as `apply` says for anything that errors. Never loosen the assertion, skip the test, or tick the task to get past it.
 
+## A change from a Bug
+
+`proposal.md` has a `**Symptom:**` line — `/sk:propose` writes it only for a Bug or a Task under one — holding the actual result the reporter saw, and a `## Repro steps` section with the steps. The scenarios carrying the Bug's expected result are the reproduction: no fix before a test that is red for the reported reason.
+
+- **Red means the symptom.** Build the test's setup from the scenario's `GIVEN`/`WHEN` and `## Repro steps`; take the expected value from its `THEN` as usual. Run it and read the failure: it must fail *showing the symptom* — the wrong value, the error, the crash the `**Symptom:**` line describes. A failure for any other reason is a nearby bug or a broken test, not this one
+- **Green before the fix means not reproduced.** For a feature, a test that passes early may mean the behaviour already exists. For a Bug it means the test misses the conditions that trigger it. Narrow toward what `## Repro steps` names — the data, the order of steps, the configuration — until it fails with the symptom. Never fix code on a guess about a failure you have not seen; when it still will not reproduce, stop and ask, saying what was tried
+- **Minimise once it is red.** Remove one setup element at a time while the test still fails with the symptom, so what remains is what the failure needs. The smaller test is the regression test that stays
+- **Linked test cases** listed under `## Test cases` in `proposal.md` can supply setup the repro steps leave out — their quoted actions. Expected values still come from the scenario
+- **Name the cause in the close-out** — one line, what was wrong and where — and whether the failure you saw matched the symptom. That line is the only record of the root cause: `sk` adds no artifact for it
+
+When the Symptom line says `none stated`, there is no symptom to match: red is read as for any scenario (it fails because the `THEN` is not met), and the close-out says so.
+
+With no shell, write the test from the scenario and the symptom, and say in the close-out that the Bug was **not reproduced** here, which is different from fixed.
+
 ## When a test cannot be run
 
 Running needs a shell. When the Bash tool is not available (eval runs, restricted sessions), still write the test from the scenario — that part needs no shell — but do not run it, and **never write "saw it fail" or "it passes"** about a run that did not happen. Tick by the usual rule and list, in the close-out, the tests written but not run. This is the same honesty `/sk:verify` keeps: "say the tests were not run and why".

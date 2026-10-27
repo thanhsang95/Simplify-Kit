@@ -101,7 +101,7 @@ A `THEN` that names none of the seven kinds never reaches the two-step test — 
 
 For each unresolved token, decide which of two things it is:
 
-- **An existing convention** — answerable by looking it up: a matching pattern already in `sk/specs/`, a value in `sk/config.yaml`, or the work item itself repeating the same choice elsewhere. Decide it yourself, write the concrete value, and record it under `## Assumptions` with the source. No marker.
+- **An existing convention** — answerable by looking it up: a matching pattern already in `sk/specs/`, a value in `sk/config.yaml`, the work item itself repeating the same choice elsewhere, or the expected result of a test case linked to it (`## Test cases` in `proposal.md`) stating the exact value the criterion leaves open. Decide it yourself, write the concrete value, and record it under `## Assumptions` with the source. No marker.
 - **A product decision** — a business threshold, a permission, user-facing wording — that no lookup answers. Write `[[OPEN:Q<n>]]` in the sentence and record `Q<n>` under `## Open questions`.
 
 A Gap is a criterion the AC doesn't cover at all. An open question is a criterion the AC does cover, just not down to one value. Keep the two apart: they live in different sections of `proposal.md` and get resolved differently.
@@ -117,6 +117,12 @@ The three shapes that actually occur:
 **Given/When/Then sentences, ungrouped** — often one long run of sentences with no headings. Each sentence is already a scenario. Gather the ones that concern the same behaviour into a requirement and name it yourself.
 
 **Prose** — one or more paragraphs describing how it should work. Split it by observable behaviour. Because that split is your judgement rather than the author's, **write down how you split it** in `proposal.md`, so a reviewer can disagree with the split itself instead of reverse-engineering it from the result.
+
+Two more sources arrive with a shape of their own:
+
+**A Bug's repro steps** — steps, expected result, actual result. The steps are the `GIVEN`/`WHEN`, the expected result the `THEN`. The actual result is never written into the spec: a spec says what the system does, and the symptom is what it must stop doing. Each distinct expected result is a scenario. When no requirement in `sk/specs/` covers the case, it goes under `ADDED`. Only when an existing requirement says something different does it become `MODIFIED`, restated in full like any other.
+
+**Test case expected results confirmed as criteria** — the action steps are the `WHEN`, each expected result a `THEN`. Click-by-click steps are mechanism: keep the observable action ("submits the form with an empty name"), drop the route to it ("clicks Save in the toolbar").
 
 Whatever the shape:
 

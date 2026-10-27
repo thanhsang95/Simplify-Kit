@@ -55,10 +55,10 @@ Take from `fields`:
 | `System.Title`, `System.State` | |
 | `System.Description` | **strip HTML** |
 | `Microsoft.VSTS.Common.AcceptanceCriteria` | **strip HTML**. Often absent entirely — the key is missing, not empty. That is Branch B, not an error |
-| `Microsoft.VSTS.TCM.ReproSteps` | Bugs only. **strip HTML** |
+| `Microsoft.VSTS.TCM.ReproSteps` | Bugs only. **strip HTML**. Where a Bug's expected behaviour usually lives — see "A Bug's acceptance criteria are its expected result" below |
 | `System.AreaPath`, `System.IterationPath`, `System.Tags` | context only |
 
-And `relations[]` — `rel` (Parent / Child / Related / AttachedFile) plus the id at the end of `url`. `Parent` is read unconditionally when the item is a `Task` (below). For every other type, `Parent` (`Hierarchy-Reverse`) is read conditionally, only when Branch B fires — see "A parent can narrow a Branch B gap when the item is not a Task" below. `Related` is read conditionally too, only when Branch B fires — see "A related item can already answer a Branch B gap" below.
+And `relations[]` — `rel` (Parent / Child / Related / Tested By / AttachedFile) plus the id at the end of `url`. `Parent` is read unconditionally when the item is a `Task` (below). For every other type, `Parent` (`Hierarchy-Reverse`) is read conditionally, only when Branch B fires — see "A parent can narrow a Branch B gap when the item is not a Task" below. `Related` is read conditionally too, only when Branch B fires — see "A related item can already answer a Branch B gap" below. `Tested By` is read on every item, whatever the branch — see "Test cases linked to the item" below.
 
 ## Fetch the comments
 
@@ -98,11 +98,58 @@ When `System.WorkItemType == "Task"`:
 
 1. Find the `relations[]` entry with `rel == "System.LinkTypes.Hierarchy-Reverse"` — that is the parent
 2. Fetch the parent the same way, `$expand=all` included
-3. Take the parent's full fields — description, acceptance criteria, repro steps
+3. Take the parent's full fields — description, acceptance criteria, repro steps — and the parent's `Tested By` test cases, read as "Test cases linked to the item" below says
 4. Read the parent's comments too; scope-defining discussion usually happens there
 5. Parent is also a Task? Go up one more. **Stop at two levels.**
 
-In `proposal.md`, name both: the Task and the parent it inherited from.
+In `proposal.md`, name both: the Task and the parent it inherited from. A Task whose parent is a `Bug` is handled as a Bug from here on — the next section applies to the parent's fields.
+
+## A Bug's acceptance criteria are its expected result
+
+A `Bug` rarely carries `Microsoft.VSTS.Common.AcceptanceCriteria` (only some processes give it the field at all). What it carries is `Microsoft.VSTS.TCM.ReproSteps`: the steps, the **expected result** and the **actual result**, in whatever shape the reporter typed. Before this was read, every Bug arrived at Branch B as "no acceptance criteria" and the user was asked for what the board already held.
+
+For a `Bug`, the acceptance criteria are, in order:
+
+1. `Microsoft.VSTS.Common.AcceptanceCriteria`, when present and usable — exactly as for any other item
+2. Otherwise the expected result stated in the repro steps. The steps become the `GIVEN`/`WHEN`, the expected result the `THEN`. This is board content, so it is `AC source: work item`, not a reading of your own
+
+The **actual result** is not a criterion. It is the symptom: what `/sk:apply`'s first test must reproduce before anything is fixed (`tdd.md`). `/sk:apply` never reads Azure DevOps, so `proposal.md` records it in one line.
+
+**Repro steps with no expected result are Branch B.** "It should obviously not crash" is a reading of your own, and a Bug whose correct behaviour nobody wrote down is exactly where the expected result is a product decision — an empty message, a fallback value, an error, or blocking the input are all "not crashing". Ask, recommending one; a linked test case's expected result (below) may already answer it. Comments still win over the repro steps, the same as over a description.
+
+**A Bug that restores behaviour `sk/specs/` already specifies needs no change.** When a scenario in `sk/specs/` (or an unarchived delta) already states the expected result, the code drifted from the spec and the spec is still right: the fix is a commit or PR with `AB#<id>`, its regression test written from that scenario. A change there would have nothing for its spec delta to say, and `/sk:continue` has no way to finish a change without one. `SKILL.md` covers how `/sk:propose` asks about it.
+
+## Test cases linked to the item
+
+A `Test Case` linked by `Tested By` is the board saying, explicitly, "this checks that item". QA often writes the precise expected results there — the exact message, the boundary value — while the acceptance criteria stay a sentence. Unlike `Related` and `Parent`, it is **not** a guess about relevance, so it is read on every item, in every branch, for every type — `User Story`, `Bug`, `Feature`, and a `Task`'s parent.
+
+1. Look at `relations[]` for entries where `rel == "Microsoft.VSTS.Common.TestedBy-Forward"`. Take at most the first **10**, and say in `proposal.md` how many were left unread when there are more
+2. Fetch each the same way as the primary item — `$expand=all`, checked for U+FFFD. Do not read its comments, and **do not follow its own `relations[]`** except for shared steps (point 4)
+3. Read `System.Title` and `Microsoft.VSTS.TCM.Steps`. Steps is XML, not HTML:
+
+   ```xml
+   <steps id="0" last="3">
+     <step id="2" type="ValidateStep">
+       <parameterizedString isformatted="true">&lt;DIV&gt;&lt;P&gt;Open the download page&lt;/P&gt;&lt;/DIV&gt;</parameterizedString>
+       <parameterizedString isformatted="true">&lt;DIV&gt;&lt;P&gt;The &amp;quot;Export&amp;quot; button is disabled&lt;/P&gt;&lt;/DIV&gt;</parameterizedString>
+       <description/>
+     </step>
+     <compref id="3" ref="20950" />
+   </steps>
+   ```
+
+   Each `<step>` holds two `parameterizedString`s: the **action**, then the **expected result** (empty on an `ActionStep`). Their text is HTML escaped *inside* XML, so decode twice: XML entities first (`&lt;DIV&gt;` → `<DIV>`), then strip the tags, then decode the HTML entities that remain (`&quot;` → `"`). Decoding once leaves `&quot;` in the text; skipping the strip leaves `<DIV>` — the same failure as a `<li>` in a spec
+4. A `<compref ref="<id>">` pulls in a **Shared Steps** work item at that point. Fetch it once and read its `Microsoft.VSTS.TCM.Steps` the same way, in place. Shared steps do not nest further
+5. `@name` in a step is a parameter. Its values live in `Microsoft.VSTS.TCM.LocalDataSource`; read them as examples of the same behaviour, not as separate test cases
+
+Not read: test plans, test suites, test runs and outcomes. A run's pass or fail says what the code does, not what it should do, and the Test Plans API is a different surface for nothing the spec needs.
+
+**A test case is evidence, not acceptance criteria.** It was written by whoever tests the item, sometimes long before the criteria last changed, and its steps describe clicks rather than contracts. Never put a scenario in a spec from a test case on your own. What it is used for depends on the branch:
+
+- **Usable AC (Branch A)** — compare each expected result with the criteria. One the criteria already cover needs nothing. One they do not cover, or one that contradicts them, is a question for the user (`SKILL.md` Step 4) — whether it is in scope, and which side is right. Until someone answers it is a Gap, never a scenario. When it is the more precise value of a token the criteria leave open ("an error message" in the AC, the exact message in the test case), it is labelled `pins <what>` and is the source `/sk:continue` resolves that token from, quoted under `## Assumptions`
+- **AC missing (Branch B)** — expected results that look like they answer the gap are named and quoted when Branch B asks, the same way as a `Related` item: a question to confirm, never settled fact. When the user confirms, `AC source` is `test cases AB#<id>[, AB#<id>], confirmed`
+
+Record every test case read in `proposal.md` under `## Test cases` — id, title, and every step quoted as decoded, `"<action>" → "<expected result>"`, labelled `covered`, `pins <what>`, `open` or `confirmed as criterion`. Quote, never paraphrase: that record is the only copy `/sk:continue` (the `WHEN`, the `THEN`, a pinned value) and `/sk:apply` (test setup) read; neither re-fetches a test case.
 
 ## A related item can already answer a Branch B gap
 
