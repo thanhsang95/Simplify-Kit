@@ -41,6 +41,10 @@ For a Bug: what was wrong (the Symptom line) and what it does now.>
 - Modified: <requirement name> — <what changed, one line>
 - Removed: <requirement name> — <the one-line reason from the delta>
 
+## Out of scope
+
+- <each entry under proposal.md's ## Out of scope, with its source>
+
 ## Contracts
 
 <Each interface under design.md → ## Contracts, signature as written. Drop when design was skipped.>

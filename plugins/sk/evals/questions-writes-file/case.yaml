@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: questions-writes-file
+description: >-
+  /sk:questions turns a change's Gap, open question and unconfirmed assumption
+  into sk/changes/<id>/questions.md for a PO/BA — plain language, no sk
+  markers, the source quoted, a suggestion each — and writes no other file.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

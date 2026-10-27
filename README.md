@@ -161,6 +161,8 @@ sk/changes/us-12345-<tên-ngắn>/
 
 Work item không có AC thì `proposal.md` ghi `AC source: none yet` cùng mục Gaps, và `/sk:continue` sẽ không viết spec cho tới khi giải quyết xong.
 
+**Out of scope.** Thứ gì *cố ý không làm* — một comment cắt bớt phạm vi, AC ghi rõ loại trừ, bạn trả lời một câu `G<n>` là "không làm", hay một test case bị loại — được ghi vào `## Out of scope` kèm nguồn. Khác với Gaps (thứ *chưa rõ*): không có mục này thì một thứ bị bỏ có chủ ý trông y hệt một thứ bị quên, vì cả hai đều không có scenario. `/sk:continue` không viết scenario cho nó, `/sk:apply` dừng lại hỏi nếu task đòi làm nó, `/sk:verify` chỉ ra nếu code lại làm nó, và `/sk:pr` liệt kê nó trong mô tả PR. Chỉ ghi thứ có nguồn loại trừ thật, không liệt kê mọi thứ work item không nhắc tới.
+
 **Test case.** Với mọi loại work item, nó đọc các Test Case được link qua *Tested By* (tối đa 10). Test case là bằng chứng, không phải AC:
 - Expected result mà AC đã nói tới thì không cần làm gì
 - Expected result mà AC không nói tới, hoặc mâu thuẫn với AC, thành câu hỏi `G<n>` và nằm trong Gaps cho tới khi có người trả lời
@@ -212,6 +214,14 @@ Không có lệnh trạng thái nào — nó nhìn file nào đã có trên đĩ
 - Có scenario nào *không* có trong US — tức nó tự nghĩ ra?
 
 Xem luôn mục **Gaps** và **Open questions** trong `proposal.md`: Gaps là chỗ AC chưa đủ rõ để dịch thành scenario; Open questions là chỗ scenario đã viết nhưng một con số hay quy tắc chưa ai chốt. Cả hai đều không phải chỗ nó tự bịa cho đủ.
+
+#### Gửi câu hỏi cho PO/BA — `/sk:questions`
+
+```
+/sk:questions us-12345-<tên-ngắn>
+```
+
+Gom Gaps, Open questions và các assumption `unconfirmed` trong `proposal.md` thành `sk/changes/<id>/questions.md`, viết cho người không biết `sk`: không marker, không `SHALL`; mỗi câu một số, trích nguồn (AC hay comment nào), các lựa chọn, đáp án đề xuất, và giá trị đang được dùng tạm nếu task đã dựng trên nó. Mỗi lần chạy viết lại từ đầu — `proposal.md` vẫn là nguồn. Câu trả lời **không** đi qua file này: PO trả lời bằng comment trên work item (rồi chạy lại `/sk:propose AB#<id>`, comment luôn thắng), hoặc bạn nói thẳng câu trả lời với `/sk:continue`. Không có gì để hỏi thì nó không tạo file.
 
 #### Item nhỏ — `/sk:ff`
 

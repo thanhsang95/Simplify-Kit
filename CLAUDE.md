@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages eight skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:ff`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
+SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages nine skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:ff`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`, `/sk:questions`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
 
 Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for maintainer structure before making non-trivial changes.
 
@@ -14,10 +14,10 @@ Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for mai
 .claude-plugin/marketplace.json      marketplace "simplify"
 plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
-  skills/{init,propose,continue,ff,apply,verify,archive,pr}/SKILL.md
+  skills/{init,propose,continue,ff,apply,verify,archive,pr,questions}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
   reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md, tdd.md — read by skills at runtime
-  evals/                             claude plugin eval suite (35 cases)
+  evals/                             claude plugin eval suite (37 cases)
 plugins/sk-status/                   optional companion mod (TypeScript hooks module) — see below
 ```
 
@@ -67,7 +67,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 35 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 37 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case

@@ -39,7 +39,7 @@ When a shell is available, take the fixed point the user named, else the merge-b
 
 - **Scenarios.** For every `#### Scenario:`, check that the code handles its `WHEN` and produces its `THEN`, and whether a test covers it. Code that looks like it diverges from the scenario → WARNING. No test → WARNING
 - **Open questions.** A scenario still carrying the open-question marker → CRITICAL: `/sk:archive` stops on it (its check 2). Name the `Q<n>` from `proposal.md`. List every task ticked `(built on Q<n>)` alongside, so whoever answers the question sees what assumed the current reading
-- **Scope.** Behaviour in the diff that no requirement and no task asks for → WARNING. `/sk:apply` must surface extra scope, never absorb it; this is where absorbed scope shows up. Tests, refactors a task names, and wiring a requirement needs are not extra scope
+- **Scope.** Behaviour in the diff that no requirement and no task asks for → WARNING. When it is something `proposal.md` lists under `## Out of scope`, name that entry and its source: it is not an omission from the spec but a decision the code went against. `/sk:apply` must surface extra scope, never absorb it; this is where absorbed scope shows up. Tests, refactors a task names, and wiring a requirement needs are not extra scope
 
 Quote the spec line for each finding.
 

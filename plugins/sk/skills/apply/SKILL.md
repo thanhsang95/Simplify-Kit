@@ -58,7 +58,7 @@ For each unchecked task:
 
 - A task is ambiguous — ask rather than pick a reading
 - Implementation reveals a hole in the design — say so and suggest updating the planning artifacts; the artifacts are not frozen. An interface under `design.md` → `## Contracts` that cannot be built as written is such a hole: never ship a different signature on your own
-- A task needs work beyond what the spec describes, or you find yourself wanting to narrow, defer, or make an exception to specified behaviour to make it fit. **Surface the extra scope. Never absorb it silently**
+- A task needs work beyond what the spec describes, or you find yourself wanting to narrow, defer, or make an exception to specified behaviour to make it fit. **Surface the extra scope. Never absorb it silently.** When the extra is something `proposal.md` lists under `## Out of scope`, say which entry and its source: someone already decided against it
 - Anything errors or blocks
 
 ## Step 5 — Close out

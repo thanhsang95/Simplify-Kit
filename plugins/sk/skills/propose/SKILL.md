@@ -135,6 +135,7 @@ How the round reaches the user follows `${CLAUDE_PLUGIN_ROOT}/reference/asking-t
 - the `change-id` slug
 - for a Bug: whether the scenario in `sk/specs/` that already states its expected result really is that behaviour — recommend yes only when the wording matches, since yes means no change is created
 - every test case expected result the criteria do not cover or contradict: in scope or not, and which side is right
+- anything ruled out: a comment or the criteria excluding something, a Gap or a test case result the user puts out of scope — confirm it lands under `## Out of scope`, not dropped
 - every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from, test cases to confirm) — ask those here, in the same round, not as a separate exchange.
 - for Branch R: the criteria you suggest when the request states none, each labelled a suggestion — see Branch R for why an unanswered one never becomes `user, in conversation` Branch B's rule about writing `proposal.md` with a pending confirmation still applies as written
 
@@ -160,6 +161,8 @@ Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/cha
 - `related AB#<id>, confirmed`, `parent AB#<id>, narrowed` or `test cases AB#<id>[, AB#<id>], confirmed` — Branch B, after the user confirmed
 - `user, in conversation` — Branch B, when the user supplied criteria that are not on the board; Branch R, when the request stated criteria or the user confirmed suggested ones. **Write their text under `## Acceptance criteria not on the board`.** That is the only copy there will be
 - `none yet` — Branch B, still unanswered; Branch R, while suggested criteria are unconfirmed
+
+`## Out of scope` lists what this change deliberately does not do, each with its source: a comment that cut it (also under "Comments that override the description"), criteria wording that excludes it (quoted), the user's answer to a `G<n>`, or a test case step the user ruled out. Mark each `confirmed` or `unconfirmed` like an assumption. **Only what a source actually ruled out** — never pad it with things the work item simply does not mention. It exists because a dropped item and a forgotten one look the same in a spec: neither has a scenario, and the next reader cannot tell which was a decision.
 
 `## Assumptions` holds only the decisions Step 4 settled, each marked `confirmed` or `unconfirmed`; `## Open questions` starts empty. `/sk:continue` adds its own `Q<n>` entries to both as it writes scenarios.
 

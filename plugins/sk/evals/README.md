@@ -1,6 +1,6 @@
 # Eval suite
 
-Thirty-five cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check, except `ff-writes-remaining-artifacts`: `/sk:ff` has `disable-model-invocation`, so it is started by the slash command in the prompt, not through the Skill tool — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
+Thirty-seven cases. Each has exactly one grader on **how it got there** — a `tool_used: Skill` check, except `ff-writes-remaining-artifacts`: `/sk:ff` has `disable-model-invocation`, so it is started by the slash command in the prompt, not through the Skill tool — plus one or more graders on the **result**, so a run tells you both whether the output was right and whether SimplifyKit is what produced it.
 
 ## Running it
 
@@ -11,7 +11,7 @@ claude plugin eval . --allow-tools Write Edit --scaffold --no-publish
 
 ### On Windows, put Git Bash ahead of WSL on PATH
 
-`scaffold_script` is a Bash script and thirty-four of thirty-five cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
+`scaffold_script` is a Bash script and thirty-six of thirty-seven cases need one — every case except `ignores-unrelated-request`, which touches no filesystem. The `bash` on a default Windows PATH is `C:\Windows\System32\bash.exe` (WSL), which fails with `execvpe(/bin/bash) failed: No such file or directory` unless a distro is installed. Every scaffolded case then scores 0 with `scaffold failed (exit 1)`.
 
 ```powershell
 $env:PATH = "C:\Program Files\Git\bin;" + $env:PATH
@@ -27,7 +27,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 |---|---|---|---|
 | `wi` | `propose-from-work-item`, `continue-writes-spec-delta` | 8 each | 0.95 |
 | `init` | `init-sets-up-sk` | 6 | 0.85 |
-| `core` | the other thirty-two: `pr-drafts-body-archived`, `pr-flags-open-change`, `apply-bug-reproduces-symptom`, `propose-bug-reads-repro-steps`, `propose-bug-already-specified`, `propose-reads-test-cases`, `apply-implements-tasks`, `verify-reports-missing-requirement`, `verify-passes-complete-change`, `verify-flags-open-question`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac`, `propose-from-request`, `propose-request-without-ac-asks`, `ff-writes-remaining-artifacts` | 2–5 each | 0.8 |
+| `core` | the other thirty-four: `propose-records-out-of-scope`, `questions-writes-file`, `pr-drafts-body-archived`, `pr-flags-open-change`, `apply-bug-reproduces-symptom`, `propose-bug-reads-repro-steps`, `propose-bug-already-specified`, `propose-reads-test-cases`, `apply-implements-tasks`, `verify-reports-missing-requirement`, `verify-passes-complete-change`, `verify-flags-open-question`, `archive-merges-spec`, `archive-rejects-scenario-loss`, `archive-blocks-open-question`, `archive-asks-before-writing-adr`, `archive-already-archived-drafts-records`, `archive-backfill-all`, `init-migrates-old-workspace`, `init-asks-before-migrating`, `archive-skips-adr-unattended`, `propose-missing-ac-asks`, `ignores-unrelated-request`, `propose-does-not-auto-apply`, `propose-grills-before-writing`, `propose-related-item-fills-gap`, `propose-related-item-is-noise`, `propose-parent-narrows-gap`, `continue-marks-ambiguous-ac`, `continue-one-artifact-per-call`, `continue-refuses-without-ac`, `propose-from-request`, `propose-request-without-ac-asks`, `ff-writes-remaining-artifacts` | 2–5 each | 0.8 |
 
 `wi` sits at 0.95 deliberately. At 0.85 a grader that fails in **all three runs** still scores 7/8 = 0.875 and the case stays green — which would let the faithfulness and HTML-stripping graders (both in `continue-writes-spec-delta`) die unnoticed.
 
@@ -52,7 +52,7 @@ With Git Bash first, scaffolds run normally. This is environment setup, not a pl
 
 ## What this suite cannot tell you
 
-Each run loads only this plugin, so Claude sees seven skills with full descriptions (`/sk:ff` is hidden from the model by `disable-model-invocation`). In a real repository it may see ninety-five, truncated. Whether `sk:propose` wins that competition is not measurable here and is checked by hand in the host repo.
+Each run loads only this plugin, so Claude sees eight skills with full descriptions (`/sk:ff` is hidden from the model by `disable-model-invocation`). In a real repository it may see ninety-five, truncated. Whether `sk:propose` wins that competition is not measurable here and is checked by hand in the host repo.
 
 Each case is also one initial user message; the agent then runs on its own — tool calls, not further user turns — until it stops, asks a question, or hits `max_turns`/`timeout_seconds`. Nothing here can script a second user message. That rules out a *real* propose → apply handoff, where propose's actual output (not a fixture standing in for it) becomes apply's actual input in a later turn. `propose-does-not-auto-apply` tests the adjacent thing this runner **can** see in one turn: a request spanning both skills' territory still produces only one of them, because `propose`'s own guardrail refuses to chain into `continue` or `apply` without a new request. It proves the boundary holds; it does not prove a real handoff works once the user gives that new request.
 
