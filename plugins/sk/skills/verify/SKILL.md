@@ -3,7 +3,7 @@ name: verify
 description: "SimplifyKit (sk): check that the implementation of a change under sk/changes/ matches its spec delta, tasks and design, and report what is missing before archiving — read-only, it fixes nothing. Use when the user says \"sk verify\", \"verify the change\", \"is us-12345-... ready to archive\", or a change's tasks look done and should be checked against what it promised before /sk:archive."
 metadata:
   author: Simplify
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
 Check one change's implementation against its planning artifacts and report the gaps. **This command only reads.** It is a review the next step can act on, not a fix.

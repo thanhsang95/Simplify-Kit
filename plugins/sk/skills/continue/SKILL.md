@@ -3,7 +3,7 @@ name: continue
 description: "SimplifyKit (sk): create the next planning artifact of an existing change — spec delta, then design, then tasks — one per invocation, without touching project code. Use when the user says \"sk continue\", \"continue us-12345-...\", \"next artifact\", or has a change under sk/changes/ that /sk:propose started and wants it taken one step further. Planning only; implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 Create the next planning artifact of one change, then stop. **One artifact per invocation.**

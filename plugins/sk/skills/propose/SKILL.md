@@ -3,7 +3,7 @@ name: propose
 description: "SimplifyKit (sk): start a change from an Azure DevOps work item — or, only when the user explicitly invokes /sk:propose with it, from a direct request that has no work item — and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 Read an Azure DevOps work item — or take a direct request the user gave explicitly — and start one change: write `proposal.md`, then stop. The spec delta, design and tasks are created afterwards, one per invocation, by `/sk:continue`.
