@@ -187,7 +187,7 @@ Mở `proposal.md`: nó nhóm AC thành các requirement như thế nào? Có AC
 Mỗi lần gọi, nó tạo **đúng một artifact tiếp theo** rồi dừng, theo thứ tự:
 
 1. `specs/<nhóm>/spec.md` — đặc tả: hệ thống phải làm gì, viết theo cặp Requirement/Scenario. Bước này đọc lại work item để chắc không dựng trên chữ đã cũ
-2. `design.md` — chỉ khi phải chọn giữa các phương án kỹ thuật. Không cần thì nó ghi `## Design: Skipped` vào `proposal.md` và tính là xong bước
+2. `design.md` — khi change **thêm hoặc đổi public interface** (exported function, endpoint, component props, CLI, event, DB schema), hoặc khi phải chọn giữa các phương án kỹ thuật. Interface được ghi dưới `## Contracts`, viết bằng chính ngôn ngữ của repo, đúng như sẽ được code, kèm scenario mà nó phục vụ. **Đây là chỗ bạn duyệt interface trước khi có dòng code nào**: `/sk:apply` code và viết test bám đúng các contract này, cần signature khác thì nó dừng lại hỏi, còn `/sk:verify` báo CRITICAL nếu code lệch contract. Sai signature mà bắt được ở đây thì sửa một dòng, để tới sau apply thì phải sửa cả code lẫn test. Không có interface nào đổi và không có trade-off thì nó ghi `## Design: Skipped` vào `proposal.md` và tính là xong bước
 3. `tasks.md` — danh sách việc cần làm, chia theo hạng mục, chưa việc nào được tick
 
 Không có lệnh trạng thái nào — nó nhìn file nào đã có trên đĩa để biết đang ở bước nào. Sau mỗi bước, đọc file vừa tạo như thể bạn là người nghiệm thu:
@@ -220,9 +220,11 @@ Lệnh này viết **mọi artifact còn thiếu trong một lần** (spec delta
 
 Nó đọc `tasks.md`, làm từng task theo thứ tự, và với mỗi task: sửa hoặc tạo file code thật trong repo — nằm ngoài `sk/`, ở đúng chỗ code của dự án — để khớp với spec, rồi tick `- [x]` vào đúng dòng task đó. Vì vậy `tasks.md` vừa là kế hoạch vừa là nhật ký tiến độ: mở lên là biết đang xong tới đâu, không cần hỏi lại.
 
+**Test trước, code sau:** với mỗi `#### Scenario` trong spec delta, nó viết test từ chính scenario đó trước khi viết code, chạy để thấy test fail đúng lý do, rồi code cho tới khi test pass mới tick. Lệnh test lấy từ dòng `Test:` trong `sk/config.yaml`; `sk` không tự cài test framework. Không có shell thì nó vẫn viết test nhưng nói rõ là **chưa chạy**, không bao giờ báo kết quả của một lần chạy không có thật. Repo chưa có test nào và config không ghi lệnh test thì nó hỏi bạn một lần (chạy không người thì bỏ bước này và nói lý do). Chi tiết: `plugins/sk/reference/tdd.md`.
+
 Nó sẽ **dừng lại hỏi** nếu task mơ hồ, nếu phát hiện lỗ hổng trong kế hoạch, hoặc nếu việc cần làm vượt quá những gì đặc tả mô tả — thay vì tự quyết rồi làm tắt.
 
-Xong thì chạy build/test của dự án như bình thường, hoặc để `/sk:verify` chạy lệnh test ghi trong `sk/config.yaml` ở bước sau.
+Xong thì chạy toàn bộ build/test của dự án như bình thường, hoặc để `/sk:verify` chạy lệnh test ghi trong `sk/config.yaml` ở bước sau.
 
 ### 4. Kiểm — `/sk:verify`
 
@@ -234,7 +236,7 @@ Trước khi archive, lệnh này so code với chính những gì change đã h
 
 - **Completeness** — mọi task đã tick chưa, và mỗi requirement có code thật đứng sau không. Tick rồi mà không có code vẫn bị báo, vì ô đã tick chỉ là một lời khẳng định
 - **Correctness** — mỗi scenario có được code xử lý và có test chưa; diff có làm thêm thứ gì mà không requirement nào yêu cầu; còn open question nào khiến `/sk:archive` sẽ dừng
-- **Coherence** — code có theo `design.md` và các `rules` trong `sk/config.yaml` không
+- **Coherence** — code có đúng từng contract trong `design.md` (lệch là CRITICAL), có theo các quyết định trong `design.md` và các `rules` trong `sk/config.yaml` không
 
 Mỗi vấn đề được xếp mức CRITICAL (phải sửa trước khi archive), WARNING hoặc SUGGESTION, kèm `file:dòng` và một việc cụ thể cần làm. Có shell thì nó so trên diff từ merge-base với nhánh chính và chạy lệnh test ghi trong `sk/config.yaml`. Không có shell thì nó đọc code theo tasks và delta, và nói rõ đã bỏ qua phần nào.
 
@@ -250,7 +252,7 @@ Ba việc xảy ra theo thứ tự: mỗi requirement trong `sk/changes/<id>/spe
 
 **`sk/changes/archive/` không được commit** (`/sk:init` thêm nó vào `.gitignore`). Nên sau khi archive, thứ git giữ lại của change chỉ còn spec đã merge — còn lý do của một quyết định thiết kế (nằm trong `design.md`) và các thuật ngữ change đó đưa vào sẽ biến mất cùng thư mục. Vì vậy trước khi chuyển, `/sk:archive` soạn sẵn và **hỏi bạn xác nhận** hai thứ:
 
-- **ADR** (`sk/adr/NNNN-<tên>.md`) từ `design.md` — chỉ khi change có `design.md` *và* quyết định đó khó đảo ngược, sẽ gây ngạc nhiên nếu thiếu ngữ cảnh, và là kết quả của một sự đánh đổi thật. Không có `design.md` thì không có ADR
+- **ADR** (`sk/adr/NNNN-<tên>.md`) từ `design.md` — chỉ khi change có `design.md` *và* quyết định đó khó đảo ngược, sẽ gây ngạc nhiên nếu thiếu ngữ cảnh, và là kết quả của một sự đánh đổi thật. Không có `design.md`, hoặc `design.md` chỉ có `## Contracts` mà không có quyết định nào, thì không có ADR
 - **Thuật ngữ** trong `sk/context.md` — chỉ những từ delta/proposal thực sự định nghĩa và riêng cho dự án này
 
 Chạy không có ai trả lời (ví dụ tự động hoá) thì archive vẫn merge và chuyển như thường nhưng **bỏ qua hai thứ này** và in bản nháp ra để bạn áp dụng sau: ADR và glossary là bản ghi dài hạn duy nhất còn lại, không nên chứa lý do chưa ai đọc.

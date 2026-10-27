@@ -24,7 +24,7 @@ Exactly as `/sk:continue` Step 1 in `${CLAUDE_PLUGIN_ROOT}/skills/continue/SKILL
 
 ## Step 2 — Write what is missing, in order
 
-Work out what is done exactly as `/sk:continue` Step 2 does, from the files on disk. Then, for each artifact not done — spec delta, design, tasks, in that order, never out of order — create it by following **`/sk:continue` Step 3 for that artifact**, read from `${CLAUDE_PLUGIN_ROOT}/skills/continue/SKILL.md`. Read it; do not work from memory of it. Those rules are not repeated here so the two commands cannot drift apart: the `AC source: none yet` refusal, the work-item re-fetch and U+FFFD check, the two-step test and open-question markers, `MODIFIED` restating the entire requirement, and design written only for a real trade-off (otherwise `## Design` → `Skipped — <the reason>` in `proposal.md`).
+Work out what is done exactly as `/sk:continue` Step 2 does, from the files on disk. Then, for each artifact not done — spec delta, design, tasks, in that order, never out of order — create it by following **`/sk:continue` Step 3 for that artifact**, read from `${CLAUDE_PLUGIN_ROOT}/skills/continue/SKILL.md`. Read it; do not work from memory of it. Those rules are not repeated here so the two commands cannot drift apart: the `AC source: none yet` refusal, the work-item re-fetch and U+FFFD check, the two-step test and open-question markers, `MODIFIED` restating the entire requirement, and design written for a public interface (`## Contracts`) or a real trade-off (otherwise `## Design` → `Skipped — <the reason>` in `proposal.md`).
 
 Re-read the artifacts you just wrote before writing the next one, as `/sk:continue` would on its next invocation.
 

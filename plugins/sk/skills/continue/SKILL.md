@@ -80,13 +80,18 @@ That comment is not decoration — it rides inside the requirement text `/sk:arc
 
 ### Design
 
-Only when there is a real technical trade-off to record. Use `${CLAUDE_PLUGIN_ROOT}/templates/design.md`, write `design.md`.
+Write `design.md`, from `${CLAUDE_PLUGIN_ROOT}/templates/design.md`, when either holds:
 
-If there is none, do **not** create the file. Add a `## Design` section to `proposal.md` reading `Skipped — <the reason>`. That line is what marks this artifact done, so the next invocation moves on to tasks instead of asking again.
+- **The change adds or changes a public interface** — anything a caller outside the changed module uses: an exported function or type, an endpoint, component props, a CLI command, an event or message, a database schema. An export used only inside the same module or by its own tests does not count. Write it under `## Contracts`, in the repository's own language, exactly as it will be written, and name the scenarios each one serves. Read the code the change touches first, so the contract fits what is there. This is the one place a person reviews the interface before `/sk:apply` builds it and writes every test against it: a wrong signature caught here costs one line, caught after apply it costs the code and the tests built on it
+- **There is a real technical trade-off to record** — `## Decision` through `## Consequences`
+
+Leave out the part that does not apply. A contract is not a trade-off: never pad `## Decision` to justify an interface.
+
+With neither, do **not** create the file. Add a `## Design` section to `proposal.md` reading `Skipped — <the reason>`; the reason must say no public interface changes. That line is what marks this artifact done, so the next invocation moves on to tasks instead of asking again.
 
 ### Tasks
 
-Read the delta and, if present, `design.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md` as structure. Nothing is ticked. Write `tasks.md`.
+Read the delta and, if present, `design.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md` as structure. Tasks build the interfaces under `## Contracts` as written and name them; never a different signature. Nothing is ticked. Write `tasks.md`.
 
 ## Step 4 — Close out
 
