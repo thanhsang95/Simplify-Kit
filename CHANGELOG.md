@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.10.0 — 2026-10-27
+
+New `/sk:pr <change-id>`: drafts the pull request description of a change from its artifacts, as text to paste. Writing it by hand meant re-reading `proposal.md`, the delta and `tasks.md`, and the PR rarely said which requirement a `MODIFIED` block actually changed or what was still open.
+
+- **Sections:** Summary (`AB#<id>`, from `proposal.md`; for a Bug, the symptom and the new behaviour), Spec changes (per capability: added with scenario count, modified with what changed, removed with the reason), Contracts (from `design.md`), Tasks (progress and every unticked task), Open before merge (open-question markers, `unconfirmed` assumptions, Gaps, "not archived yet"), Evidence, Merge danger
+- **Evidence is the author's.** It lists the scenarios to tick and adds only what the conversation showed (a `/sk:verify` report, tests seen red then green). Never "tests pass" from a run that did not happen
+- **Merge danger** names a one-way or two-way door and the blast radius, with the reason: a schema, public endpoint or event contract, a removed requirement or data in a new shape is one-way. Never "safe" because it is small
+- **Reads archived changes.** The README says archive before push, so the usual moment is right after `/sk:archive`; it is the only command that looks under `sk/changes/archive/<id>/`. With Bash it adds `git diff --stat` against the default branch; without, it leaves that out
+- **Creates nothing.** No PR, no file, no push, even when asked: creating a PR on Azure DevOps is a write. Not `disable-model-invocation`: the description is scoped to a change under `sk/changes/`, so "write the PR description for us-12345-…" finds it
+- `/sk:init` lists `/sk:pr` among the commands in the section it appends to the host repo's `CLAUDE.md`. `sk-status` is unchanged: its next step after archive stays empty
+- Evals: 33 → 35, `core`: `pr-drafts-body-archived` (archived change with ADDED + MODIFIED and a contract; no file written, no invented test result, reasoned merge danger) and `pr-flags-open-change` (open change with an `[[OPEN:Q1]]` marker and an unticked task). Full suite (`--ablation none`, 3 runs, 35 cases, $24.65): both `pr-*` 1.00. Four cases ran into an account session limit mid-run and errored; re-run (3 runs each, $2.80) all 1.00. Below 1.00, single FAIL runs in cases this change does not touch: `archive-asks-before-writing-adr` 0.93, `continue-marks-ambiguous-ac` 0.92 (`selective-marking`, as before), `init-migrates-old-workspace` 0.96
+
 ## 0.9.0 — 2026-10-27
 
 `/sk:propose` reads what a Bug and a test case actually hold. A Bug's expected behaviour lives in `Microsoft.VSTS.TCM.ReproSteps`, which `reference/azure-devops.md` listed but no skill read, so every Bug without an acceptance criteria field landed in Branch B (`AC source: none yet`) and the user was asked for what the board already had. Test cases linked by `Tested By` were not read at all, though QA often writes the exact values there that the criteria leave as a sentence.
