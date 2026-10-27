@@ -48,7 +48,7 @@ Rules that matter:
 
 - A requirement states a **contract** — one SHALL sentence, in product terms
 - A scenario states **observable behaviour** — what a person or a caller can see. `WHEN`/`THEN`, with `GIVEN` when a precondition matters and `AND` for further observable results
-- Write what the system does, not how it is built. Mechanism belongs in `design.md` unless the mechanism itself is the contract
+- Write what the system does, not how it is built. Mechanism belongs in `design.md` unless the mechanism itself is the contract. The code-level interface a scenario is built and tested through (signature, endpoint, props) goes in `design.md` → `## Contracts`, not in the spec
 - A requirement with no scenario is a wish. A scenario nobody could check is prose
 
 There is **no target ratio** between requirements and scenarios. One requirement with one scenario is fine; one with eight is fine.

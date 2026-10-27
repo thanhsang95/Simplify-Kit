@@ -57,7 +57,7 @@ For each unchecked task:
 **Stop and ask** when:
 
 - A task is ambiguous — ask rather than pick a reading
-- Implementation reveals a hole in the design — say so and suggest updating the planning artifacts; the artifacts are not frozen
+- Implementation reveals a hole in the design — say so and suggest updating the planning artifacts; the artifacts are not frozen. An interface under `design.md` → `## Contracts` that cannot be built as written is such a hole: never ship a different signature on your own
 - A task needs work beyond what the spec describes, or you find yourself wanting to narrow, defer, or make an exception to specified behaviour to make it fit. **Surface the extra scope. Never absorb it silently**
 - Anything errors or blocks
 
