@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 Set up the `sk/` workspace for SimplifyKit in the current repository.

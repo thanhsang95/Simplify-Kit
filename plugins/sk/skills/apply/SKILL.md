@@ -3,7 +3,7 @@ name: apply
 description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, test-first per spec scenario, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
 metadata:
   author: Simplify
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 Implement the tasks of one change under `sk/changes/`.
