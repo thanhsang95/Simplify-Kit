@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: pr-drafts-body-archived
+description: >-
+  /sk:pr on a change that /sk:archive already moved into sk/changes/archive/
+  drafts the PR body from its artifacts — AB# link, added and modified
+  requirements, task progress, contracts, a reasoned merge danger — invents no
+  test result, and writes no file.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

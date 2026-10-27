@@ -27,7 +27,7 @@ Mỗi skill được xét theo ba điều kiện:
 |---|---|---|
 | `code-review` (Standards + Spec, neo vào fixed point, kiểm scope creep) | `/sk:verify`, khung lấy từ OpenSpec `openspec-verify-change` | **Đã làm ở 0.4.0** |
 | `tdd` (red → green tại seam đã thống nhất, slice dọc, không viết test kiểu tautology) | `reference/tdd.md` cộng một bước trong `/sk:apply`: mỗi `#### Scenario` là một seam, viết test fail trước rồi mới implement | **Đã làm ở 0.8.0** |
-| `pr` (Summary dạng hình nhỏ nhất, Evidence before/after, Merge Danger: one-way/two-way door + blast radius) | `/sk:pr` chỉ sinh nội dung PR body, có link AB#, delta và tiến độ tasks | Việc tiếp theo. **Không tạo PR trên ADO**, vì đó là một thao tác ghi |
+| `pr` (Summary dạng hình nhỏ nhất, Evidence before/after, Merge Danger: one-way/two-way door + blast radius) | `/sk:pr` chỉ sinh nội dung PR body, có link AB#, delta và tiến độ tasks | **Đã làm ở 0.10.0**. **Không tạo PR trên ADO**, vì đó là một thao tác ghi |
 
 ## Nhóm 2: có giá trị, làm sau
 

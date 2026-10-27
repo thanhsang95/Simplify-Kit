@@ -289,6 +289,22 @@ Change còn task chưa tick (đang làm dở, chia nhiều PR) thì push bình t
 
 Gồm hai phần: `sk/hooks/pre-push` là script kiểm, **có commit**, cả team dùng chung và sửa qua PR; còn một shim vài dòng nằm trong `.git/hooks/pre-push` của mỗi clone — git không clone thư mục đó, nên **mỗi người chạy `/sk:init` một lần** trong clone của mình để cài shim. Repo đã có `pre-push` riêng hoặc dùng hook manager (husky, `core.hooksPath`) thì `/sk:init` không ghi đè gì, chỉ in ra dòng `sh sk/hooks/pre-push "$@"` để bạn tự thêm vào hook hiện có.
 
+### 6. Mô tả PR — `/sk:pr`
+
+```
+/sk:pr us-12345-<tên-ngắn>
+```
+
+Soạn phần mô tả cho PR từ chính các artifact của change, để bạn dán vào Azure DevOps hoặc GitHub. Nó đọc được cả change đã archive (`sk/changes/archive/<id>/`), vì thời điểm bình thường để viết PR là ngay sau `/sk:archive`. Nội dung gồm:
+
+- `AB#<id>` và tóm tắt từ `proposal.md` (với Bug: triệu chứng cũ và hành vi mới)
+- Requirement nào được thêm, sửa (sửa gì) hay bỏ, theo từng capability; các contract trong `design.md`
+- Tiến độ task, và những gì còn mở trước khi merge: open question, task chưa tick, assumption `unconfirmed`, chưa archive
+- Mục **Evidence** để bạn tự điền — nó chỉ ghi những gì đã thật sự xảy ra trong hội thoại (report của `/sk:verify`, test đã thấy đỏ rồi xanh), không bao giờ tự nhận test đã pass
+- **Merge danger**: one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way) và ai bị ảnh hưởng nếu sai
+
+**Nó không tạo PR, không ghi file nào.** Tạo PR trên Azure DevOps là một thao tác ghi, mà kit chỉ đọc ADO.
+
 ## Nâng cấp từ bản cũ (0.1.x)
 
 Chạy lại `/sk:init` trong repo đã có `sk/`. Lệnh này **không bao giờ ghi đè** `config.yaml`; nó chỉ kiểm tra workspace có gì khác bản hiện tại và đề xuất các thay đổi kiểu *append*: thêm `sk/changes/archive/` vào `.gitignore`, đánh dấu `## Design` "Skipped" cho các change đã lên kế hoạch từ trước khi có `/sk:continue`, và thêm dòng `**AC source:** none yet` cho change đang chờ AC. Nó hiện toàn bộ kế hoạch và hỏi bạn **một lần**; chạy không có người trả lời thì chỉ áp dụng ba việc trên.
@@ -371,7 +387,7 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 ## Những gì kit cố ý không làm
 
 - **Không sửa code ở bước `propose` hay `continue`, và không viết hai artifact trong một lần gọi** — kể cả khi bạn yêu cầu trong cùng câu lệnh
-- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state. Cập nhật board vẫn là việc của bạn
+- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state, không tạo PR (`/sk:pr` chỉ soạn nội dung). Cập nhật board vẫn là việc của bạn
 - **Không tự nhận mô tả tự do** — một yêu cầu không có work item chỉ thành change khi bạn gọi rõ `/sk:propose <yêu cầu>`, và AC của nó phải do bạn viết hoặc xác nhận
 - **Không nhận số trần** — `12345` là mơ hồ, vì trong repo này số trần đã mang nghĩa mã PR. Gõ `AB#12345`
 
