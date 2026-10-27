@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.7.0 — 2026-10-15
+
+Optional git `pre-push` hook, set up by `/sk:init`, that stops a push when someone forgot `/sk:archive`. The only reminder was the close-out line of `/sk:apply`, and no skill is running when a person types `git push`.
+
+- **What it stops.** The commits being pushed hold a change under `sk/changes/<id>/` whose `tasks.md` has every box ticked (the `/sk:verify` checkbox rule), or an `[[OPEN:Q<n>]]` marker inside `sk/specs/`. A change with any task still open passes, so work split over several PRs is not blocked. It reads the pushed commits (`git ls-tree` / `git show` on the pushed sha), not the working tree. `git push --no-verify` bypasses it once
+- **Two files.** `sk/hooks/pre-push` holds the check and is committed, so the team shares one version and changes it by PR. A 4-line shim in the clone's hooks directory runs it, and is a no-op on a branch without `sk/`. `.git/hooks` is not cloned, so migration item 7 offers the shim to each teammate's clone
+- **Never unattended, never over someone else's hook.** Offered only with the Bash tool and a person's yes, since it changes every later push and writes inside `.git/`. With `core.hooksPath` set (husky and the like) or an existing `pre-push`, `init` writes nothing there and prints `sh sk/hooks/pre-push "$@"` to add by hand
+- **Archive before push** is now written down in the README: archiving inside the PR puts the `sk/specs/` diff next to the code that changed it. Nothing said when to archive before, which is what made "forgot to archive" undetectable
+- Not a CI check, not a Claude Code hook. A Claude Code hook only sees pushes Claude makes, and `docs/PLAN.md` keeps hooks as approval gates out of scope. A pipeline check is the stronger guarantee (a local hook can be skipped) but needs a pipeline in every consuming repo — left for later
+- Verified by hand in a temp repo with a bare remote: no `sk/` → pass; one task open → pass; all ticked (incl. `[ X ]`) → stopped; `[~]` → pass; marker in `sk/specs/` → stopped; fixed → pass; branch delete → pass; the script with CRLF line endings under Git Bash → still stops. Evals unchanged (29 cases): they have no Bash grant, so `init` skips the offer there
+- Full gated run (`--ablation none`, 3 runs each, ≈ $20.5): `init` 1.00; `wi` failed on `continue-writes-spec-delta` 0.92 and `core` on `ff-writes-remaining-artifacts` 0.78. Both were the suite, not the skills:
+  - `ac-faithfulness` gave Haiku a one-line paraphrase of each criterion, so a spec quoting the real text (the eight function names, "paste a sample value") read as invented. It also counted a scenario ending in `[[OPEN:Q<n>]]` as stated behaviour. The failing specs were faithful. The grader now holds the ten criteria word for word and says a marker states nothing
+  - The `ff` fixture seeded three of the eight transform functions criterion 5 calls "currently available", and `character_limit` returned its input. `/sk:ff` rightly logged that as a Gap and stopped after the delta, 3/3, so `tasks.md` was never written. The earlier 1.00 was a run that missed the Gap. The fixture now has all eight
+  - After the fix: both 1.00 (3/3). Other cases with a single FAIL run, above their threshold: `verify-passes-complete-change` and `archive-already-archived-drafts-records`, 0.93 each
+
+## 0.6.0 / sk-status 0.1.1 — 2026-10-15
+
+New `/sk:ff <change-id>`: writes every planning artifact a change is still missing (spec delta → design or its Skipped note → tasks) in one invocation, then stops before `/sk:apply`. Small work items went through three `/sk:continue` calls and three review stops, which cost more than they gave.
+
+- **A separate skill, not a flag on `/sk:continue`.** `continue`'s one-artifact stop and its Planning boundary wording were measured against real violations (`continue-one-artifact-per-call`, `propose-does-not-auto-apply`); a flag would have meant rewording them. `continue`'s text is untouched
+- **Only a person can start it.** `disable-model-invocation: true` keeps it out of the model's reach, so "finish all the remaining artifacts" still lands on `/sk:continue` and still produces one
+- **No copy of the rules.** `ff` reads `continue` Step 3 from `skills/continue/SKILL.md` at run time for each artifact (AC-source refusal, re-fetch and U+FFFD check, open-question markers, `MODIFIED` restated in full, design only for a real trade-off), so the two cannot drift
+- **Stops after the delta** when the delta has `## MODIFIED Requirements` — the easiest place to lose specification, so a person reviews it before tasks are built on it — or raised a Gap. Unresolved decidable tokens are marked, not a reason to stop
+- **Where it is offered.** `/sk:propose`'s close-out names it as the alternative to `/sk:continue` for small items (one sentence, Planning boundary untouched). `sk-status` 0.1.1 adds an `f: Run /sk:ff` button at the spec, design and tasks steps, beside `n`; the Tab suggestion stays `/sk:continue`, since the mod cannot tell a small item from a large one
+- README gains "Item nhỏ": the `ff` path, and the work that needs no `sk` at all — no change to observable behaviour (typo, refactor, dependency bump, a bug fix that restores what `sk/specs/` already says); a commit with `AB#<id>` is enough
+- Evals: 28 → 29. New `ff-writes-remaining-artifacts` (`core`), seeded with `continue-one-artifact-per-call`'s fixture minus the spec delta. It has no `tool_used: Skill` grader: a `disable-model-invocation` skill is started by the slash command in the prompt, not the Skill tool. The runner does expand the slash command. Measured (1 run each, `--ablation none`): `ff-writes-remaining-artifacts` 1.00 ($0.54), `continue-one-artifact-per-call` re-run with `ff` present 1.00. Two earlier runs did the right thing but failed one LLM grader 3/3 both times — it bundled design, the `/sk:apply` hand-off and "without running it" into one judgement for Haiku, and the runner records no judge rationale. Replaced by a deterministic `apply-not-fired` (`tool_used`, same pattern as `propose-does-not-auto-apply`) plus a one-question `design-decided`
+
+## sk-status 0.1.0 — 2026-10-13
+
+New optional plugin `sk-status@simplify`, separate from `sk`: a Claude Code mod that shows where each change stands, because people forgot which `/sk:*` command came next and could not see a change's progress without opening its files.
+
+- **Status line, Tab suggestion and `/sk-status` pane.** The status line names the most recently edited change, its step, task count, open questions and next command. After each turn the next command is offered as a Tab suggestion. The pane lists open changes (most recently edited first, `o` to order by progress), shows the selected change's pipeline, reads `proposal.md` / spec delta / `design.md` / `tasks.md` in place (`p` `s` `d` `t`), and runs the next command on `n`
+- **State is read off disk, not stored.** Same rules as the skills: artifact order from `/sk:continue` Step 2, `AC source: none yet` → `/sk:propose`, the `/sk:verify` checkbox rule, `[[OPEN:Q<n>]]` markers, `archive/` excluded. A 4-second rescan picks up edits made outside Claude and writes state only when something changed
+- **Read-only, and commands run only on a press.** It writes no file and never calls Azure DevOps. A press is the person's own request, the same as typing the command, so it does not cross the planning boundary, which forbids the *model* from chaining into `/sk:apply`. `/sk:archive`, the one destructive step, needs a second press in a confirmation box whose focus starts on Cancel. When the `sk` command cannot be found the press only fills the prompt
+- **Kept out of `plugins/sk` on purpose.** Merging was weighed: a module that fails to load only skips its hooks, so the skills would survive on any Claude Code that supports mods. Three reasons decided it. It is unverified how a Claude Code older than mod support treats a `hooks.json` with `modules`, and the bad case is losing `sk` itself. Merged, it could not be turned off without turning off `sk`. And every mods-API fix would force an `sk` release. `sk` stays markdown-only
+- **`sk` 0.5.1: `/sk:init` mentions it.** One line at the end of the close-out says `sk-status` exists, is optional, and how to install it. `init` never installs it. Without this the plugin is only findable by reading the README. No eval asserts the line
+- Verified: `claude plugin validate` and `tsc --noEmit` pass; the pane was checked by hand on Claude Code 2.1.286 against a real change at the verify step. Not verified: whether `$.command.run` resolves the skill's name as `sk:<skill>` on every install (the fallback fills the prompt), the multi-change list against a real repository, and the Desktop / VS Code surfaces. Not covered by the eval suite
+
+## 0.5.0 — 2026-10-12
+
+`/sk:propose`, `/sk:archive` and `/sk:init` ask their rounds of questions through Claude Code's `AskUserQuestion` when it is available, instead of only as text.
+
+- **New `reference/asking-the-user.md`**, shared by the three skills. Questions with discrete answers go through the tool, recommended answer first and labelled `(Recommended)`, at most 4 per call — a longer round is several calls but still one round. Anything the person must read to decide (draft ADR, glossary terms, migration text, the AC split) is shown as text before the call. Open questions (missing criteria, a replacement definition) stay in text
+- **Hybrid, not mandatory.** The tool takes at most 4 questions of 2–4 options and is absent in headless runs and the eval runner, so the existing text format (`❓ G<n> … ➡️` in `propose`) remains the fallback. Unattended runs are unchanged: no tool call, questions printed, answers recorded `unconfirmed` / drafts skipped as before. No rule about *what* is asked or *when* a round ends changed; the "Planning boundary" wording is untouched
+- The grilling step had always asked in text. Nothing recorded why; it was inherited from `mattpocock/skills`' `grilling`, which asks in text
+- Evals unchanged (28 cases). No case allows `AskUserQuestion`, so the asking cases keep measuring the text fallback; the tool path is verified by hand in a real session
+
 ## 0.4.0 — 2026-10-07
 
 New `/sk:verify`: a read-only check of a change's implementation against its own artifacts, between `/sk:apply` and `/sk:archive`. It fills the Stage 4 gap `reference/playbook-mapping.md` recorded ("There is no `/sk:verify` yet").

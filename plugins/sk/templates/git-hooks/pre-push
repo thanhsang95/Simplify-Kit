@@ -1,0 +1,49 @@
+#!/bin/sh
+# SimplifyKit pre-push check. Committed so the whole team runs the same check;
+# each clone calls it from a small pre-push shim that /sk:init installs.
+#
+# Stops a push when the commits being pushed:
+#   - leave a change under sk/changes/<id>/ with every task ticked but not
+#     archived — the living spec in sk/specs/ never learns about it, and the
+#     next /sk:propose plans against a spec that is out of date
+#   - carry an [[OPEN:Q<n>]] marker inside sk/specs/ — an unanswered question
+#     that now reads like a settled requirement
+#
+# It reads the pushed commits, not the working tree, so what is checked is what
+# the remote receives. Bypass once with: git push --no-verify
+#
+# The checkbox rule and the marker are the same ones /sk:verify and
+# reference/conventions.md use; change them together.
+
+box='^[[:space:]]*[-*+][[:space:]]+\[[^]]*\]'
+done_box='^[[:space:]]*[-*+][[:space:]]+\[[[:space:]]*[xX][[:space:]]*\]'
+status=0
+
+while read -r local_ref local_sha remote_ref remote_sha; do
+  # An all-zero sha means the ref is being deleted: nothing to check.
+  case "$local_sha" in *[!0]*) ;; *) continue ;; esac
+
+  for tasks in $(git ls-tree -r --name-only "$local_sha" -- sk/changes |
+                 grep -E '^sk/changes/[^/]+/tasks\.md$'); do
+    id=${tasks#sk/changes/}
+    id=${id%/tasks.md}
+    [ "$id" = archive ] && continue
+    content=$(git show "$local_sha:$tasks")
+    total=$(printf '%s\n' "$content" | grep -cE "$box")
+    open=$(printf '%s\n' "$content" | grep -E "$box" | grep -cvE "$done_box")
+    if [ "$total" -gt 0 ] && [ "$open" -eq 0 ]; then
+      echo "sk: change '$id' has every task ticked but is not archived ($local_ref)." >&2
+      echo "    Run /sk:archive $id, commit the result, then push again." >&2
+      status=1
+    fi
+  done
+
+  for spec in $(git grep -l -F '[[OPEN:Q' "$local_sha" -- sk/specs 2>/dev/null); do
+    echo "sk: ${spec#"$local_sha":} still has an [[OPEN:Q<n>]] marker in the living spec ($local_ref)." >&2
+    echo "    Answer the question and replace the marker with the agreed value." >&2
+    status=1
+  done
+done
+
+[ "$status" -eq 0 ] || echo "sk: push stopped. To push anyway: git push --no-verify" >&2
+exit "$status"

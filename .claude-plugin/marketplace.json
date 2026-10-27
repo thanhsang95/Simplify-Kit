@@ -9,6 +9,12 @@
       "source": "./plugins/sk",
       "description": "SimplifyKit — spec-driven workflow for Claude Code, driven by Azure DevOps work items.",
       "category": "workflow"
+    },
+    {
+      "name": "sk-status",
+      "source": "./plugins/sk-status",
+      "description": "Optional companion to sk — a pane and status line showing where each change stands and the next /sk command. sk works the same without it.",
+      "category": "workflow"
     }
   ]
 }

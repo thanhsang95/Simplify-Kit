@@ -1,0 +1,6 @@
+#!/bin/sh
+# Installed by SimplifyKit /sk:init. Runs the team's committed check in
+# sk/hooks/pre-push; a branch that has no sk/ yet is pushed unchecked.
+hook="$(git rev-parse --show-toplevel)/sk/hooks/pre-push"
+[ -f "$hook" ] || exit 0
+exec sh "$hook" "$@"

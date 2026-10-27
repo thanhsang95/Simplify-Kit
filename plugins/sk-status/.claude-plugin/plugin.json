@@ -1,0 +1,12 @@
+{
+  "name": "sk-status",
+  "displayName": "SimplifyKit status",
+  "version": "0.1.1",
+  "description": "Optional companion to sk: a /sk-status pane, status line and Tab suggestion showing where each SimplifyKit change stands and the next /sk command. Reads sk/ only; sk works the same without it.",
+  "author": {
+    "name": "Simplify"
+  },
+  "license": "MIT",
+  "keywords": ["spec-driven", "status", "mod"],
+  "types": "./types/index.d.ts"
+}

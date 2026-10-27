@@ -80,6 +80,22 @@ Nếu thấy `disabled` thì bật lên — lúc đang tắt, các lệnh `/sk:*
 claude plugin enable sk@simplify
 ```
 
+### Tuỳ chọn: bảng trạng thái `sk-status`
+
+Không nhớ bước tiếp theo là lệnh gì? Cài thêm plugin phụ `sk-status`:
+
+```
+/plugin install sk-status@simplify
+```
+
+Nó thêm vào Claude Code:
+
+- **Status line**: change đang làm, đang ở bước nào, bao nhiêu task đã xong, lệnh tiếp theo
+- **Gợi ý bằng Tab**: sau mỗi lượt, ô prompt hiện mờ lệnh tiếp theo (`/sk:continue …`, `/sk:apply …`); nhấn Tab để lấy
+- **`/sk-status`**: mở bảng gồm danh sách change, pipeline từng bước, đọc `proposal.md` / spec / design / tasks ngay trong bảng (`p` `s` `d` `t`), `n` chạy lệnh tiếp theo, `f` chạy `/sk:ff` khi đang lập kế hoạch. `/sk:archive` phải bấm hai lần mới chạy
+
+`sk-status` chỉ đọc `sk/`, không ghi file nào và chỉ chạy lệnh khi bạn bấm. Đây là plugin riêng: không cài thì `sk` vẫn chạy y như cũ, còn nếu nó lỗi thì các lệnh `/sk:*` không bị ảnh hưởng. Nó dùng tính năng mod của Claude Code, vốn còn mới và có thể đổi giữa các bản; đã thử trên Claude Code 2.1.286. Chi tiết: [`plugins/sk-status/README.md`](plugins/sk-status/README.md).
+
 ### Azure DevOps: chuẩn bị trước khi chạy `/sk:init`
 
 `/sk:init` đọc org/project mặc định qua Azure CLI, còn `/sk:propose` sau này dùng token do CLI cấp để đọc work item qua REST. Vì vậy hãy cài CLI và đăng nhập từ trước — đừng đợi tới lúc lỗi mới làm:
@@ -130,7 +146,7 @@ Giả sử bạn được giao User Story **12345**.
 /sk:propose AB#12345
 ```
 
-Nó đọc work item, **hỏi bạn một lượt câu hỏi** về cách đọc nó (mỗi câu đánh số `G1`, `G2`… kèm đáp án nó đề xuất), rồi sau khi bạn xác nhận mới ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
+Nó đọc work item, **hỏi bạn một lượt câu hỏi** về cách đọc nó (mỗi câu đánh số `G1`, `G2`… kèm đáp án nó đề xuất — qua hộp chọn `AskUserQuestion` của Claude Code khi có, đáp án đề xuất đứng đầu; câu hỏi mở hoặc phiên không có tool thì hỏi bằng text), rồi sau khi bạn xác nhận mới ghi ra **một file**: `proposal.md`. Chưa có spec, chưa có tasks.
 
 Lượt hỏi đầu tiên luôn có, kể cả khi AC đã gom nhóm rõ — lúc đó nó chỉ là một lần xác nhận ngắn. Chạy tự động, không ai trả lời được, thì nó ghi đáp án đề xuất và đánh dấu từng mục trong `## Assumptions` là `unconfirmed`, để người duyệt biết mục nào chưa ai xem.
 
@@ -182,6 +198,20 @@ Không có lệnh trạng thái nào — nó nhìn file nào đã có trên đĩ
 
 Xem luôn mục **Gaps** và **Open questions** trong `proposal.md`: Gaps là chỗ AC chưa đủ rõ để dịch thành scenario; Open questions là chỗ scenario đã viết nhưng một con số hay quy tắc chưa ai chốt. Cả hai đều không phải chỗ nó tự bịa cho đủ.
 
+#### Item nhỏ — `/sk:ff`
+
+Với item nhỏ, duyệt riêng từng artifact thì mất thời gian hơn những gì nó mang lại. Sau khi đã đọc `proposal.md`:
+
+```
+/sk:ff us-12345-<tên-ngắn>
+```
+
+Lệnh này viết **mọi artifact còn thiếu trong một lần** (spec delta → design hoặc ghi chú Skipped → tasks), theo đúng quy tắc của `/sk:continue`, rồi dừng để bạn duyệt cả ba file cùng lúc. Nó không chạy `/sk:apply`. Lệnh dừng sớm sau spec delta nếu delta có `## MODIFIED Requirements` (chỗ dễ mất spec nhất) hoặc phát sinh Gap, khi đó dùng tiếp `/sk:continue`.
+
+`/sk:ff` chỉ chạy khi **bạn gõ** nó. Model không tự chọn nó, nên câu "làm hết các bước còn lại đi" vẫn chỉ ra một artifact qua `/sk:continue`. `/sk:propose` nhắc tới nó ở cuối, và bảng `sk-status` có phím `f` cho nó.
+
+**Việc không cần đi qua `sk`:** việc không đổi hành vi quan sát được, như sửa typo, refactor, bump dependency, hoặc sửa bug để code khớp lại với spec đã có. Với các việc này chỉ cần commit/PR kèm `AB#<id>` như thường. Bug fix làm *đổi* hành vi đã ghi trong `sk/specs/` thì vẫn phải đi qua `sk`, nếu không spec sống sẽ nói sai về hệ thống.
+
 ### 3. Làm — `/sk:apply`
 
 ```
@@ -229,6 +259,19 @@ Change đã archive từ trước khi có bước này thì chạy `/sk:archive 
 
 Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
+Archive **trước khi push**, trong cùng PR với code: reviewer thấy diff của `sk/specs/` ngay cạnh code đã đổi nó.
+
+#### Chặn push khi quên archive — git hook `pre-push`
+
+Lúc bạn gõ `git push` thì không skill nào đang chạy, nên chỉ lời nhắc thôi thì không đủ. `/sk:init` đề xuất cài một hook `pre-push` (chỉ khi có Bash và bạn đồng ý), nó chặn push nếu các commit sắp lên remote có:
+
+- một change dưới `sk/changes/<id>/` đã tick hết task trong `tasks.md` nhưng chưa archive
+- dấu `[[OPEN:Q<n>]]` nằm trong `sk/specs/` — câu hỏi chưa ai trả lời mà giờ trông như requirement đã chốt
+
+Change còn task chưa tick (đang làm dở, chia nhiều PR) thì push bình thường. Hook đọc commit sắp push, không đọc working tree. Muốn push bất chấp một lần: `git push --no-verify`.
+
+Gồm hai phần: `sk/hooks/pre-push` là script kiểm, **có commit**, cả team dùng chung và sửa qua PR; còn một shim vài dòng nằm trong `.git/hooks/pre-push` của mỗi clone — git không clone thư mục đó, nên **mỗi người chạy `/sk:init` một lần** trong clone của mình để cài shim. Repo đã có `pre-push` riêng hoặc dùng hook manager (husky, `core.hooksPath`) thì `/sk:init` không ghi đè gì, chỉ in ra dòng `sh sk/hooks/pre-push "$@"` để bạn tự thêm vào hook hiện có.
+
 ## Nâng cấp từ bản cũ (0.1.x)
 
 Chạy lại `/sk:init` trong repo đã có `sk/`. Lệnh này **không bao giờ ghi đè** `config.yaml`; nó chỉ kiểm tra workspace có gì khác bản hiện tại và đề xuất các thay đổi kiểu *append*: thêm `sk/changes/archive/` vào `.gitignore`, đánh dấu `## Design` "Skipped" cho các change đã lên kế hoạch từ trước khi có `/sk:continue`, và thêm dòng `**AC source:** none yet` cho change đang chờ AC. Nó hiện toàn bộ kế hoạch và hỏi bạn **một lần**; chạy không có người trả lời thì chỉ áp dụng ba việc trên.
@@ -245,6 +288,7 @@ Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn 
 | `sk/changes/archive/<id>/` | Thay đổi đã xong — **chỉ nằm trên máy**, bị `.gitignore` |
 | `sk/adr/NNNN-<tên>.md` | Quyết định thiết kế đã chốt, ghi lại lúc archive |
 | `sk/context.md` | Bảng thuật ngữ riêng của dự án, cập nhật lúc archive |
+| `sk/hooks/pre-push` | Script kiểm trước khi push (tuỳ chọn, `/sk:init` cài khi bạn đồng ý) — **có commit** |
 
 Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:continue` sinh ra:
 

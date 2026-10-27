@@ -3,7 +3,7 @@ name: propose
 description: "SimplifyKit (sk): start a change from an Azure DevOps work item — or, only when the user explicitly invokes /sk:propose with it, from a direct request that has no work item — and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.3.0"
+  version: "0.6.0"
 ---
 
 Read an Azure DevOps work item — or take a direct request the user gave explicitly — and start one change: write `proposal.md`, then stop. The spec delta, design and tasks are created afterwards, one per invocation, by `/sk:continue`.
@@ -112,6 +112,8 @@ Everything `proposal.md` records about *how the work item was read* is a decisio
 
 Work it as a decision tree, in rounds. The **frontier** is every decision whose prerequisites are already settled. Ask the whole frontier in one round — numbered, each with your recommended answer — then wait. A question whose answer depends on another still open in this round belongs to a later round. Number them `G1`, `G2`, … — **not** `Q<n>`, which is the open-question numbering `/sk:continue` owns inside `proposal.md` and the delta.
 
+How the round reaches the user follows `${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md`: through `AskUserQuestion` when it is available (recommended answer first), in this text format when it is not, or for a question whose answer is content rather than a choice:
+
 ```
 ❓ **G1** - **<title>**: <the question, with the options it turns on>
 
@@ -154,7 +156,7 @@ Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/cha
 
 ## Step 6 — Close out
 
-List the file created, any Gaps, and how many `## Assumptions` entries are still `unconfirmed`. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. Do not run it yourself.
+List the file created, any Gaps, and how many `## Assumptions` entries are still `unconfirmed`. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. For a small item they can instead run `/sk:ff <change-id>`, which writes the delta, design note and tasks in one go for a single review. Do not run either yourself.
 
 ## Guardrails
 

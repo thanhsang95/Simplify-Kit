@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages six skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:verify`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
+SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages seven skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:ff`, `/sk:apply`, `/sk:verify`, `/sk:archive`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
 
 Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for maintainer structure before making non-trivial changes.
 
@@ -14,11 +14,22 @@ Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for mai
 .claude-plugin/marketplace.json      marketplace "simplify"
 plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
-  skills/{init,propose,continue,apply,verify,archive}/SKILL.md
+  skills/{init,propose,continue,ff,apply,verify,archive}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
-  reference/                         conventions.md, azure-devops.md, playbook-mapping.md — read by skills at runtime
-  evals/                             claude plugin eval suite (28 cases)
+  reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md — read by skills at runtime
+  evals/                             claude plugin eval suite (29 cases)
+plugins/sk-status/                   optional companion mod (TypeScript hooks module) — see below
 ```
+
+### `sk-status` is optional and must stay that way
+
+`plugins/sk-status/` is a separate plugin in the same marketplace: a Claude Code mod (`hooks/register.tsx`) that reads `sk/changes/` and shows a status line, a Tab suggestion and a `/sk-status` pane. It is deliberately **not** inside `plugins/sk`: the mods API is early access and changes between Claude Code releases, and `sk` must keep working, markdown-only, whether or not `sk-status` is installed or loads. Never make an `sk` skill depend on it, and never add a hooks module to `plugins/sk`.
+
+It re-implements the state rules the skills use (artifact order from `continue` Step 2, the checkbox rule from `verify`, the `[[OPEN:Q<n>]]` marker, `AC source: none yet`, skipping `archive/`). **Change one of those rules in a skill and update `register.tsx` to match** — nothing tests the two against each other. It stays read-only: it writes no file, never calls Azure DevOps, and only runs an `/sk:*` command when the person presses a key (`/sk:archive` needs two presses). Verify with `claude plugin validate .` from `plugins/sk-status` and `tsc -p . --noEmit` (Claude Code writes the types into `.claude-plugin/types/` when it loads the folder with `--plugin-dir`; they are gitignored). It is not covered by the eval suite.
+
+### The `pre-push` git hook is a third copy of the state rules
+
+`plugins/sk/templates/git-hooks/pre-push` is a POSIX `sh` script `/sk:init` copies to `sk/hooks/pre-push` in a consuming repo (committed), plus a shim in that clone's hooks directory — only with a person's yes and the Bash tool. It is a git hook a person's `git push` runs, not a Claude Code hooks module, so it does not break the rule above. It re-implements the `/sk:verify` checkbox rule, the `[[OPEN:Q<n>]]` marker and skipping `archive/`, like `register.tsx` does: change one of those and update both. It is not covered by the eval suite (no Bash grant); test it by hand in a temp repo with a bare remote, pushing a change with all tasks ticked, one open, and a marker under `sk/specs/`. It is kept LF by `.gitattributes`.
 
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
 
@@ -40,6 +51,7 @@ Editing one without checking the other two is the easiest way to break this repo
 - Keep `SKILL.md` short; push detail into `reference/`.
 - If a rule exists because of a real observed failure, say so inline — an unexplained rule gets "simplified" away by someone later.
 - Planning is split in two steps: `/sk:propose` writes `proposal.md` only; `/sk:continue` then writes one artifact per invocation (spec delta → design → tasks), deriving what is done from the files on disk — there is no status CLI. `/sk:continue` never starts a change and refuses a spec delta while `proposal.md` says `**AC source:** none yet`
+- `/sk:ff` is the one way to write several planning artifacts in one call, and only when a person types it: `disable-model-invocation: true` keeps it out of the model's reach, so "do all the remaining ones" still goes to `/sk:continue` and the `continue-one-artifact-per-call` stop holds. It does not restate `continue` Step 3's rules — it reads them from `skills/continue/SKILL.md` at run time, so the two cannot drift. It stops after the delta when the delta has `MODIFIED` or raised a Gap
 - The "Planning boundary" paragraph appears in both `propose` and `continue`. Its wording was measured against real violations (see `CHANGELOG.md`), so change both together and re-run `propose-does-not-auto-apply`
 - `/sk:propose` accepts `AB#<id>` or a work item URL, or — only when the user explicitly invokes it with one — a direct request (Branch R, change-id `req-<slug>`, request kept verbatim under `## Request`). Never a bare integer, since bare numbers already mean PR id in this repo's own conventions. Explicit invocation is what keeps it from competing with other planning skills (`docs/PLAN.md` risk 6); don't widen the description to fire on any feature description. Criteria the model drafts for a direct request stay `AC source: none yet` until a person confirms them — the one place the unattended `unconfirmed` fallback does not apply.
 - `/sk:archive` is the only skill with a destructive operation (directory move, full-block requirement replacement); it validates everything before writing anything (see `plugins/sk/skills/archive/SKILL.md`).
@@ -55,7 +67,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 28 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 29 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case

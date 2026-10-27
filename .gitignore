@@ -22,3 +22,7 @@ docs/WORKSPACE_PROTOCOL.md
 .agents/
 .claude/
 skills-lock.json
+
+# Written by Claude Code when it loads a mod from --plugin-dir; build-specific
+plugins/*/.claude-plugin/types/
+plugins/sk-status/tsconfig.json
