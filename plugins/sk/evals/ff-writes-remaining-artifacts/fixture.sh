@@ -44,17 +44,45 @@ export function listStandardFields(): StandardField[] {
 }
 EOF
 
+# All eight functions criterion 5 names already exist for standard fields. The
+# continue cases seed only three, which /sk:ff rightly reads as a scope Gap and
+# stops after the delta — so tasks.md never appeared and this case failed while
+# the skill behaved correctly. This case measures the run that has no Gap.
 cat > src/transform.ts <<'EOF'
-export type TransformFn = 'character_limit' | 'force_uppercase' | 'trim_whitespace';
+export type TransformFn =
+  | 'character_limit'
+  | 'remove_special_characters'
+  | 'force_uppercase'
+  | 'force_lowercase'
+  | 'title_case'
+  | 'strip_html_tags'
+  | 'replace_value'
+  | 'trim_whitespace';
 
-export function applyTransform(value: string, fn: TransformFn): string {
+export interface TransformOptions {
+  limit?: number;
+  find?: string;
+  replaceWith?: string;
+}
+
+export function applyTransform(value: string, fn: TransformFn, opts: TransformOptions = {}): string {
   switch (fn) {
+    case 'character_limit':
+      return opts.limit === undefined ? value : value.slice(0, opts.limit);
+    case 'remove_special_characters':
+      return value.replace(/[^\p{L}\p{N}\s]/gu, '');
     case 'force_uppercase':
       return value.toUpperCase();
+    case 'force_lowercase':
+      return value.toLowerCase();
+    case 'title_case':
+      return value.toLowerCase().replace(/\b\p{L}/gu, (c) => c.toUpperCase());
+    case 'strip_html_tags':
+      return value.replace(/<[^>]*>/g, '');
+    case 'replace_value':
+      return opts.find ? value.split(opts.find).join(opts.replaceWith ?? '') : value;
     case 'trim_whitespace':
       return value.trim();
-    default:
-      return value;
   }
 }
 EOF

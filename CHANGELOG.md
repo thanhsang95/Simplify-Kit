@@ -10,6 +10,10 @@ Optional git `pre-push` hook, set up by `/sk:init`, that stops a push when someo
 - **Archive before push** is now written down in the README: archiving inside the PR puts the `sk/specs/` diff next to the code that changed it. Nothing said when to archive before, which is what made "forgot to archive" undetectable
 - Not a CI check, not a Claude Code hook. A Claude Code hook only sees pushes Claude makes, and `docs/PLAN.md` keeps hooks as approval gates out of scope. A pipeline check is the stronger guarantee (a local hook can be skipped) but needs a pipeline in every consuming repo — left for later
 - Verified by hand in a temp repo with a bare remote: no `sk/` → pass; one task open → pass; all ticked (incl. `[ X ]`) → stopped; `[~]` → pass; marker in `sk/specs/` → stopped; fixed → pass; branch delete → pass; the script with CRLF line endings under Git Bash → still stops. Evals unchanged (29 cases): they have no Bash grant, so `init` skips the offer there
+- Full gated run (`--ablation none`, 3 runs each, ≈ $20.5): `init` 1.00; `wi` failed on `continue-writes-spec-delta` 0.92 and `core` on `ff-writes-remaining-artifacts` 0.78. Both were the suite, not the skills:
+  - `ac-faithfulness` gave Haiku a one-line paraphrase of each criterion, so a spec quoting the real text (the eight function names, "paste a sample value") read as invented. It also counted a scenario ending in `[[OPEN:Q<n>]]` as stated behaviour. The failing specs were faithful. The grader now holds the ten criteria word for word and says a marker states nothing
+  - The `ff` fixture seeded three of the eight transform functions criterion 5 calls "currently available", and `character_limit` returned its input. `/sk:ff` rightly logged that as a Gap and stopped after the delta, 3/3, so `tasks.md` was never written. The earlier 1.00 was a run that missed the Gap. The fixture now has all eight
+  - After the fix: both 1.00 (3/3). Other cases with a single FAIL run, above their threshold: `verify-passes-complete-change` and `archive-already-archived-drafts-records`, 0.93 each
 
 ## 0.6.0 / sk-status 0.1.1 — 2026-10-15
 
