@@ -97,6 +97,19 @@ person confirms it.
 
 - <comment author, date>: <what it changed, and what it overrode>
 
+## Out of scope
+
+<!--
+What this change deliberately does NOT do, and where that was decided. Not a
+Gap: a Gap is not known yet; this is known and excluded. Only what a source
+actually ruled out — never a list of everything the work item does not
+mention. /sk:continue writes no scenario for it, /sk:apply stops before
+building it, /sk:verify reports it if the code does it anyway, /sk:pr lists
+it. Drop when there is nothing.
+-->
+
+- <what is not done> — Source: <comment, author, date | AC: "<quoted words>" | user, G<n> | test case AB#<id> step <n>, ruled out> — confirmed | unconfirmed
+
 ## Assumptions
 
 - <a decision settled while reading the work item, and what it rests on> — confirmed | unconfirmed

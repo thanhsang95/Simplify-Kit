@@ -161,6 +161,8 @@ sk/changes/us-12345-<tên-ngắn>/
 
 Work item không có AC thì `proposal.md` ghi `AC source: none yet` cùng mục Gaps, và `/sk:continue` sẽ không viết spec cho tới khi giải quyết xong.
 
+**Out of scope.** Thứ gì *cố ý không làm* — một comment cắt bớt phạm vi, AC ghi rõ loại trừ, bạn trả lời một câu `G<n>` là "không làm", hay một test case bị loại — được ghi vào `## Out of scope` kèm nguồn. Khác với Gaps (thứ *chưa rõ*): không có mục này thì một thứ bị bỏ có chủ ý trông y hệt một thứ bị quên, vì cả hai đều không có scenario. `/sk:continue` không viết scenario cho nó, `/sk:apply` dừng lại hỏi nếu task đòi làm nó, `/sk:verify` chỉ ra nếu code lại làm nó, và `/sk:pr` liệt kê nó trong mô tả PR. Chỉ ghi thứ có nguồn loại trừ thật, không liệt kê mọi thứ work item không nhắc tới.
+
 **Test case.** Với mọi loại work item, nó đọc các Test Case được link qua *Tested By* (tối đa 10). Test case là bằng chứng, không phải AC:
 - Expected result mà AC đã nói tới thì không cần làm gì
 - Expected result mà AC không nói tới, hoặc mâu thuẫn với AC, thành câu hỏi `G<n>` và nằm trong Gaps cho tới khi có người trả lời
@@ -212,6 +214,14 @@ Không có lệnh trạng thái nào — nó nhìn file nào đã có trên đĩ
 - Có scenario nào *không* có trong US — tức nó tự nghĩ ra?
 
 Xem luôn mục **Gaps** và **Open questions** trong `proposal.md`: Gaps là chỗ AC chưa đủ rõ để dịch thành scenario; Open questions là chỗ scenario đã viết nhưng một con số hay quy tắc chưa ai chốt. Cả hai đều không phải chỗ nó tự bịa cho đủ.
+
+#### Gửi câu hỏi cho PO/BA — `/sk:questions`
+
+```
+/sk:questions us-12345-<tên-ngắn>
+```
+
+Gom Gaps, Open questions và các assumption `unconfirmed` trong `proposal.md` thành `sk/changes/<id>/questions.md`, viết cho người không biết `sk`: không marker, không `SHALL`; mỗi câu một số, trích nguồn (AC hay comment nào), các lựa chọn, đáp án đề xuất, và giá trị đang được dùng tạm nếu task đã dựng trên nó. Mỗi lần chạy viết lại từ đầu — `proposal.md` vẫn là nguồn. Câu trả lời **không** đi qua file này: PO trả lời bằng comment trên work item (rồi chạy lại `/sk:propose AB#<id>`, comment luôn thắng), hoặc bạn nói thẳng câu trả lời với `/sk:continue`. Không có gì để hỏi thì nó không tạo file.
 
 #### Item nhỏ — `/sk:ff`
 
@@ -288,6 +298,22 @@ Lúc bạn gõ `git push` thì không skill nào đang chạy, nên chỉ lời 
 Change còn task chưa tick (đang làm dở, chia nhiều PR) thì push bình thường. Hook đọc commit sắp push, không đọc working tree. Muốn push bất chấp một lần: `git push --no-verify`.
 
 Gồm hai phần: `sk/hooks/pre-push` là script kiểm, **có commit**, cả team dùng chung và sửa qua PR; còn một shim vài dòng nằm trong `.git/hooks/pre-push` của mỗi clone — git không clone thư mục đó, nên **mỗi người chạy `/sk:init` một lần** trong clone của mình để cài shim. Repo đã có `pre-push` riêng hoặc dùng hook manager (husky, `core.hooksPath`) thì `/sk:init` không ghi đè gì, chỉ in ra dòng `sh sk/hooks/pre-push "$@"` để bạn tự thêm vào hook hiện có.
+
+### 6. Mô tả PR — `/sk:pr`
+
+```
+/sk:pr us-12345-<tên-ngắn>
+```
+
+Soạn phần mô tả cho PR từ chính các artifact của change, để bạn dán vào Azure DevOps hoặc GitHub. Nó đọc được cả change đã archive (`sk/changes/archive/<id>/`), vì thời điểm bình thường để viết PR là ngay sau `/sk:archive`. Nội dung gồm:
+
+- `AB#<id>` và tóm tắt từ `proposal.md` (với Bug: triệu chứng cũ và hành vi mới)
+- Requirement nào được thêm, sửa (sửa gì) hay bỏ, theo từng capability; các contract trong `design.md`
+- Tiến độ task, và những gì còn mở trước khi merge: open question, task chưa tick, assumption `unconfirmed`, chưa archive
+- Mục **Evidence** để bạn tự điền — nó chỉ ghi những gì đã thật sự xảy ra trong hội thoại (report của `/sk:verify`, test đã thấy đỏ rồi xanh), không bao giờ tự nhận test đã pass
+- **Merge danger**: one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way) và ai bị ảnh hưởng nếu sai
+
+**Nó không tạo PR, không ghi file nào.** Tạo PR trên Azure DevOps là một thao tác ghi, mà kit chỉ đọc ADO.
 
 ## Nâng cấp từ bản cũ (0.1.x)
 
@@ -371,7 +397,7 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 ## Những gì kit cố ý không làm
 
 - **Không sửa code ở bước `propose` hay `continue`, và không viết hai artifact trong một lần gọi** — kể cả khi bạn yêu cầu trong cùng câu lệnh
-- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state. Cập nhật board vẫn là việc của bạn
+- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state, không tạo PR (`/sk:pr` chỉ soạn nội dung). Cập nhật board vẫn là việc của bạn
 - **Không tự nhận mô tả tự do** — một yêu cầu không có work item chỉ thành change khi bạn gọi rõ `/sk:propose <yêu cầu>`, và AC của nó phải do bạn viết hoặc xác nhận
 - **Không nhận số trần** — `12345` là mơ hồ, vì trong repo này số trần đã mang nghĩa mã PR. Gõ `AB#12345`
 

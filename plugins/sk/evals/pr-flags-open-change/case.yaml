@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: pr-flags-open-change
+description: >-
+  /sk:pr on a change that is not archived, with an unticked task and an
+  open-question marker still in its delta, drafts the body but carries all
+  three forward as things open before merge instead of presenting the change
+  as ready.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

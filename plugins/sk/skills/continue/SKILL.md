@@ -64,6 +64,8 @@ Derive the delta from the split `proposal.md` records under "How the acceptance 
 
 Any criterion you cannot turn into observable behaviour goes into **Gaps** in `proposal.md`, and you ask about it. Never drop one silently, and never pad the spec with a scenario you invented to make a criterion fit.
 
+Nothing listed under `proposal.md`'s `## Out of scope` becomes a scenario. When a criterion seems to need it after all, that contradiction is a Gap to ask about, not a reason to write it.
+
 **Every scenario you write gets the two-step test from `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` ("Ambiguous acceptance criteria").** For each `THEN`: name the decidable token it turns on, then try to write one other concrete value the same source text still permits. If you can, the token is unresolved — sort it as an existing convention (decide it, record it under `## Assumptions`) or a product decision (write the open-question marker defined there, and log the question under `## Open questions`). Both sections live in `proposal.md`; update them as you write.
 
 **Write it down; do not stop for it.** An unresolved token is never a reason to pause this command or to hold the delta back until every threshold is settled. The person who owns that threshold is not in this conversation, and a spec withheld until they are is a spec that never gets written. A spec with a visible, marked gap is the useful output.
@@ -99,7 +101,7 @@ Read the delta and, if present, `design.md`. Use `${CLAUDE_PLUGIN_ROOT}/template
 
 Show what was created, which of the four artifacts are now done, and what is next. Tell the user to review the file just written, then run `/sk:continue <change-id>` again for the next one — or `/sk:apply <change-id>` when planning is complete.
 
-**When `## Open questions` in `proposal.md` is non-empty, close with a numbered list ready to paste into the work item's comments** — one line per `Q<n>`, the question, and your suggested answer. For a direct request there is no work item to paste into: give the same list as questions for the user. This is response text only: it is never written to a file, it is never posted to Azure DevOps, and neither `/sk:apply` nor `/sk:archive` may depend on it existing — the marker in the delta is what actually blocks, not this list.
+**When `## Open questions` in `proposal.md` is non-empty, close with a numbered list ready to paste into the work item's comments** — one line per `Q<n>`, the question, and your suggested answer. For a direct request there is no work item to paste into: give the same list as questions for the user. This is response text only: it is never written to a file, it is never posted to Azure DevOps, and neither `/sk:apply` nor `/sk:archive` may depend on it existing — the marker in the delta is what actually blocks, not this list. When the questions go to a PO or BA rather than into a comment, say that `/sk:questions <change-id>` writes them up as a file for them.
 
 ## Guardrails
 

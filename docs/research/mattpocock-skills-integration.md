@@ -27,11 +27,11 @@ Mỗi skill được xét theo ba điều kiện:
 |---|---|---|
 | `code-review` (Standards + Spec, neo vào fixed point, kiểm scope creep) | `/sk:verify`, khung lấy từ OpenSpec `openspec-verify-change` | **Đã làm ở 0.4.0** |
 | `tdd` (red → green tại seam đã thống nhất, slice dọc, không viết test kiểu tautology) | `reference/tdd.md` cộng một bước trong `/sk:apply`: mỗi `#### Scenario` là một seam, viết test fail trước rồi mới implement | **Đã làm ở 0.8.0** |
-| `pr` (Summary dạng hình nhỏ nhất, Evidence before/after, Merge Danger: one-way/two-way door + blast radius) | `/sk:pr` chỉ sinh nội dung PR body, có link AB#, delta và tiến độ tasks | Việc tiếp theo. **Không tạo PR trên ADO**, vì đó là một thao tác ghi |
+| `pr` (Summary dạng hình nhỏ nhất, Evidence before/after, Merge Danger: one-way/two-way door + blast radius) | `/sk:pr` chỉ sinh nội dung PR body, có link AB#, delta và tiến độ tasks | **Đã làm ở 0.10.0**. **Không tạo PR trên ADO**, vì đó là một thao tác ghi |
 
 ## Nhóm 2: có giá trị, làm sau
 
-- **`to-questionnaire`**: chuyển Gaps và Open questions thành một file câu hỏi gửi PO/BA. `/sk:continue` hiện chỉ in một danh sách để paste vào comment.
+- **`to-questionnaire`**: chuyển Gaps và Open questions thành một file câu hỏi gửi PO/BA. **Đã làm ở 0.11.0** thành `/sk:questions`.
 - **`diagnosing-bugs`**: luồng cho work item loại Bug (dựng feedback loop đỏ → thu nhỏ repro → hypothesis → regression test). Kit hiện thiên về User Story.
 - **`retro`**: sau mỗi change, đề xuất bổ sung `sk/config.yaml` → `rules`, hoặc một check tự động, cho lỗi vừa gặp. Việc này đóng vòng Stage 6.
 - **"Blocked by" của `to-tickets`** áp vào `tasks.md`: đây là thay đổi thiết kế. `/sk:apply` hiện lấy chuyện `tasks.md` không có dependency graph làm lý do để không chặn ở open question. Nếu thêm edge, lý do đó phải viết lại. Nếu làm, `implement-spec` (chạy song song nhiều worktree) mới có chỗ dùng.
