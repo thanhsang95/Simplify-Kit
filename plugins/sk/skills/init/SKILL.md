@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.4.0"
+  version: "0.7.0"
 ---
 
 Set up the `sk/` workspace for SimplifyKit in the current repository.
@@ -58,6 +58,19 @@ Append `sk/changes/archive/` to the repository's `.gitignore`, under a one-line 
 
 Open changes under `sk/changes/<id>/` stay committed: they are what a teammate reviews and what `/sk:propose` and `/sk:archive` read to see other people's unarchived work. Ignore `sk/changes/` as a whole and both stop working across machines.
 
+## Step 4c — Offer the pre-push check
+
+Nothing in a skill runs when someone types `git push`, so a finished change that was never archived reaches the remote unnoticed — and the next `/sk:propose` plans against a `sk/specs/` that does not know about it. A git `pre-push` hook is the one place that sees every push. It stops a push whose commits hold a change with every task ticked but still under `sk/changes/<id>/`, or an `[[OPEN:Q<n>]]` marker inside `sk/specs/`; `git push --no-verify` bypasses it once.
+
+Offer it only when the Bash tool is available **and** a person can answer. It changes what every later push from this clone does and writes inside `.git/`, so it is never set up unattended. Otherwise skip it and say in Step 7 that re-running `/sk:init` with a person present sets it up.
+
+Show what it does and the two files below, then ask once. On yes:
+
+1. Copy `${CLAUDE_PLUGIN_ROOT}/templates/git-hooks/pre-push` to `sk/hooks/pre-push`. This copy is committed, so the whole team runs the same check and can change it in a PR. Never overwrite an existing `sk/hooks/pre-push`
+2. Install the shim: the target is `pre-push` inside the directory `git rev-parse --git-path hooks` prints. If `git config core.hooksPath` is set (a hook manager such as husky owns hooks here) or the target already exists, **write nothing there**: print the line `sh sk/hooks/pre-push "$@"` for the person to add to their own pre-push hook, and say that it reads the pushed refs from stdin, so it must get that stdin. Otherwise copy `${CLAUDE_PLUGIN_ROOT}/templates/git-hooks/pre-push-shim` to the target and `chmod +x` it
+
+The shim lives in `.git/hooks`, which git never clones, so each teammate gets it by running `/sk:init` once in their clone — migration item 7 detects that.
+
 ## Step 5 — Point CLAUDE.md at it
 
 Find the repository's Claude Code instructions in this order and use the **first** that exists:
@@ -79,13 +92,13 @@ Do not edit `.claude/rules/`. Do not add a new rule file to out-vote the existin
 
 ## Step 7 — Close out
 
-Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>` — or `/sk:propose <request>` for work that has no work item.
+Report the files created, that `sk/changes/archive/` was added to `.gitignore`, the `ado.orgUrl` recorded (or that it is blank and why), which CLAUDE.md was appended to, whether the pre-push check was set up (or the line to add, or why it was skipped), and any planning-system conflict found. Then tell the user the next step is `/sk:propose AB#<id>` — or `/sk:propose <request>` for work that has no work item.
 
 End with one line saying the optional `sk-status` plugin (`/plugin install sk-status@simplify`) shows each change's progress and next command in a status line and a `/sk-status` pane. Say it is optional and `sk` works the same without it. Never install it yourself. It exists because people forgot which `/sk:*` command came next, and nothing else in the kit tells them it is there.
 
 ## Migrating an existing workspace
 
-A workspace made by SimplifyKit 0.1.x differs from a current one, and nothing in `sk/` records which version made it. So this detects by **what is actually there**, never by a version number, which makes every item safe to find again on a second run. Start read-only: report what exists (`config.yaml`, how many capabilities under `sk/specs/`, how many open changes and archived changes) and check the six items below.
+A workspace made by SimplifyKit 0.1.x differs from a current one, and nothing in `sk/` records which version made it. So this detects by **what is actually there**, never by a version number, which makes every item safe to find again on a second run. Start read-only: report what exists (`config.yaml`, how many capabilities under `sk/specs/`, how many open changes and archived changes) and check the seven items below.
 
 **Never touch** `sk/config.yaml`, `sk/specs/`, any spec delta, a `tasks.md`, or the existing text of any artifact. Every edit below is an append.
 
@@ -97,12 +110,13 @@ A workspace made by SimplifyKit 0.1.x differs from a current one, and nothing in
 | 4 | `git ls-files sk/changes/archive` lists files | **Report only.** Print `git rm -r --cached sk/changes/archive` and warn that teammates who pull it lose those folders from their working copies (history keeps them). Never run it: it changes other people's checkouts, so it is the team's call |
 | 5 | There are archived changes under `sk/changes/archive/`, and there is no `sk/context.md` or an archived change with a `design.md` has no ADR carrying its id | **Report only.** Say how many archived changes there are and to run `/sk:archive backfill` **once** — it drafts one deduplicated glossary and an ADR for each change that qualifies, and asks a single time — **before** item 4, because after that only the local copy holds the rationale. Never list them for the person to run one by one |
 | 6 | The `CLAUDE.md` section that a fresh `init` appends does not mention `/sk:continue` | Offer to append one line to the end of that file saying `/sk:continue <change-id>` writes the next planning artifact after `/sk:propose`. Never edit the existing section |
+| 7 | The Bash tool is available, and either `sk/hooks/pre-push` does not exist, or it exists but the `pre-push` in `git rev-parse --git-path hooks` does not mention `sk/hooks/pre-push` | Offer Step 4c — the whole of it in the first case; only the shim in the second, which is a teammate's clone of a repo that already has the check. Without Bash, skip this item silently: the hooks directory cannot be found |
 
-If none of the six applies, say the workspace is up to date and stop.
+If none of the seven applies, say the workspace is up to date and stop.
 
 **With a person present:** show every item found, with the exact text it would add and to which file, in **one round**, and ask them to confirm the lot or drop some — the items as text first, then the question, as `${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md` describes. Items 4 and 5 are informational and are shown regardless, never as a question. Write nothing before the answer.
 
-**When nobody can answer** — the request says so — apply items 1–3, which only append and need no judgement, and skip 4–6, printing them instead. Report exactly what was applied.
+**When nobody can answer** — the request says so — apply items 1–3, which only append and need no judgement, and skip 4–7, printing them instead. Report exactly what was applied.
 
 Close out by listing what was applied, what was skipped and why, and the commands left for a person to run.
 
@@ -111,6 +125,7 @@ Close out by listing what was applied, what was skipped and why, and the command
 - Never overwrite an existing `sk/`; on one, migrate by appending only, and never touch `config.yaml`
 - Detect what needs migrating from what is on disk, not from a version number
 - Never run `git rm --cached` on the archive — print it
+- Set up the pre-push check only with a person's yes; never overwrite an existing hook or `sk/hooks/pre-push`, never touch a hook manager's directory
 - Never touch configuration belonging to another coding agent
 - Never edit `.claude/rules/`
 - Append to CLAUDE.md and `.gitignore`, never overwrite

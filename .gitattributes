@@ -7,3 +7,7 @@
 *.json text
 *.yaml text
 *.yml text
+
+# Git hook templates are copied into consuming repos and run by sh — keep them
+# LF so they run unchanged on a Linux or macOS clone.
+plugins/sk/templates/git-hooks/* text eol=lf

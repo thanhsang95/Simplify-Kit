@@ -27,6 +27,10 @@ plugins/sk-status/                   optional companion mod (TypeScript hooks mo
 
 It re-implements the state rules the skills use (artifact order from `continue` Step 2, the checkbox rule from `verify`, the `[[OPEN:Q<n>]]` marker, `AC source: none yet`, skipping `archive/`). **Change one of those rules in a skill and update `register.tsx` to match** — nothing tests the two against each other. It stays read-only: it writes no file, never calls Azure DevOps, and only runs an `/sk:*` command when the person presses a key (`/sk:archive` needs two presses). Verify with `claude plugin validate .` from `plugins/sk-status` and `tsc -p . --noEmit` (Claude Code writes the types into `.claude-plugin/types/` when it loads the folder with `--plugin-dir`; they are gitignored). It is not covered by the eval suite.
 
+### The `pre-push` git hook is a third copy of the state rules
+
+`plugins/sk/templates/git-hooks/pre-push` is a POSIX `sh` script `/sk:init` copies to `sk/hooks/pre-push` in a consuming repo (committed), plus a shim in that clone's hooks directory — only with a person's yes and the Bash tool. It is a git hook a person's `git push` runs, not a Claude Code hooks module, so it does not break the rule above. It re-implements the `/sk:verify` checkbox rule, the `[[OPEN:Q<n>]]` marker and skipping `archive/`, like `register.tsx` does: change one of those and update both. It is not covered by the eval suite (no Bash grant); test it by hand in a temp repo with a bare remote, pushing a change with all tasks ticked, one open, and a marker under `sk/specs/`. It is kept LF by `.gitattributes`.
+
 Skills reference `reference/` and `templates/` via `${CLAUDE_PLUGIN_ROOT}/...`. **Never use relative paths there** — a real run showed the model resolving `reference/conventions.md` as `skills/propose/reference/conventions.md` and silently reading nothing, while the output still looked plausible.
 
 ## The core invariant: `MODIFIED` restates the full requirement

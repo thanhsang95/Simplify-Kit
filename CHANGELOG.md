@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0 — 2026-10-15
+
+Optional git `pre-push` hook, set up by `/sk:init`, that stops a push when someone forgot `/sk:archive`. The only reminder was the close-out line of `/sk:apply`, and no skill is running when a person types `git push`.
+
+- **What it stops.** The commits being pushed hold a change under `sk/changes/<id>/` whose `tasks.md` has every box ticked (the `/sk:verify` checkbox rule), or an `[[OPEN:Q<n>]]` marker inside `sk/specs/`. A change with any task still open passes, so work split over several PRs is not blocked. It reads the pushed commits (`git ls-tree` / `git show` on the pushed sha), not the working tree. `git push --no-verify` bypasses it once
+- **Two files.** `sk/hooks/pre-push` holds the check and is committed, so the team shares one version and changes it by PR. A 4-line shim in the clone's hooks directory runs it, and is a no-op on a branch without `sk/`. `.git/hooks` is not cloned, so migration item 7 offers the shim to each teammate's clone
+- **Never unattended, never over someone else's hook.** Offered only with the Bash tool and a person's yes, since it changes every later push and writes inside `.git/`. With `core.hooksPath` set (husky and the like) or an existing `pre-push`, `init` writes nothing there and prints `sh sk/hooks/pre-push "$@"` to add by hand
+- **Archive before push** is now written down in the README: archiving inside the PR puts the `sk/specs/` diff next to the code that changed it. Nothing said when to archive before, which is what made "forgot to archive" undetectable
+- Not a CI check, not a Claude Code hook. A Claude Code hook only sees pushes Claude makes, and `docs/PLAN.md` keeps hooks as approval gates out of scope. A pipeline check is the stronger guarantee (a local hook can be skipped) but needs a pipeline in every consuming repo — left for later
+- Verified by hand in a temp repo with a bare remote: no `sk/` → pass; one task open → pass; all ticked (incl. `[ X ]`) → stopped; `[~]` → pass; marker in `sk/specs/` → stopped; fixed → pass; branch delete → pass; the script with CRLF line endings under Git Bash → still stops. Evals unchanged (29 cases): they have no Bash grant, so `init` skips the offer there
+
 ## 0.6.0 / sk-status 0.1.1 — 2026-10-15
 
 New `/sk:ff <change-id>`: writes every planning artifact a change is still missing (spec delta → design or its Skipped note → tasks) in one invocation, then stops before `/sk:apply`. Small work items went through three `/sk:continue` calls and three review stops, which cost more than they gave.

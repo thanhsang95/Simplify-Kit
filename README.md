@@ -259,6 +259,19 @@ Change đã archive từ trước khi có bước này thì chạy `/sk:archive 
 
 Bước này quan trọng hơn vẻ ngoài: `sk/specs/` là thứ lần sau Claude đọc để biết **hệ thống hiện đang phải thoả những gì**. Không archive thì lần sau nó làm việc trong tình trạng mất trí nhớ — không biết story này đã từng tồn tại, chứ đừng nói tới việc nó đã đổi những gì.
 
+Archive **trước khi push**, trong cùng PR với code: reviewer thấy diff của `sk/specs/` ngay cạnh code đã đổi nó.
+
+#### Chặn push khi quên archive — git hook `pre-push`
+
+Lúc bạn gõ `git push` thì không skill nào đang chạy, nên chỉ lời nhắc thôi thì không đủ. `/sk:init` đề xuất cài một hook `pre-push` (chỉ khi có Bash và bạn đồng ý), nó chặn push nếu các commit sắp lên remote có:
+
+- một change dưới `sk/changes/<id>/` đã tick hết task trong `tasks.md` nhưng chưa archive
+- dấu `[[OPEN:Q<n>]]` nằm trong `sk/specs/` — câu hỏi chưa ai trả lời mà giờ trông như requirement đã chốt
+
+Change còn task chưa tick (đang làm dở, chia nhiều PR) thì push bình thường. Hook đọc commit sắp push, không đọc working tree. Muốn push bất chấp một lần: `git push --no-verify`.
+
+Gồm hai phần: `sk/hooks/pre-push` là script kiểm, **có commit**, cả team dùng chung và sửa qua PR; còn một shim vài dòng nằm trong `.git/hooks/pre-push` của mỗi clone — git không clone thư mục đó, nên **mỗi người chạy `/sk:init` một lần** trong clone của mình để cài shim. Repo đã có `pre-push` riêng hoặc dùng hook manager (husky, `core.hooksPath`) thì `/sk:init` không ghi đè gì, chỉ in ra dòng `sh sk/hooks/pre-push "$@"` để bạn tự thêm vào hook hiện có.
+
 ## Nâng cấp từ bản cũ (0.1.x)
 
 Chạy lại `/sk:init` trong repo đã có `sk/`. Lệnh này **không bao giờ ghi đè** `config.yaml`; nó chỉ kiểm tra workspace có gì khác bản hiện tại và đề xuất các thay đổi kiểu *append*: thêm `sk/changes/archive/` vào `.gitignore`, đánh dấu `## Design` "Skipped" cho các change đã lên kế hoạch từ trước khi có `/sk:continue`, và thêm dòng `**AC source:** none yet` cho change đang chờ AC. Nó hiện toàn bộ kế hoạch và hỏi bạn **một lần**; chạy không có người trả lời thì chỉ áp dụng ba việc trên.
@@ -275,6 +288,7 @@ Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn 
 | `sk/changes/archive/<id>/` | Thay đổi đã xong — **chỉ nằm trên máy**, bị `.gitignore` |
 | `sk/adr/NNNN-<tên>.md` | Quyết định thiết kế đã chốt, ghi lại lúc archive |
 | `sk/context.md` | Bảng thuật ngữ riêng của dự án, cập nhật lúc archive |
+| `sk/hooks/pre-push` | Script kiểm trước khi push (tuỳ chọn, `/sk:init` cài khi bạn đồng ý) — **có commit** |
 
 Một spec delta chia làm ba khối tuỳ change đang thêm, sửa, hay bỏ yêu cầu nào: `## ADDED Requirements`, `## MODIFIED Requirements`, `## REMOVED Requirements` — chỉ viết khối nào cần dùng. Trong mỗi khối, mỗi yêu cầu viết thế này — trích nguyên văn từ một `spec.md` do `/sk:continue` sinh ra:
 
