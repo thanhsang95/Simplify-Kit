@@ -2,13 +2,18 @@
 
 **Work item:** <full URL | none — direct request>
 **Type / State:** <User Story | Bug | Task> / <state>
-**AC source:** <work item | related AB#<id>, confirmed | parent AB#<id>, narrowed | user, in conversation | none yet>
+**AC source:** <work item | related AB#<id>, confirmed | parent AB#<id>, narrowed | test cases AB#<id>[, AB#<id>], confirmed | user, in conversation | none yet>
+**Symptom:** <Bug only: the actual result from the repro steps, one line>
 
 <!--
 `/sk:continue` reads the AC source line to know where the criteria live, and
 refuses to write a spec delta while it says "none yet". Only when the source is
-"user, in conversation" is there a section below holding the text itself.
+"user, in conversation" is there a section below holding the text itself;
+"test cases …, confirmed" reads the quoted steps under ## Test cases.
 Drop the Type / State line for a direct request — there is no work item to have one.
+Drop the Symptom line unless the work item is a Bug (or a Task under one).
+Write "none stated" when the repro steps give no actual result.
+/sk:apply's first test must fail with it, and apply never reads Azure DevOps.
 -->
 
 ## Request
@@ -53,6 +58,38 @@ reconstructing it.
 <!-- Only when the AC source is "user, in conversation". Drop otherwise. -->
 
 <The criteria as the user gave them.>
+
+## Repro steps
+
+<!--
+Bug only (or a Task under one): the repro steps' steps and expected result,
+HTML stripped, verbatim. An exception to "pointer, not restatement":
+/sk:apply never reads Azure DevOps, and its first test is built from these
+steps; /sk:continue reads them when the AC source is not the work item.
+The actual result goes on the Symptom line, not here. Drop otherwise.
+-->
+
+<The steps and the expected result, verbatim.>
+
+## Test cases
+
+<!--
+Every test case read through a Tested By link. Drop when there are none.
+Quote each step as decoded: /sk:continue takes a confirmed step's action as
+the WHEN and its expected result as the THEN, and /sk:apply uses the steps as
+test setup; neither re-fetches the test case. A test case is evidence, not
+acceptance criteria: a step's expected result becomes a criterion only when a
+person confirms it.
+  covered                — the criteria already say this
+  pins <what>            — the exact value a criterion leaves open (a message, a number)
+  open                   — not in the criteria, or contradicts them; also listed under Gaps
+  confirmed as criterion — a person confirmed it as a criterion
+-->
+
+<N more linked test cases were not read (limit 10).> <!-- only when there were more -->
+
+- AB#<id> <title>
+  - "<action>" → "<expected result>" — covered | pins <what> | open | confirmed as criterion
 
 ## Comments that override the description
 

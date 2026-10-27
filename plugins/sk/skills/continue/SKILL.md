@@ -3,7 +3,7 @@ name: continue
 description: "SimplifyKit (sk): create the next planning artifact of an existing change — spec delta, then design, then tasks — one per invocation, without touching project code. Use when the user says \"sk continue\", \"continue us-12345-...\", \"next artifact\", or has a change under sk/changes/ that /sk:propose started and wants it taken one step further. Planning only; implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 Create the next planning artifact of one change, then stop. **One artifact per invocation.**
@@ -51,6 +51,8 @@ Refuses to run while `proposal.md` records unresolved Gaps that mean the accepta
 
 - `work item` → fetch it again, following `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` exactly (REST, not `az boards`; strip HTML; read comments; **scan for U+FFFD before writing anything and stop if one is present**). The board keeps moving after `proposal.md` was written; this re-fetch is what keeps the delta from being built on stale text. A comment that now contradicts the acceptance criteria wins — record that in `proposal.md`
 - any other source → use the text `proposal.md` recorded under it. It is the only copy, because the board does not hold it. This includes a direct request (`**Work item:** none — direct request`): its criteria are under `## Acceptance criteria not on the board`, never in `## Request` itself or in suggestions still listed under Gaps
+
+Whatever the source, a step under `proposal.md`'s `## Test cases` marked `confirmed as criterion` is a criterion too — a person confirmed it in `/sk:propose` — its quoted action the `WHEN`, its quoted expected result the `THEN`; do not re-fetch the test case. A step marked `pins <what>` resolves that token with its quoted value, recorded under `## Assumptions` with the test case as source. One marked `covered` or `open` adds nothing: never turn a test case into a scenario on your own. For a Bug, the repro steps map to scenarios as `conventions.md` says — from the re-fetched work item, or from `## Repro steps` in `proposal.md` when the source is not the work item — and the `**Symptom:**` line never becomes one.
 
 Never invent the contents of a work item or of a request. If a fetch fails, report the real error and ask the user to paste the contents.
 

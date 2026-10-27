@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: apply-bug-reproduces-symptom
+description: >-
+  /sk:apply on a change from a Bug writes the regression test from the
+  scenario and the proposal's Symptom line before fixing, and — with no shell
+  to run it — says the Bug was not reproduced here instead of claiming it was
+  reproduced or fixed, and names the cause in one line.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

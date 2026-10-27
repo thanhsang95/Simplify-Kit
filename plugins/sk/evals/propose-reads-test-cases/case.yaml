@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: propose-reads-test-cases
+description: >-
+  A User Story with usable acceptance criteria and a linked Test Case (Tested
+  By). /sk:propose reads the test case, records it under ## Test cases, and
+  raises the expected result the criteria do not cover as a question / Gap —
+  never as a criterion, since nobody confirmed it in this unattended run.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

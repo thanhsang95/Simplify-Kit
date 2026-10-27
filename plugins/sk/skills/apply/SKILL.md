@@ -3,7 +3,7 @@ name: apply
 description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, test-first per spec scenario, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
 metadata:
   author: Simplify
-  version: "0.8.0"
+  version: "0.9.0"
 ---
 
 Implement the tasks of one change under `sk/changes/`.
@@ -65,7 +65,7 @@ For each unchecked task:
 
 Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn.
 
-Report the tests: which scenarios got a test and whether you saw it fail then pass; tests written but **not run**, and why (no shell); scenarios given no test, and why; and test-first skipped for lack of a test setup, if it was. Never report a run that did not happen. Then suggest running the repository's full build and test suite — `sk` defines no runner of its own; use what `sk/config.yaml` records.
+Report the tests: which scenarios got a test and whether you saw it fail then pass; tests written but **not run**, and why (no shell); scenarios given no test, and why; and test-first skipped for lack of a test setup, if it was. For a change from a Bug, also whether the failure you saw matched the `**Symptom:**` line, and the cause in one line (`tdd.md`, "A change from a Bug"). Never report a run that did not happen. Then suggest running the repository's full build and test suite — `sk` defines no runner of its own; use what `sk/config.yaml` records.
 
 When every task is ticked, tell the user the next step is `/sk:verify <change-id>`, which checks the code against the spec delta without changing anything, and then `/sk:archive`, which merges the delta into `sk/specs/`. Verifying is recommended, not required.
 

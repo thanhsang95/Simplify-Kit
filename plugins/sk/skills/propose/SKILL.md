@@ -3,7 +3,7 @@ name: propose
 description: "SimplifyKit (sk): start a change from an Azure DevOps work item — or, only when the user explicitly invokes /sk:propose with it, from a direct request that has no work item — and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 Read an Azure DevOps work item — or take a direct request the user gave explicitly — and start one change: write `proposal.md`, then stop. The spec delta, design and tasks are created afterwards, one per invocation, by `/sk:continue`.
@@ -42,16 +42,17 @@ Read, in this order:
 Follow `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` exactly — it encodes fixes for failures this project has already hit. In summary:
 
 1. **Read over REST, not `az boards` / `az devops invoke`.** Mint a token with `az account get-access-token`, then `GET {orgUrl}/{project}/_apis/wit/workItems/{id}?$expand=all&api-version=7.1`. This is not a style preference: `az boards work-item show` corrupts non-ASCII characters on this org's data — measured, 9 replacement characters against 0 over REST — and `az devops invoke ... comments` fails outright with an extension-internal error. Never print the token
-2. Strip HTML and decode entities from `System.Description` and `Microsoft.VSTS.Common.AcceptanceCriteria`
+2. Strip HTML and decode entities from `System.Description` and `Microsoft.VSTS.Common.AcceptanceCriteria` — and, for a `Bug`, `Microsoft.VSTS.TCM.ReproSteps`, which is where a Bug's expected behaviour usually is
 3. Read the work item's **comments** (`.../workItems/{id}/comments?api-version=7.1-preview.4`). Comments routinely narrow scope after the description was written — where a comment contradicts the description **or the acceptance criteria**, **the comment wins**, and you record that in `proposal.md`
 4. If the item is a `Task`, cascade to its parent and take the parent's full fields
-5. **Scan the stripped text for the replacement character U+FFFD before writing anything.** If one is present, stop and report that the fetch corrupted the source — do not write the spec. A spec that silently contains `?` where the author wrote an em dash is a contract nobody agreed to
+5. Read the **test cases** linked by `Tested By` — for every item type and every branch, the parent's when the item is a `Task`. Their steps are XML with HTML inside; decode them as `azure-devops.md` ("Test cases linked to the item") says. No `Tested By` entry in `relations[]` means the item has no test cases: that is a fact you looked up, not something to ask the user about or record as an assumption — a real run asked "is the copy complete, are there test cases?" and failed for asking the user what the work item already said
+6. **Scan the stripped text for the replacement character U+FFFD before writing anything.** If one is present, stop and report that the fetch corrupted the source — do not write the spec. A spec that silently contains `?` where the author wrote an em dash is a contract nobody agreed to
 
 If a fetch fails — not signed in, wrong org, no permission — report the real error and ask the user to paste the work item contents. **Never invent the contents of a work item.**
 
 ## Step 3 — Decide which branch you are in
 
-Look at the acceptance criteria you actually got.
+Look at the acceptance criteria you actually got. **For a `Bug`** — or a `Task` whose parent is a Bug — that is its acceptance criteria field when usable, otherwise the expected result in its repro steps (`azure-devops.md`, "A Bug's acceptance criteria are its expected result"). An expected result stated there is usable AC from the work item. Repro steps with only the steps and the actual result are not: that is Branch B, not a criterion you complete yourself. When a Bug has both an acceptance criteria field and an expected result in its repro steps and the two disagree, neither wins on its own: it is a Step 4 question (a comment that settles it still wins, as always).
 
 - **Usable AC** → Branch A
 - **AC field empty, or AC too thin to describe observable behaviour** → Branch B
@@ -63,7 +64,9 @@ Roughly one story in five has no acceptance criteria at all. Branch B is a norma
 
 ### Branch A — usable acceptance criteria
 
-Derive `change-id` as `us-<work item id>-<short slug>`, for example `us-12345-field-selector`. If that change already exists, ask whether to continue it or create a new one.
+Derive `change-id` as `us-<work item id>-<short slug>`, for example `us-12345-field-selector` — or `bug-<work item id>-<short slug>` for a Bug (and a Task under one), so a reviewer and `/sk:apply` can tell a fix from a feature at a glance. If that change already exists, ask whether to continue it or create a new one.
+
+**A Bug whose expected result `sk/specs/` already states needs no change.** Before anything else in this branch, look for a scenario in `sk/specs/` or an unarchived delta that already says what the Bug expects. If there is one, the code drifted from a spec that is still right: the fix is a commit or PR with `AB#<id>`, its regression test written from that scenario, and a change would have nothing for its spec delta to say. Ask about it in Step 4 — whether that scenario really is the behaviour the Bug expects. When it is, write nothing under `sk/`, say so, and name the scenario. When it is not — the Bug wants behaviour the spec does not have, or says otherwise — it is a change like any other: `Added`, or `Modified` restated in full.
 
 Read `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` for the mapping rules. **You decide the split here, you do not write the scenarios** — there is no fixed ratio between acceptance criteria and scenarios, so read the shape of the AC and record how you will group it:
 
@@ -73,6 +76,8 @@ Read `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` for the mapping rules. **Y
 
 Any criterion you cannot turn into observable behaviour goes into the **Gaps** section of `proposal.md`, and you ask about it. Never drop one silently. Unresolved thresholds and similar ambiguity inside a criterion that *is* usable are not Gaps and do not stop this command — `/sk:continue` marks them while it writes the scenarios.
 
+**Compare the linked test cases with the criteria.** An expected result the criteria already cover is labelled `covered`; one that states the exact value a criterion leaves open (the message wording, the number) is `pins <what>` — `/sk:continue` resolves that token from it, quoting it. One they do not cover, or one that contradicts them, is a Step 4 question — is it in scope, which side is right — and a Gap until it is answered; never a scenario on your own. A test case is evidence of what someone checks, not acceptance criteria (`azure-devops.md`, "Test cases linked to the item"). **When nobody can answer, it stays `open`**: like criteria drafted for a direct request, it is an exception to Step 4's `unconfirmed` fallback, because recording it `unconfirmed` would let `/sk:continue` build a scenario nobody asked for.
+
 ### Branch B — acceptance criteria missing or unusable
 
 **Do not write anything under `specs/`.** A spec generated from an empty field is fabrication that looks like analysis.
@@ -81,7 +86,9 @@ Before asking, check `relations[]` for a `System.LinkTypes.Related` entry. Follo
 
 When the current item is not a `Task` (a Task's parent was already read unconditionally in Step 2), also check `relations[]` for a `System.LinkTypes.Hierarchy-Reverse` entry. Follow `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` ("A parent can narrow a Branch B gap when the item is not a Task") for how far to take that — one hop, and never presented as this item's own acceptance criteria wholesale. A parent's scope is broader than any one item under it, so a usable parent earns a narrowing question — what part of the parent's scope this item covers — not a bare "confirm reusing it" the way a same-shape related item does.
 
-Show the user what you did get — title, description, comments, parent, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item or parent, when one was found). **When a related item or parent was read, write `proposal.md` and name it in the Gaps section, marked as a pending confirmation, whether or not the user has answered yet** — that section exists for exactly this: a criterion not yet resolved. If neither was read, writing `proposal.md` before an answer arrives is optional, same as before. If they answer or confirm, continue as Branch A and set `**AC source:**` in `proposal.md` to say where the criteria came from (Step 5) instead of leaving it in Gaps. If they do not, `proposal.md` with `**AC source:** none yet` and that Gaps section is the whole output, and you stop — `/sk:continue` refuses to write a spec delta while it reads `none yet`.
+The test cases you read in Step 2 count here too. When their expected results look like they answer the gap — for a Bug, the expected result its repro steps left out — name each one and quote what it expects, and ask the user to confirm them as the criteria, in the same question as any related item or parent. Confirmed, `**AC source:**` is `test cases AB#<id>[, AB#<id>], confirmed`.
+
+Show the user what you did get — title, description, repro steps, comments, parent, test cases, and any related item you read — say plainly that the acceptance criteria are missing or too thin, and ask for them (or for confirmation on the related item or parent, when one was found). **When a related item, a parent or a test case was offered, write `proposal.md` and name it in the Gaps section, marked as a pending confirmation, whether or not the user has answered yet** — that section exists for exactly this: a criterion not yet resolved. If none was offered, writing `proposal.md` before an answer arrives is optional, same as before. If they answer or confirm, continue as Branch A and set `**AC source:**` in `proposal.md` to say where the criteria came from (Step 5) instead of leaving it in Gaps. If they do not, `proposal.md` with `**AC source:** none yet` and that Gaps section is the whole output, and you stop — `/sk:continue` refuses to write a spec delta while it reads `none yet`.
 
 ### Branch R — direct request
 
@@ -100,7 +107,7 @@ Everything else — capabilities, Gaps, grilling, the planning boundary — work
 
 When Step 3 finds the change already exists and you're told to re-run `/sk:propose` on it (not `/sk:continue`, which moves forward), don't treat the artifacts already on disk as settled — re-verify them against the work item's current state instead of only adding to them.
 
-For a `req-` change there is nothing to re-fetch: re-read `## Request` and every `## Assumptions` entry, and ask only about what the user's new message reopens. For a work item change, fetch the work item and its comments again, the same way as Step 2: the same REST path, the same U+FFFD scan, no shortcut just because a change directory already exists. The board keeps moving after a change is created; that is exactly what this re-fetch is for.
+For a `req-` change there is nothing to re-fetch: re-read `## Request` and every `## Assumptions` entry, and ask only about what the user's new message reopens. For a work item change, fetch the work item, its comments and its test cases again, the same way as Step 2: the same REST path, the same U+FFFD scan, no shortcut just because a change directory already exists. The board keeps moving after a change is created; that is exactly what this re-fetch is for.
 
 Read **every** entry under the existing `proposal.md`'s `## Assumptions`, not only the questions still open. A comment posted since the last run can contradict a resolution that already looked settled. When that happens, **reopen it** — put the marker back in the delta (when one exists yet) and the question back under `## Open questions` — rather than silently leaving the stale resolution in place, and rather than silently overwriting it with the new one either: a resolution changing after tasks were built on it is exactly what a reviewer needs to see, not something to infer later from a diff.
 
@@ -126,7 +133,9 @@ How the round reaches the user follows `${CLAUDE_PLUGIN_ROOT}/reference/asking-t
 - which capability owns the work, and whether it is `Added` or `Modified` against `sk/specs/` and the unarchived deltas you read in Step 1
 - any comment that contradicts the description or the criteria, and whether the comment really wins
 - the `change-id` slug
-- every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from) — ask those here, in the same round, not as a separate exchange.
+- for a Bug: whether the scenario in `sk/specs/` that already states its expected result really is that behaviour — recommend yes only when the wording matches, since yes means no change is created
+- every test case expected result the criteria do not cover or contradict: in scope or not, and which side is right
+- every Gap, and the Branch B questions (missing criteria, a related item to reuse, a parent to narrow from, test cases to confirm) — ask those here, in the same round, not as a separate exchange.
 - for Branch R: the criteria you suggest when the request states none, each labelled a suggestion — see Branch R for why an unanswered one never becomes `user, in conversation` Branch B's rule about writing `proposal.md` with a pending confirmation still applies as written
 
 Stop when the frontier is empty and the user has confirmed you share the same reading. Only then write `proposal.md`. Each answer lands where it belongs in Step 5 — the split under "How the acceptance criteria were read", ownership under Capabilities, a comment override under its own section — and is marked `confirmed` in `## Assumptions`.
@@ -148,22 +157,30 @@ Use `${CLAUDE_PLUGIN_ROOT}/templates/proposal.md` as structure and write `sk/cha
 **Record where the acceptance criteria live** on the `**AC source:**` line, because `/sk:continue` reads that line to know where to get them:
 
 - `work item` — Branch A
-- `related AB#<id>, confirmed` or `parent AB#<id>, narrowed` — Branch B, after the user confirmed
+- `related AB#<id>, confirmed`, `parent AB#<id>, narrowed` or `test cases AB#<id>[, AB#<id>], confirmed` — Branch B, after the user confirmed
 - `user, in conversation` — Branch B, when the user supplied criteria that are not on the board; Branch R, when the request stated criteria or the user confirmed suggested ones. **Write their text under `## Acceptance criteria not on the board`.** That is the only copy there will be
 - `none yet` — Branch B, still unanswered; Branch R, while suggested criteria are unconfirmed
 
 `## Assumptions` holds only the decisions Step 4 settled, each marked `confirmed` or `unconfirmed`; `## Open questions` starts empty. `/sk:continue` adds its own `Q<n>` entries to both as it writes scenarios.
 
+When test cases were read, list them under `## Test cases` as the template shows: id, title, and **every step quoted as decoded**, `"<action>" → "<expected result>"`, each labelled `covered`, `pins <what>`, `open` or `confirmed as criterion`. Quote, never paraphrase: `/sk:continue` takes a confirmed step's action as the `WHEN` and a pinned value word for word from here, and neither it nor `/sk:apply` re-fetches the test case. When more than 10 were linked, say how many were left unread.
+
+For a Bug, copy the repro steps' steps and expected result, stripped, verbatim, under `## Repro steps`, and its actual result to the `**Symptom:**` line (`none stated` when the reporter gave none). This is a deliberate exception to "a pointer, not a restatement": `/sk:apply` never reads Azure DevOps and builds its first test from these, and `/sk:continue` does not re-fetch the work item when the criteria came from test cases.
+
 ## Step 6 — Close out
 
-List the file created, any Gaps, and how many `## Assumptions` entries are still `unconfirmed`. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. For a small item they can instead run `/sk:ff <change-id>`, which writes the delta, design note and tasks in one go for a single review. Do not run either yourself.
+**When a Bug needed no change** (Branch A, the scenario confirmed): nothing was written. Name the scenario that already states the expected result, and say the fix is a commit or PR with `AB#<id>` whose regression test comes from that scenario.
+
+**Unattended, the same recommendation also writes nothing** — there is no artifact a change without a delta could leave — but it is not a decision: say plainly that nobody confirmed the scenario matches, quote both the Bug's expected result and the scenario side by side, and tell the reader to re-run `/sk:propose AB#<id>` if they do not match. This is the third exception to Step 4's `unconfirmed` fallback, beside drafted criteria and test case results: nothing is written for a reviewer to find, so the reply has to carry it.
+
+Otherwise, list the file created, any Gaps, and how many `## Assumptions` entries are still `unconfirmed`. Tell the user: review `proposal.md` — especially how the acceptance criteria were read — then run `/sk:continue <change-id>` for the spec delta. For a small item they can instead run `/sk:ff <change-id>`, which writes the delta, design note and tasks in one go for a single review. Do not run either yourself.
 
 ## Guardrails
 
 - Writes `proposal.md` only. No project code is edited, no spec delta, design or tasks are written, and neither `/sk:continue` nor `/sk:apply` is invoked from within this command, whatever the request said or however it justified going further
 - Never create `sk/` as a side effect
 - Ask before deciding: the first round of questions always happens, and an answer nobody gave is recorded `unconfirmed`, never `confirmed`
-- Never fabricate work item content, and never proceed from an empty AC field as if it were filled — Branch B asks instead
+- Never fabricate work item content, and never proceed from an empty AC field as if it were filled — Branch B asks instead. A Bug's expected result comes from its repro steps or a person, never from what "obviously" should happen, and a test case's expected result becomes a criterion only when a person confirms it
 - A direct request starts a change only when the user explicitly invoked this command with it, and criteria you drafted for it are never recorded as the user's until they confirm them
 - Ambiguity that changes scope, observable behaviour, compatibility, or which capability owns the work goes to the user, via Branch B or a Gap
 - Decide small conventions yourself and record the assumption

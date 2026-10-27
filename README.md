@@ -161,6 +161,21 @@ sk/changes/us-12345-<tên-ngắn>/
 
 Work item không có AC thì `proposal.md` ghi `AC source: none yet` cùng mục Gaps, và `/sk:continue` sẽ không viết spec cho tới khi giải quyết xong.
 
+**Test case.** Với mọi loại work item, nó đọc các Test Case được link qua *Tested By* (tối đa 10). Test case là bằng chứng, không phải AC:
+- Expected result mà AC đã nói tới thì không cần làm gì
+- Expected result mà AC không nói tới, hoặc mâu thuẫn với AC, thành câu hỏi `G<n>` và nằm trong Gaps cho tới khi có người trả lời
+- Item không có AC thì expected result của test case được đưa ra để bạn xác nhận, giống Related item (`AC source: test cases AB#<id>, confirmed`)
+
+Mọi test case đã đọc được ghi vào `## Test cases` trong `proposal.md`, từng bước trích nguyên văn (`"action" → "expected"`) kèm nhãn `covered`, `pins <cái gì>`, `open` hoặc `confirmed as criterion`. Chạy tự động không ai trả lời thì expected result từ test case vẫn để `open`, không bao giờ thành `unconfirmed` rồi đi tiếp.
+
+#### Bug
+
+Với work item loại Bug, AC là **expected result trong Repro Steps**, nên Bug có ghi rõ kết quả mong đợi không còn rơi vào nhánh "thiếu AC":
+- Change-id là `bug-<id>-<tên-ngắn>`
+- Các bước và expected result được chép vào `## Repro steps`, actual result vào dòng `**Symptom:**` của `proposal.md` (đây là ngoại lệ có chủ ý: `/sk:apply` không đọc ADO). `/sk:apply` phải thấy test đầu tiên đỏ **đúng với triệu chứng đó** trước khi sửa, test xanh ngay nghĩa là chưa tái hiện được lỗi
+- Repro Steps chỉ có các bước và actual result, không có expected result, thì nó hỏi bạn chứ không tự đoán hành vi đúng
+- Nếu `sk/specs/` đã có scenario nói đúng expected result đó (code lệch khỏi spec vẫn đúng), nó không tạo change nào: nó chỉ ra scenario đó và nói sửa bằng commit/PR kèm `AB#<id>` như mục "Việc không cần đi qua `sk`" bên dưới
+
 #### Việc không có work item — yêu cầu trực tiếp
 
 Refactor, tech debt, spike, hay việc chưa kịp lên board:
