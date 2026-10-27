@@ -45,7 +45,7 @@ Quote the spec line for each finding.
 
 ## Step 6 — Coherence
 
-- **Contracts.** For every interface under `## Contracts` in `design.md`, find it in the code and compare it with what was written: name, parameters, types, shape, errors. Missing or different → CRITICAL: a person reviewed that interface, and callers and tests were built against it. Recommend either a code change or a `design.md` update the person agrees to — never decide which one silently
+- **Contracts.** For every interface under `## Contracts` in `design.md`, find it in the code and compare it with what was written: name, parameters, types, shape, errors. Missing, or different in any of those → CRITICAL (a different body behind the same signature is not a contract difference): a person reviewed that interface, and callers and tests were built against it. Recommend either a code change or a `design.md` update the person agrees to — never decide which one silently
 - **Design.** If `design.md` exists, check the implementation follows each decision it records. Contradiction → WARNING, recommending either a code change or a `design.md` update. No `design.md` → say so and skip
 - **Standards.** Check the diff against `sk/config.yaml` → `rules` and the docs `context` points at. A documented rule broken → WARNING. A deviation from the surrounding code's patterns → SUGGESTION. The repo's documented standards win over your taste; skip anything a linter or type checker already enforces
 

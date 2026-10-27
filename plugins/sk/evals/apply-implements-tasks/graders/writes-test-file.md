@@ -5,6 +5,6 @@
 # like a test (a tests/ or test/ directory, or a .test. / .spec. file).
 type: tool_used
 tool: Write
-input_match: '"file_path"\s*:\s*"(?![^"]*[\/]sk[\/])[^"]*(?:[\/]tests?[\/]|\.(?:test|spec)\.)[^"]*"'
+input_match: '"file_path"\s*:\s*"(?![^"]*[\\/]sk[\\/])[^"]*(?:[\\/]tests?[\\/]|\.(?:test|spec)\.)[^"]*"'
 min: 1
 ---

@@ -48,7 +48,7 @@ For each unchecked task:
 5. Tick it — `- [ ]` → `- [x]` — immediately, in `tasks.md`
 6. Move to the next
 
-**Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on. When its scenario's test could be run, working means that test passes; a test that will not pass is a blocker, never a reason to loosen the test.
+**Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on. When its scenario's test could be run, working means that test passes — except for a task that only starts a scenario spread over several tasks, ticked when the part it names works, the test staying red until the last one (`tdd.md`); a test that will not pass is a blocker, never a reason to loosen the test.
 
 **When a task implements a scenario that still carries the open-question marker** (defined in `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`, present in the `specs/**/spec.md` you read above), **build against the reading recorded under that question's `## Assumptions` entry in `proposal.md`.** Tick the task as usual and note which question it leaned on: `- [x] 2.1 <task>  (built on Q3)`. That note is what lets whoever resolves `Q3` later find every task that assumed a particular answer.
 

@@ -6,8 +6,8 @@ The change `us-12345-field-selector` is complete. Both requirements are
 implemented in `src/field-selector.ts` and `src/attribute-fields.ts`
 (`listSelectableFields`, `searchFields`, the "No matching fields" message), and
 `test/field-selector.test.ts` covers all three scenarios. Every task is ticked.
-There is no `design.md` (the proposal says design was skipped) and no shell, so
-the tests cannot be run.
+`design.md` lists three contracts under `## Contracts`, and the code matches
+each one exactly. There is no shell, so the tests cannot be run.
 
 PASS if the reply reports no critical issue and concludes the change is ready
 for `/sk:archive`. Warnings or suggestions are fine, and so is noting that the

@@ -109,10 +109,48 @@ box that finds a field by its label or key.
 ## Capabilities
 
 **Modified:** `field-selector` — attributes alongside standard fields, and search
+EOF2
 
-## Design
+# The change adds exported functions, so under continue's design rule it has a
+# design.md with ## Contracts. They match the code above exactly: verify's
+# contract check must find them and report nothing.
+cat > "$CHANGE/design.md" <<'EOF2'
+# Design — us-12345-field-selector
 
-Skipped — no technical trade-off; both changes extend the existing module.
+## Contracts
+
+### `listSelectableFields` — src/field-selector.ts
+
+```ts
+export interface SelectableField { key: string; label: string; }
+export interface FieldGroup { label: string; fields: SelectableField[]; }
+export function listSelectableFields(): FieldGroup[];
+```
+
+- **Serves:** Attributes listed as their own group
+- **Errors:** none
+- **Changes:** new
+
+### `searchFields` — src/field-selector.ts
+
+```ts
+export const NO_MATCHING_FIELDS = 'No matching fields';
+export function searchFields(query: string): SelectableField[] | typeof NO_MATCHING_FIELDS;
+```
+
+- **Serves:** Search matches label or key, case-insensitively; No match
+- **Errors:** none — no match returns `NO_MATCHING_FIELDS`
+- **Changes:** new
+
+### `listAttributeFields` — src/attribute-fields.ts
+
+```ts
+export function listAttributeFields(): SelectableField[];
+```
+
+- **Serves:** Attributes listed as their own group
+- **Errors:** none
+- **Changes:** new
 EOF2
 
 cat > "$CHANGE/specs/field-selector/spec.md" <<'EOF2'
