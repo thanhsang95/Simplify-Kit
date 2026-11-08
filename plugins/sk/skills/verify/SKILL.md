@@ -3,7 +3,7 @@ name: verify
 description: "SimplifyKit (sk): check that the implementation of a change under sk/changes/ matches its spec delta, tasks and design, and report what is missing before archiving — read-only, it fixes nothing. Use when the user says \"sk verify\", \"verify the change\", \"is us-12345-... ready to archive\", or a change's tasks look done and should be checked against what it promised before /sk:archive."
 metadata:
   author: Simplify
-  version: "0.2.0"
+  version: "0.3.0"
 ---
 
 Check one change's implementation against its planning artifacts and report the gaps. **This command only reads.** It is a review the next step can act on, not a fix.
@@ -16,7 +16,7 @@ Same as `/sk:apply`: the id in the request → the one under discussion → the 
 
 ## Step 2 — Load the change from disk
 
-Read, from disk, even if you saw them earlier in this conversation:
+Read from disk, even if seen earlier:
 
 - `sk/changes/<id>/proposal.md`, `specs/**/spec.md`, `design.md` if present, `tasks.md`
 - `sk/config.yaml` — its `rules`, and the docs its `context` points at, are the standards for Coherence
@@ -39,13 +39,13 @@ When a shell is available, take the fixed point the user named, else the merge-b
 
 - **Scenarios.** For every `#### Scenario:`, check that the code handles its `WHEN` and produces its `THEN`, and whether a test covers it. Code that looks like it diverges from the scenario → WARNING. No test → WARNING
 - **Open questions.** A scenario still carrying the open-question marker → CRITICAL: `/sk:archive` stops on it (its check 2). Name the `Q<n>` from `proposal.md`. List every task ticked `(built on Q<n>)` alongside, so whoever answers the question sees what assumed the current reading
-- **Scope.** Behaviour in the diff that no requirement and no task asks for → WARNING. When it is something `proposal.md` lists under `## Out of scope`, name that entry and its source: it is not an omission from the spec but a decision the code went against. `/sk:apply` must surface extra scope, never absorb it; this is where absorbed scope shows up. Tests, refactors a task names, and wiring a requirement needs are not extra scope
+- **Scope.** Behaviour in the diff no requirement or task asks for → WARNING; if listed under `## Out of scope`, name the entry and its source — the code went against a decision. Tests, named refactors and needed wiring are not extra scope
 
 Quote the spec line for each finding.
 
 ## Step 6 — Coherence
 
-- **Contracts.** For every interface under `## Contracts` in `design.md`, find it in the code and compare it with what was written: name, parameters, types, shape, errors. Missing, or different in any of those → CRITICAL (a different body behind the same signature is not a contract difference): a person reviewed that interface, and callers and tests were built against it. Recommend either a code change or a `design.md` update the person agrees to — never decide which one silently
+- **Contracts.** Compare each `## Contracts` interface with the code: name, parameters, types, shape, errors (not the body). Missing or different → CRITICAL — a person reviewed it and callers were built against it. Recommend a code change or a `design.md` update the person agrees to; never pick silently
 - **Design.** If `design.md` exists, check the implementation follows each decision it records. Contradiction → WARNING, recommending either a code change or a `design.md` update. No `design.md` → say so and skip
 - **Standards.** Check the diff against `sk/config.yaml` → `rules` and the docs `context` points at. A documented rule broken → WARNING. A deviation from the surrounding code's patterns → SUGGESTION. The repo's documented standards win over your taste; skip anything a linter or type checker already enforces
 
@@ -85,6 +85,6 @@ End with one line:
 
 - Read-only. Never edit project code or any artifact under `sk/`, never tick or untick a task, never create a file
 - Never invoke `/sk:apply` or `/sk:archive` — report, and let the user decide what is next
-- Not a gate: `/sk:archive` does not require this to have run, and runs its own merge checks. Do not repeat them here — the scenario-count and conflict checks live in `/sk:archive` only
+- Not a gate, and not a copy of `/sk:archive`'s merge checks (scenario count, conflicts)
 - Judge against the artifacts on disk, not against your own idea of what the feature should do
 - No Azure DevOps access at all — the delta was built from the work item by `/sk:continue`; this compares code with the delta

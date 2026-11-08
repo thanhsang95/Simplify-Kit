@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.12.0 — 2026-11-08
+
+Skills and their references shortened without changing a rule: 15,472 → 9,554 words across the nine `SKILL.md` files (−38%), and 6,939 → 3,804 in the `reference/` files they read (−45%). What went was repetition and long rationale, not rules — every rule that exists because of an observed failure keeps a clause saying why; the measurements and incident history stay in `reference/` and this changelog.
+
+- **`propose`** 4,501 → 2,323. The three exceptions to the unattended `unconfirmed` fallback (criteria drafted for a direct request, an uncovered test case result, a Bug the spec already covers) were explained separately in Branch A, Branch R and Step 6; they are now one list in Step 4. Branch B's related item / parent / test case paragraphs are one list with one confirmation rule. Step 2 keeps every check and leaves the measurements to `reference/azure-devops.md`
+- **`archive`** 2,135 → 1,071: the six checks as one numbered list; Records mode reuses the drafting rules. A first cut reduced "a term defined differently in two changes … never pick one" to "a conflict to ask about", and `archive-backfill-all` then failed a run that recommended an invented replacement term; the wording is back, plus "not even a new name to resolve a conflict"
+- **`continue`** 2,062 → 1,243, **`init`** 2,081 → 1,102, **`apply`** 1,115 → 871, **`verify`** 1,086 → 999, **`pr`** 945 → 749, **`questions`** 781 → 706, **`ff`** 686 → 490: one-clause rationale, `## Guardrails` cut to the core prohibitions
+- **`reference/`** 6,939 → 3,804 words (`playbook-mapping.md`, which no skill reads at run time, unchanged): `azure-devops.md` 3,338 → 1,513 — the related-item and parent rules as numbered lists with the same bounds (3 items, one hop, no children, never a parent's criteria wholesale), the `az boards` measurement table kept as the evidence against reintroducing it; `conventions.md` 1,665 → 1,089, its `MODIFIED` section reworded only and still in step with `templates/spec-delta.md` and `archive`; `tdd.md` 1,463 → 914; `asking-the-user.md` 473 → 288. Every heading a skill quotes by name is unchanged
+- **Untouched on purpose:** the Planning boundary paragraphs in `propose` and `continue` (identical to 0.11.0 by diff), the `MODIFIED` restatement rule, every frontmatter `description`, section names and tokens the evals, `sk-status` and the `pre-push` hook rely on
+- Evals: full suite (`--ablation none`, 3 runs, 37 cases, $25.99): `wi` and `init` 1.00; `core` 32 cases 1.00, `archive-backfill-all` 0.93 (fixed as above) and `init-migrates-old-workspace` 0.96 (a run reasoned the archive was untracked and printed no `git rm --cached`; also 0.96 in 0.10.0). Both re-run after the fix, 6 runs each ($2.07): 1.00. After the `reference/` cut, full suite again (3 runs, 37 cases, $24.24): 36 cases 1.00, `archive-already-archived-drafts-records` 0.93 on a reply that drafted the terms, flagged the `profile` conflict without picking and asked — the same case also failed a run on `main`. An intermediate cut (−14%) had run the full suite too, and its two `archive` cases below 1.00 re-ran side by side with `main` at the same scores — judge noise
+
 ## 0.11.0 — 2026-10-28
 
 Two additions to planning: a record of what a change deliberately leaves out, and a questions file for the PO or BA.

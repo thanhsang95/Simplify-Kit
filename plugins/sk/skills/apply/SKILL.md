@@ -3,22 +3,20 @@ name: apply
 description: "SimplifyKit (sk): implement the tasks of a planned change under sk/changes/, test-first per spec scenario, ticking each task off as its specified behaviour lands. Use when the user says \"sk apply\", \"apply the change\", \"implement us-12345-...\", or wants to start or continue building a change that /sk:propose and /sk:continue already planned."
 metadata:
   author: Simplify
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 Implement the tasks of one change under `sk/changes/`.
 
 ## Step 1 — Select the change
 
-In order: the id given in the request → the change discussed earlier in this conversation → the only open change, if there is exactly one → otherwise list what is available and ask.
+In order: the id given in the request → the change discussed earlier in this conversation → the only open change, if there is exactly one → otherwise list what is available and ask. When listing `sk/changes/`, **exclude `archive/`** — a container for finished changes, not a change.
 
-When listing `sk/changes/`, **exclude `archive/`**. It is a container for finished changes, not a change.
-
-Announce the choice — `Using change: <id>` — and say how to override it (`/sk:apply <other-id>`).
+Announce `Using change: <id>` and how to override it (`/sk:apply <other-id>`).
 
 ## Step 2 — Load the change from disk
 
-Read all of these, from disk, even if you saw them earlier in this conversation — the user may have edited them after reviewing:
+Read from disk, even if seen earlier — the user may have edited them:
 
 - `sk/changes/<id>/proposal.md`
 - `sk/changes/<id>/specs/**/spec.md`
@@ -27,7 +25,7 @@ Read all of these, from disk, even if you saw them earlier in this conversation 
 - `sk/config.yaml` — its `context` and `rules` apply while you implement; its `Test:` line is the test command
 - `${CLAUDE_PLUGIN_ROOT}/reference/tdd.md` — how each scenario gets its test
 
-If `tasks.md` is missing or has no tasks, stop and point the user at `/sk:continue <id>` (or `/sk:propose` if there is no `proposal.md` either). Do not improvise a task list from the spec: the point of the checklist is that a human approved it.
+No tasks → point at `/sk:continue <id>` (or `/sk:propose`) and stop. Never improvise a task list: a human approved this one.
 
 ## Step 3 — Report where you are
 
@@ -37,7 +35,7 @@ If the repository has no test setup (as `tdd.md` defines it) and a person can an
 
 ## Step 4 — Work the list
 
-Test first: every `#### Scenario` the task implements gets a test from that scenario before its code, seen failing for the right reason, then seen passing. `${CLAUDE_PLUGIN_ROOT}/reference/tdd.md` has the loop and its exceptions (no shell, no test setup, nothing testable). The test is a step inside the task; `tasks.md` gains no task and no marker.
+Test first: each `#### Scenario` gets a test from it before its code, seen failing for the right reason, then passing (`tdd.md` has the loop and its exceptions: no shell, no test setup, nothing testable). The test is a step inside the task, not a new task.
 
 For each unchecked task:
 
@@ -48,34 +46,32 @@ For each unchecked task:
 5. Tick it — `- [ ]` → `- [x]` — immediately, in `tasks.md`
 6. Move to the next
 
-**Only tick a task when its specified behaviour is actually working.** Not when it is partly done, not when the hard half was deferred, not when you decided a simpler version was good enough. A ticked box is a claim someone else will rely on. When its scenario's test could be run, working means that test passes — except for a task that only starts a scenario spread over several tasks, ticked when the part it names works, the test staying red until the last one (`tdd.md`); a test that will not pass is a blocker, never a reason to loosen the test.
+**Only tick a task when its specified behaviour actually works** — not partly done, not with the hard half deferred, not a simpler version. A ticked box is a claim others rely on. When the test could run, working means it passes (except a task starting a scenario spread over several, `tdd.md`); a test that will not pass is a blocker, never a reason to loosen it.
 
-**When a task implements a scenario that still carries the open-question marker** (defined in `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`, present in the `specs/**/spec.md` you read above), **build against the reading recorded under that question's `## Assumptions` entry in `proposal.md`.** Tick the task as usual and note which question it leaned on: `- [x] 2.1 <task>  (built on Q3)`. That note is what lets whoever resolves `Q3` later find every task that assumed a particular answer.
+**A scenario still carrying the open-question marker** (`${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`): **build against the reading under that question's `## Assumptions` entry**, tick as usual, and note it: `- [x] 2.1 <task>  (built on Q3)` — so whoever resolves `Q3` finds every task that assumed an answer.
 
-`/sk:apply` does not block on open questions — only `/sk:archive` does. This is a deliberate asymmetry, not an oversight: blocking here would add a second lock on the door the open question already locks at archive time, while `tasks.md` has no dependency graph to tell which tasks could safely proceed without that answer and which couldn't — refusing to tick any of them would stall the whole checklist on one open threshold.
+`/sk:apply` does not block on open questions — only `/sk:archive` does. The asymmetry is deliberate: archive already locks that door, and `tasks.md` has no dependency graph to tell which tasks could proceed without the answer, so refusing to tick any would stall the whole checklist on one open threshold.
 
 **Stop and ask** when:
 
 - A task is ambiguous — ask rather than pick a reading
-- Implementation reveals a hole in the design — say so and suggest updating the planning artifacts; the artifacts are not frozen. An interface under `design.md` → `## Contracts` that cannot be built as written is such a hole: never ship a different signature on your own
-- A task needs work beyond what the spec describes, or you find yourself wanting to narrow, defer, or make an exception to specified behaviour to make it fit. **Surface the extra scope. Never absorb it silently.** When the extra is something `proposal.md` lists under `## Out of scope`, say which entry and its source: someone already decided against it
+- The design has a hole — say so and suggest updating the artifacts. A `## Contracts` interface that cannot be built as written is one: never ship a different signature on your own
+- A task needs work beyond the spec, or you want to narrow, defer or except specified behaviour. **Surface the extra scope; never absorb it.** If it is under `## Out of scope`, name the entry and its source
 - Anything errors or blocks
 
 ## Step 5 — Close out
 
 Report tasks completed this session and overall progress. **Name every task ticked with a `(built on Q<n>)` note**, so whoever resolves that open question can see exactly what assumed the reading they're about to overturn.
 
-Report the tests: which scenarios got a test and whether you saw it fail then pass; tests written but **not run**, and why (no shell); scenarios given no test, and why; and test-first skipped for lack of a test setup, if it was. For a change from a Bug, also whether the failure you saw matched the `**Symptom:**` line, and the cause in one line (`tdd.md`, "A change from a Bug"). Never report a run that did not happen. Then suggest running the repository's full build and test suite — `sk` defines no runner of its own; use what `sk/config.yaml` records.
+Report the tests: which scenarios got one and whether you saw it fail then pass; tests written but **not run**, and why; scenarios without a test, and why; test-first skipped for lack of a setup. For a Bug, whether the failure matched `**Symptom:**`, and the cause in one line (`tdd.md`, "A change from a Bug"). Never report a run that did not happen. Suggest running the full suite `sk/config.yaml` records.
 
-When every task is ticked, tell the user the next step is `/sk:verify <change-id>`, which checks the code against the spec delta without changing anything, and then `/sk:archive`, which merges the delta into `sk/specs/`. Verifying is recommended, not required.
+All ticked → next is `/sk:verify <change-id>` (recommended, read-only), then `/sk:archive`.
 
 ## Guardrails
 
-- Keep going until done or genuinely blocked
-- Read the artifacts from disk before starting
+- Keep going until done or genuinely blocked; read the artifacts from disk before starting
 - Tick immediately, and only for behaviour that actually works
 - Test each scenario before its code; never claim a test run you did not make, never install a test framework, never weaken a test to make it pass
-- Keep each edit scoped to the task in hand
-- Pause on ambiguity, blockers, and scope growth — do not guess and do not quietly shrink the work
-- Open questions in the spec delta do not block implementation — build against the recorded reading, tick normally, and note `(built on Q<n>)`; only `/sk:archive` stops for them
+- Keep each edit scoped to the task; pause on ambiguity, blockers and scope growth — do not guess and do not quietly shrink the work
+- Open questions do not block: build on the recorded reading and note `(built on Q<n>)`
 - Do not touch Azure DevOps
