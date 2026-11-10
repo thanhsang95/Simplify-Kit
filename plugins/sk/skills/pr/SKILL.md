@@ -69,7 +69,7 @@ For a Bug: what was wrong (the Symptom line) and what it does now.>
 
 - **Spec changes** come from the delta. A `Modified` line says what changed — `MODIFIED` restates the whole requirement, so a reviewer cannot otherwise tell the changed scenario from the copied ones
 - **Evidence** is the person's: each scenario as a line to tick, plus only what this conversation showed (a `/sk:verify` report, tests seen failing then passing). Written but not run is "written, not run", never "passes"
-- **Merge danger**: the level from `conventions.md` → `## Risk`, then two or three lines with the facts behind it — which door and why, the blast radius, each `sensitive:` glob the touched paths match. Without the diff, judge sensitive areas from the paths the artifacts name and say the diff was not read
+- **Merge danger**: the level from `conventions.md` → `## Risk`, then two or three lines with the facts behind it — which door and why, the blast radius, each `sensitive:` glob the touched paths match. Without the diff, match the globs against the paths the artifacts name and say the diff was not read. Name a path only when it matches a glob; none listed → say so in a few words
 - **Open before merge**: open-question markers (`/sk:archive` will refuse), and for an open change "`/sk:archive <id>` not run: the living spec does not show this change yet"
 
 ## Step 4 — Close out

@@ -45,7 +45,7 @@ Offer it only with Bash **and** a person to answer — it writes inside `.git/` 
 
 **Append** a short section to the first of `./CLAUDE.md`, `./.claude/CLAUDE.md` that exists (else create `./CLAUDE.md`) — never rewrite existing content. A handful of lines: what `sk/` is and when to use `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`, `/sk:questions`.
 
-End it with `Code standards: <path>` — the same standards doc Step 2 put in `context` — so reviews that read only `CLAUDE.md` (`/code-review`) judge by the rules `/sk:verify` uses. Never create a standards file: none found → write `Code standards: none yet — add the path here and in sk/config.yaml context`, and say so in Step 7.
+End it with `Code standards: <path>` — the same standards doc Step 2 put in `context`, never `CLAUDE.md` or a `.claude/rules/` file — so reviews that read only `CLAUDE.md` (`/code-review`) judge by the rules `/sk:verify` uses. Never create a standards file: none found → write `Code standards: none yet — add the path here and in sk/config.yaml context`, and say so in Step 7.
 
 ## Step 6 — Report a planning-system conflict
 
