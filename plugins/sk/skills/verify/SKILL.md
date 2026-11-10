@@ -3,7 +3,7 @@ name: verify
 description: "SimplifyKit (sk): check that the implementation of a change under sk/changes/ matches its spec delta, tasks and design, and report what is missing before archiving — read-only, it fixes nothing. Use when the user says \"sk verify\", \"verify the change\", \"is us-12345-... ready to archive\", or a change's tasks look done and should be checked against what it promised before /sk:archive."
 metadata:
   author: Simplify
-  version: "0.3.0"
+  version: "0.4.0"
 ---
 
 Check one change's implementation against its planning artifacts and report the gaps. **This command only reads.** It is a review the next step can act on, not a fix.
@@ -21,6 +21,7 @@ Read from disk, even if seen earlier:
 - `sk/changes/<id>/proposal.md`, `specs/**/spec.md`, `design.md` if present, `tasks.md`
 - `sk/config.yaml` — its `rules`, and the docs its `context` points at, are the standards for Coherence
 - `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` — it defines the open-question marker
+- **The previous round's report**, if there is one: pasted by the user, or an earlier verification report for the same change in this conversation. It is input, never a file to read from or write to. None → this is round 1
 
 No `tasks.md` → nothing is built yet; point at `/sk:continue <id>` or `/sk:apply <id>` and stop.
 
@@ -58,6 +59,8 @@ When a shell is available and `sk/config.yaml` records a test command, run it. F
 ```markdown
 ## Verification report: <change-id>
 
+Round: <n> · Base: <short sha | not available> · Head: <short sha | not available>
+
 | Dimension    | Status                                 |
 |--------------|----------------------------------------|
 | Completeness | X/Y tasks, N/M requirements implemented |
@@ -65,13 +68,34 @@ When a shell is available and `sk/config.yaml` records a test command, run it. F
 | Coherence    | followed / N issues / no design.md     |
 
 ### CRITICAL — fix before /sk:archive
+- **V1** — <finding> (`file:line`) — <recommendation>
 ### WARNING — should fix
 ### SUGGESTION — nice to fix
+
+### Resolved since round <n-1>
+- **V<n>** — <the previous round's one-line finding>
+
+### Disposition
+
+| ID | Severity | Disposition |
+|----|----------|-------------|
+| V1 | CRITICAL |             |
 
 ### Skipped
 ```
 
-Every finding carries a `file:line` reference where one exists and one specific recommendation — never "consider reviewing". List under **Skipped** each check that did not run and why (no shell, no `design.md`, no test command).
+Every finding carries a `file:line` reference where one exists and one specific recommendation — never "consider reviewing". List under **Skipped** each check that did not run and why (no shell, no `design.md`, no test command). Base and Head are the commits Step 3 compared — the next round needs them; without a shell, `not available`.
+
+**Finding IDs.** Every finding gets an ID `V<n>`, numbered across the whole report, not per severity. With a previous report:
+
+- A finding still present keeps its ID, even if its severity changed. Match on the file, the requirement or scenario it concerns, and the kind of problem — not on wording
+- A new finding takes the next number after the highest ID the previous report used; never reuse a number
+- A previous ID no longer found goes under **Resolved since round <n-1>** — never dropped silently. Round 1 → leave the section out
+- Unsure whether a finding is an old one → give it a new ID and write `possibly V<n>` after it
+
+**Disposition** is the author's column: `fixed`, `wrong`, `intended` or `wontfix`. Leave it blank for new findings; for a finding that keeps its ID, carry over what the previous report held. Never fill it in yourself, and never change a severity or the closing line because of it — the person weighs it.
+
+Print the report as one contiguous markdown block, heading to closing line, so it pastes as one PR comment that shows the full current state.
 
 End with one line:
 
@@ -83,7 +107,7 @@ End with one line:
 
 ## Guardrails
 
-- Read-only. Never edit project code or any artifact under `sk/`, never tick or untick a task, never create a file
+- Read-only. Never edit project code or any artifact under `sk/`, never tick or untick a task, never create a file — the report, rounds included, lives only in the reply
 - Never invoke `/sk:apply` or `/sk:archive` — report, and let the user decide what is next
 - Not a gate, and not a copy of `/sk:archive`'s merge checks (scenario count, conflicts)
 - Judge against the artifacts on disk, not against your own idea of what the feature should do

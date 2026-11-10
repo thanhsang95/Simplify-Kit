@@ -122,7 +122,9 @@ Sau đó, mỗi repo làm một lần:
 
 Lệnh này tạo thư mục `sk/` và ghi `sk/config.yaml` — file mô tả dự án cho Claude: stack dùng gì, lệnh build/test là gì, tài liệu nào nên đọc trước khi làm việc. Xem qua file đó một lượt ngay lúc này: nó là thứ Claude đọc mỗi lần chạy `/sk:*` sau này, nên nếu có chỗ nào tả sai dự án, sửa bây giờ đỡ tốn công sức hơn nhiều so với sửa sau khi đã có vài change dựa trên nó.
 
-Lệnh này cũng đụng tới một file bạn đã có sẵn: nó **append** một đoạn giới thiệu `sk/` vào `./CLAUDE.md`, hoặc vào `./.claude/CLAUDE.md` nếu `./CLAUDE.md` không tồn tại nhưng file kia có; nếu repo chưa có file nào trong hai file đó, nó **tạo mới `./CLAUDE.md`**. Nội dung cũ không bị viết đè hay sắp lại, chỉ nối thêm ở cuối. `/sk:apply` sau này cũng ghi ngoài `sk/` — nhưng đó là code bạn đã yêu cầu, ở bước bạn đang chờ sẵn. `/sk:init` thì khác: nó sửa một file bạn đã sở hữu từ trước mà không ai yêu cầu riêng, nên đáng nói ngay ở đây. `git diff CLAUDE.md` sau khi chạy `/sk:init` sẽ cho thấy đúng đoạn đó.
+Lệnh này cũng đụng tới một file bạn đã có sẵn: nó **append** một đoạn giới thiệu `sk/` vào `./CLAUDE.md`, hoặc vào `./.claude/CLAUDE.md` nếu `./CLAUDE.md` không tồn tại nhưng file kia có; nếu repo chưa có file nào trong hai file đó, nó **tạo mới `./CLAUDE.md`**. Nội dung cũ không bị viết đè hay sắp lại, chỉ nối thêm ở cuối. `/sk:apply` sau này cũng ghi ngoài `sk/` — nhưng đó là code bạn đã yêu cầu, ở bước bạn đang chờ sẵn. `/sk:init` thì khác: nó sửa một file bạn đã sở hữu từ trước mà không ai yêu cầu riêng, nên đáng nói ngay ở đây. `git diff CLAUDE.md` sau khi chạy `/sk:init` sẽ cho thấy đúng đoạn đó. Đoạn đó kết thúc bằng dòng `Code standards: <đường dẫn>` trỏ tới file tiêu chuẩn code của repo, để `/code-review` (chỉ đọc `CLAUDE.md`) và `/sk:verify` (đọc `context` trong `sk/config.yaml`) dùng cùng một bộ quy tắc; `/sk:init` không tự tạo file tiêu chuẩn.
+
+Trong `sk/config.yaml`, mục `sensitive:` (danh sách glob: auth, token, CI, dữ liệu khách…) được để trống cho team tự điền — `/sk:pr` dùng nó để xếp mức rủi ro.
 
 Nó cũng **append một dòng vào `.gitignore`** (tạo file nếu chưa có): `sk/changes/archive/`, vì change đã xong được ghi lại bằng spec, ADR và glossary nên bản sao đã archive chỉ là nhiễu. Các change đang mở dưới `sk/changes/<id>/` thì vẫn được commit.
 
@@ -265,6 +267,8 @@ Trước khi archive, lệnh này so code với chính những gì change đã h
 
 Mỗi vấn đề được xếp mức CRITICAL (phải sửa trước khi archive), WARNING hoặc SUGGESTION, kèm `file:dòng` và một việc cụ thể cần làm. Có shell thì nó so trên diff từ merge-base với nhánh chính và chạy lệnh test ghi trong `sk/config.yaml`. Không có shell thì nó đọc code theo tasks và delta, và nói rõ đã bỏ qua phần nào.
 
+Mỗi vấn đề có một mã `V1`, `V2`… đánh số trên toàn báo cáo. Sau khi sửa, chạy lại và dán báo cáo vòng trước vào cùng lệnh (hoặc chạy lại trong cùng cuộc trò chuyện): vấn đề còn lại giữ mã cũ, vấn đề mới lấy số tiếp theo, vấn đề đã hết nằm trong mục *Resolved* thay vì biến mất. Dòng đầu ghi `Round`, `Base`, `Head` để vòng sau biết đã so trên commit nào. Bảng *Disposition* để bạn điền `fixed` / `wrong` / `intended` / `wontfix` cho từng mã — `verify` giữ nguyên giá trị đó qua các vòng nhưng không bao giờ tự điền. Cả báo cáo là một khối markdown liền, dán thẳng thành một comment trên PR.
+
 Bước này nên chạy, nhưng không bắt buộc: `/sk:archive` không đòi phải verify trước, và vẫn tự chạy các kiểm tra merge của nó.
 
 ### 5. Đóng lại — `/sk:archive`
@@ -311,7 +315,7 @@ Soạn phần mô tả cho PR từ chính các artifact của change, để bạ
 - Requirement nào được thêm, sửa (sửa gì) hay bỏ, theo từng capability; các contract trong `design.md`
 - Tiến độ task, và những gì còn mở trước khi merge: open question, task chưa tick, assumption `unconfirmed`, chưa archive
 - Mục **Evidence** để bạn tự điền — nó chỉ ghi những gì đã thật sự xảy ra trong hội thoại (report của `/sk:verify`, test đã thấy đỏ rồi xanh), không bao giờ tự nhận test đã pass
-- **Merge danger**: one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way) và ai bị ảnh hưởng nếu sai
+- **Merge danger**: mức Low / Medium / High theo định nghĩa chung trong `plugins/sk/reference/conventions.md` (`## Risk`), kèm lý do — one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way), ai bị ảnh hưởng nếu sai, và vùng nhạy cảm nào trong `sensitive:` của `sk/config.yaml` bị chạm. Không chắc thì xếp mức cao hơn
 
 **Nó không tạo PR, không ghi file nào.** Tạo PR trên Azure DevOps là một thao tác ghi, mà kit chỉ đọc ADO.
 
@@ -319,13 +323,15 @@ Soạn phần mô tả cho PR từ chính các artifact của change, để bạ
 
 Chạy lại `/sk:init` trong repo đã có `sk/`. Lệnh này **không bao giờ ghi đè** `config.yaml`; nó chỉ kiểm tra workspace có gì khác bản hiện tại và đề xuất các thay đổi kiểu *append*: thêm `sk/changes/archive/` vào `.gitignore`, đánh dấu `## Design` "Skipped" cho các change đã lên kế hoạch từ trước khi có `/sk:continue`, và thêm dòng `**AC source:** none yet` cho change đang chờ AC. Nó hiện toàn bộ kế hoạch và hỏi bạn **một lần**; chạy không có người trả lời thì chỉ áp dụng ba việc trên.
 
+Từ 0.13.0 nó còn đề nghị thêm dòng `Code standards: <đường dẫn>` vào cuối đoạn đã append trong `CLAUDE.md` (không tìm thấy file tiêu chuẩn thì ghi `none yet`, không bịa đường dẫn), và nếu `sk/config.yaml` chưa có `sensitive:` thì in khối đó ra để bạn tự thêm — nó không sửa `config.yaml`.
+
 Hai việc nó **chỉ báo, không tự làm**: các change đã archive vẫn đang bị git theo dõi (in ra lệnh `git rm -r --cached sk/changes/archive` — chạy nó làm đồng đội mất các thư mục đó khi pull, nên là quyết định của cả nhóm), và các change đã archive chưa có ADR/glossary: chạy **một lần** `/sk:archive backfill` — nó đọc mọi change đã archive, gộp và bỏ trùng thuật ngữ thành một bản nháp `sk/context.md`, soạn ADR cho từng change có `design.md` xứng đáng, và hỏi bạn **một lần** (thuật ngữ hai change định nghĩa khác nhau sẽ được hỏi lại, không tự chọn). Làm việc này **trước khi** bỏ theo dõi. Cũng có thể chạy `/sk:archive <id>` với một change đã archive để chỉ soạn bản ghi cho riêng nó.
 
 ## Các file trong `sk/` nghĩa là gì
 
 | Đường dẫn | Nội dung |
 |---|---|
-| `sk/config.yaml` | Mô tả dự án cho Claude: stack, lệnh build/test, tài liệu nên đọc, thông tin ADO |
+| `sk/config.yaml` | Mô tả dự án cho Claude: stack, lệnh build/test, tài liệu nên đọc, các đường dẫn nhạy cảm (`sensitive:`), thông tin ADO |
 | `sk/specs/<nhóm>/spec.md` | **Đặc tả đang hiệu lực** — hệ thống hôm nay phải làm gì. Tích luỹ qua nhiều story |
 | `sk/changes/<id>/` | Một thay đổi đang làm dở — **có commit**, để đồng đội review và để kit thấy việc chưa archive của người khác |
 | `sk/changes/archive/<id>/` | Thay đổi đã xong — **chỉ nằm trên máy**, bị `.gitignore` |

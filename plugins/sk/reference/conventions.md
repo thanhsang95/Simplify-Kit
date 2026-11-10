@@ -1,6 +1,6 @@
 # Spec conventions
 
-How SimplifyKit writes specifications. Read by `/sk:propose`, `/sk:continue` and `/sk:archive`.
+How SimplifyKit writes specifications and rates merge risk. Read by `/sk:propose`, `/sk:continue`, `/sk:verify`, `/sk:archive` and `/sk:pr`.
 
 ## Where specs live
 
@@ -122,3 +122,22 @@ Method: copy the requirement out of `sk/specs/<capability>/spec.md`, then edit t
 
 - `ADDED` — must not already exist in `sk/specs/`; if it does, a person resolves the conflict
 - `REMOVED` — name the requirement exactly and say in one line why it goes. No scenarios
+
+## Risk
+
+How risky a merge is. `/sk:pr` writes it under `## Merge danger`; one definition here so every skill that rates risk rates it the same way.
+
+- **Two-way door** — only adds behaviour; reverting the commit or turning off its flag undoes it
+- **One-way door** — a revert does not undo the effect: a schema change, an endpoint, event or tool another system consumes (`## Contracts`), a `REMOVED` requirement, data written in a new shape, data already sent outside (a document sent to a trading partner)
+- **Blast radius** — the actors and callers the scenarios name, plus the areas the diff touches
+- **Sensitive areas** — the globs under `sensitive:` in `sk/config.yaml`. The project lists them; the kit never hard-codes any. None listed → say so, never guess
+
+| Level | When |
+|---|---|
+| Low | Two-way, touches no sensitive area, affects only internal users or sits behind a flag |
+| Medium | Two-way, but touches a sensitive area or directly affects customers or trading partners |
+| High | One-way door |
+
+**When unsure, rate higher.** This is the opposite of `/sk:verify`'s "when unsure, rank lower", on purpose: a finding ranked too high is noise, but a risk rated too low tells the reviewer to skip the part they most need to read.
+
+A rating is a suggestion with its reason — the two or three facts that put it at that level. Never "safe" or "low" because the change is small.
