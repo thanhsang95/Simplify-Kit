@@ -155,3 +155,19 @@ Skipped — <the reason>.
 ## Impact
 
 - `<path>` — <what changes there>
+
+## Risk (preliminary)
+
+<!--
+An estimate made before any code exists, by reference/conventions.md → ## Risk,
+from the criteria, the work item and `sensitive:` in sk/config.yaml. The blast
+radius is ## Impact above. /sk:pr compares the merge danger it finds later with
+this and says when it went up. The kit only ever raises it — /sk:continue does
+when the delta or design.md turns out one-way; lowering it is a person's call.
+Not enough to tell → say what is missing on that line, never guess.
+-->
+
+**Level:** <Low | Medium | High> — confirmed | unconfirmed
+**Door:** <two-way | one-way> — <why>
+**Sensitive areas:** <each `sensitive:` glob the change is likely to touch | none matched | none listed in sk/config.yaml>
+**Early review:** <yes | no>  <!-- yes for Medium or High: a draft PR with the spec before /sk:apply -->

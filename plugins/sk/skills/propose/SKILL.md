@@ -3,7 +3,7 @@ name: propose
 description: "SimplifyKit (sk): start a change from an Azure DevOps work item — or, only when the user explicitly invokes /sk:propose with it, from a direct request that has no work item — and write proposal.md only, without touching project code. Use when the user says \"sk propose\", \"plan AB#12345\", or gives an ADO work item id or URL and wants it planned. Interviews the user about how to read the work item before deciding, then records how the acceptance criteria were read, the assumptions and the gaps under sk/changes/. Planning only; the spec delta and tasks come from /sk:continue, implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 Read an Azure DevOps work item — or a direct request the user gave explicitly — and start one change: write `proposal.md`, then stop. `/sk:continue` creates the spec delta, design and tasks afterwards, one per invocation.
@@ -113,6 +113,7 @@ Work in rounds. The **frontier** is every decision whose prerequisites are settl
 - each test case result the criteria do not cover or contradict
 - anything ruled out — confirm it lands under `## Out of scope`
 - every Gap and the Branch B questions; for Branch R, the suggested criteria
+- the preliminary risk level (Step 5), once the criteria are settled — recommend one, with the door and any sensitive area behind it. While they are `none yet` or awaiting confirmation it is not on the frontier: write what is missing (Step 5), do not ask
 
 Stop when the frontier is empty and the user confirms the reading. Answers are marked `confirmed` in `## Assumptions`.
 
@@ -147,11 +148,13 @@ It is a pointer, not a restatement: link, id and title; two or three summary sen
 
 A Bug: its steps and expected result verbatim under `## Repro steps`, its actual result on `**Symptom:**` (`none stated` if none) — `/sk:apply` never reads Azure DevOps and builds its first test from these.
 
+`## Risk (preliminary)` — rate it by `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` → `## Risk`, from the criteria, the work item and `sensitive:` in `sk/config.yaml`; the blast radius is `## Impact`. It is a suggestion like any Step 4 decision: `confirmed` when the user answered, else `unconfirmed`. `Early review: yes` for Medium or High. Not enough to tell the door (criteria still `none yet`) → say what is missing on that line instead of guessing, and leave Level and Early review open — missing criteria are not doubt about the door, so "when unsure, rate higher" does not apply.
+
 ## Step 6 — Close out
 
 **A Bug that needed no change:** name the scenario; the fix is a commit or PR with `AB#<id>` and a regression test from it. **Unattended**, also say nobody confirmed the match, quote the expected result and the scenario side by side, and say to re-run `/sk:propose AB#<id>` if they differ.
 
-Otherwise list the file, any Gaps, and how many assumptions are `unconfirmed`. Tell the user to review `proposal.md` — especially how the AC were read — then run `/sk:continue <change-id>`, or `/sk:ff <change-id>` for a small item. Run neither yourself.
+Otherwise list the file, any Gaps, how many assumptions are `unconfirmed`, and the preliminary risk level. Tell the user to review `proposal.md` — especially how the AC were read — then run `/sk:continue <change-id>`, or `/sk:ff <change-id>` for a small item. Run neither yourself.
 
 ## Guardrails
 

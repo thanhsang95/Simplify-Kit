@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: pr-spec-mode-omits-tasks
+description: >-
+  /sk:pr on an open change whose planning is done but no task is ticked picks
+  spec review: the body points reviewers at the delta and design.md under
+  Review now, and leaves out Tasks, Evidence, Open before merge and Merge
+  danger, which only make sense once code exists. Writes no file.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

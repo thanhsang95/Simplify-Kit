@@ -157,6 +157,8 @@ sk/changes/us-12345-<tên-ngắn>/
   proposal.md            tóm tắt yêu cầu, AC nằm ở đâu, cách nó đọc AC, và những chỗ AC chưa đủ rõ
 ```
 
+Cuối `proposal.md` có mục `## Risk (preliminary)`: mức rủi ro ước lượng trước khi có code (Low / Medium / High, theo `## Risk` trong `plugins/sk/reference/conventions.md`), door, vùng nhạy cảm và `Early review: yes | no`. Đây là đề xuất, nằm trong lượt câu hỏi `G…`; chạy không ai trả lời thì ghi `unconfirmed`. Mức Medium trở lên thì `Early review: yes`.
+
 `<tên-ngắn>` không phải thứ bạn tự đặt — Claude tự rút gọn từ tiêu đề work item (ví dụ US 12345 "Add product attributes to field selector" → `us-12345-field-selector`), và nói tên đó ra trong câu trả lời khi kết thúc. Nếu bỏ lỡ, cứ mở `sk/changes/` mà xem tên thư mục.
 
 **Bước này không sửa một dòng code nào**, và cũng không tự viết spec. Kể cả khi bạn bảo "làm luôn đi", nó vẫn chỉ ghi `proposal.md` rồi dừng — lý do nằm ở mục "Vì sao thiết kế như vậy" phía trên. Dừng ở đây là chủ ý: đây là chỗ bạn kiểm tra nó **hiểu AC thế nào** trước khi có spec nào được dựng lên trên cách hiểu đó.
@@ -216,6 +218,10 @@ Không có lệnh trạng thái nào — nó nhìn file nào đã có trên đĩ
 - Có scenario nào *không* có trong US — tức nó tự nghĩ ra?
 
 Xem luôn mục **Gaps** và **Open questions** trong `proposal.md`: Gaps là chỗ AC chưa đủ rõ để dịch thành scenario; Open questions là chỗ scenario đã viết nhưng một con số hay quy tắc chưa ai chốt. Cả hai đều không phải chỗ nó tự bịa cho đủ.
+
+**Rủi ro chỉ được nâng, không tự hạ.** Khi spec delta có requirement bị `REMOVED`, hoặc `design.md` đổi/xóa một interface đã có người dùng (đổi schema cũng vậy), `/sk:continue` nâng `## Risk (preliminary)` lên one-way / High / `Early review: yes` và nói rõ. Thêm interface mới thì không nâng. Hạ mức là việc của người. `/sk:ff` dừng sau bước design khi mức rủi ro tăng (vẫn viết design nếu delta là thứ làm tăng), để spec và design đi review sớm trước khi có tasks.
+
+**Review sớm bằng draft PR.** Khi `Early review: yes` và đã có spec delta cùng design (hoặc ghi chú bỏ qua design), `/sk:continue` nhắc bạn push các artifact đó thành **draft PR** và dùng `/sk:pr` để viết mô tả, trước khi `/sk:apply`. Người review đọc spec khi sửa còn rẻ. Hook `pre-push` không chặn lúc này: chưa task nào được tick.
 
 #### Gửi câu hỏi cho PO/BA — `/sk:questions`
 
@@ -309,13 +315,23 @@ Gồm hai phần: `sk/hooks/pre-push` là script kiểm, **có commit**, cả te
 /sk:pr us-12345-<tên-ngắn>
 ```
 
-Soạn phần mô tả cho PR từ chính các artifact của change, để bạn dán vào Azure DevOps hoặc GitHub. Nó đọc được cả change đã archive (`sk/changes/archive/<id>/`), vì thời điểm bình thường để viết PR là ngay sau `/sk:archive`. Nội dung gồm:
+Soạn phần mô tả cho PR từ chính các artifact của change, để bạn dán vào Azure DevOps hoặc GitHub. Nó đọc được cả change đã archive (`sk/changes/archive/<id>/`), vì thời điểm bình thường để viết PR là ngay sau `/sk:archive`.
+
+Nó có hai chế độ và nói rõ đang dùng chế độ nào (`Mode: …`); thêm `--spec` hoặc `--code` để đổi:
+
+- **Spec review** — diff chỉ chạm `sk/` và chưa task nào được tick (không có shell thì chỉ dựa vào checkbox). Dùng cho draft PR: Summary, **Review now** (đường dẫn spec delta và `design.md`, cần quyết điều gì; không cần đọc `tasks.md`), Spec changes, Contracts, Gaps & assumptions, và Risk (preliminary) ghi rõ là ước lượng trước khi có code. Không có Tasks, Evidence, Open before merge hay Merge danger
+- **Code review** — mọi trường hợp còn lại, kể cả change đã archive
+
+Chế độ code review gồm:
 
 - `AB#<id>` và tóm tắt từ `proposal.md` (với Bug: triệu chứng cũ và hành vi mới)
 - Requirement nào được thêm, sửa (sửa gì) hay bỏ, theo từng capability; các contract trong `design.md`
 - Tiến độ task, và những gì còn mở trước khi merge: open question, task chưa tick, assumption `unconfirmed`, chưa archive
 - Mục **Evidence** để bạn tự điền — nó chỉ ghi những gì đã thật sự xảy ra trong hội thoại (report của `/sk:verify`, test đã thấy đỏ rồi xanh), không bao giờ tự nhận test đã pass
-- **Merge danger**: mức Low / Medium / High theo định nghĩa chung trong `plugins/sk/reference/conventions.md` (`## Risk`), kèm lý do — one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way), ai bị ảnh hưởng nếu sai, và vùng nhạy cảm nào trong `sensitive:` của `sk/config.yaml` bị chạm. Không chắc thì xếp mức cao hơn
+- **Merge danger**: mức Low / Medium / High theo định nghĩa chung trong `plugins/sk/reference/conventions.md` (`## Risk`), kèm lý do — one-way hay two-way door (đổi schema, bỏ requirement, đổi endpoint là one-way), ai bị ảnh hưởng nếu sai, và vùng nhạy cảm nào trong `sensitive:` của `sk/config.yaml` bị chạm. Không chắc thì xếp mức cao hơn. Mức cao hơn `## Risk (preliminary)` thì mở đầu bằng "Risk went up from X to Y because …"; mục kết thúc bằng dòng `Suggested tag: risk:<low|medium|high>` để bạn tự gắn tag trên PR
+- Khi hội thoại đã có báo cáo `/sk:verify`, mục **Evidence** nhắc dán nó thành comment riêng thay vì chép vào mô tả — mô tả PR trên Azure DevOps chỉ chứa khoảng 4.000 ký tự
+
+**Mô tả PR chỉ viết hai lần:** lúc tạo draft (spec review) và lúc Publish (chạy lại `/sk:pr`, code review, thay toàn bộ mô tả một lần). Giữa hai mốc đó, mọi cập nhật đi vào comment, ví dụ báo cáo `/sk:verify` của từng vòng.
 
 **Nó không tạo PR, không ghi file nào.** Tạo PR trên Azure DevOps là một thao tác ghi, mà kit chỉ đọc ADO.
 

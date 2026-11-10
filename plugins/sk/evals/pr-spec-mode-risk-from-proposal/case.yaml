@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: pr-spec-mode-risk-from-proposal
+description: >-
+  /sk:pr in spec review mode (no tasks.md yet) carries proposal.md's
+  ## Risk (preliminary) — level, door, sensitive area — into the draft PR
+  body and labels it an estimate made before any code exists. Writes no file.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

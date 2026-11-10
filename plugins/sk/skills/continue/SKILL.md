@@ -3,7 +3,7 @@ name: continue
 description: "SimplifyKit (sk): create the next planning artifact of an existing change — spec delta, then design, then tasks — one per invocation, without touching project code. Use when the user says \"sk continue\", \"continue us-12345-...\", \"next artifact\", or has a change under sk/changes/ that /sk:propose started and wants it taken one step further. Planning only; implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.6.0"
+  version: "0.7.0"
 ---
 
 Create the next planning artifact of one change, then stop. **One artifact per invocation.**
@@ -75,6 +75,10 @@ Write `design.md` from `${CLAUDE_PLUGIN_ROOT}/templates/design.md` when either h
 
 Omit what does not apply; never pad `## Decision` to justify an interface. With neither, create no file: add `## Design` to `proposal.md` reading `Skipped — <reason>`, saying no public interface changes.
 
+### Raising the preliminary risk
+
+After writing the delta or `design.md`, check it against `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` → `## Risk`. It shows a one-way door — a `REMOVED` requirement, a `## Contracts` entry that changes or removes an interface something already uses, a schema or data-shape change — while `proposal.md` → `## Risk (preliminary)` says anything other than one-way → set `Door: one-way — <what showed it>`, `Level: High — unconfirmed`, `Early review: yes`, and say so in the reply. Adding a new interface does not raise it. **Only ever raise it**, never lower it — that is a person's call. No such section (a change planned before it existed) → skip.
+
 ### Tasks
 
 From the delta, `design.md` and `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md`. Tasks build the `## Contracts` interfaces as written — never a different signature. Nothing ticked.
@@ -82,6 +86,8 @@ From the delta, `design.md` and `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md`. Task
 ## Step 4 — Close out
 
 Show what was created, which artifacts are done, and the next step: review it, then `/sk:continue <change-id>` — or `/sk:apply <change-id>` when planning is complete.
+
+**Early review.** When `## Risk (preliminary)` says `Early review: yes` and the delta and design (or its skip note) are both done, say: push these artifacts as a draft PR and use `/sk:pr <change-id>` for its description, so reviewers read the spec before `/sk:apply` builds on it.
 
 **When `## Open questions` is non-empty, end with a numbered list to paste into the work item's comments** — each `Q<n>`, the question, your suggested answer (for a direct request, questions for the user). Response text only: never written to a file or posted, and nothing depends on it — the marker blocks. For a PO or BA, mention `/sk:questions <change-id>`.
 
