@@ -180,6 +180,7 @@ Với work item loại Bug, AC là **expected result trong Repro Steps**, nên B
 - Change-id là `bug-<id>-<tên-ngắn>`
 - Các bước và expected result được chép vào `## Repro steps`, actual result vào dòng `**Symptom:**` của `proposal.md` (đây là ngoại lệ có chủ ý: `/sk:apply` không đọc ADO). `/sk:apply` phải thấy test đầu tiên đỏ **đúng với triệu chứng đó** trước khi sửa, test xanh ngay nghĩa là chưa tái hiện được lỗi
 - Repro Steps chỉ có các bước và actual result, không có expected result, thì nó hỏi bạn chứ không tự đoán hành vi đúng
+- Vòng hỏi đầu có thêm hai câu: change/PR nào gây ra lỗi, và lớp nào lẽ ra phải bắt được (`spec`, `design`, `standards`, `lint`, `test`, `verify`, `human review`). `unknown` là câu trả lời hợp lệ; chạy không ai trả lời thì nó ghi `unknown — unconfirmed`, không bao giờ đoán một PR. Hai dòng này nằm trong `## Escape` của `proposal.md`, và `/sk:pr` đưa chúng vào mô tả PR sửa lỗi. Nó nhắc bạn tự gắn tag `escaped` và link PR gây lỗi trên Bug — kit không ghi lên board
 - Nếu `sk/specs/` đã có scenario nói đúng expected result đó (code lệch khỏi spec vẫn đúng), nó không tạo change nào: nó chỉ ra scenario đó và nói sửa bằng commit/PR kèm `AB#<id>` như mục "Việc không cần đi qua `sk`" bên dưới
 
 #### Việc không có work item — yêu cầu trực tiếp
@@ -270,10 +271,17 @@ Trước khi archive, lệnh này so code với chính những gì change đã h
 - **Completeness** — mọi task đã tick chưa, và mỗi requirement có code thật đứng sau không. Tick rồi mà không có code vẫn bị báo, vì ô đã tick chỉ là một lời khẳng định
 - **Correctness** — mỗi scenario có được code xử lý và có test chưa; diff có làm thêm thứ gì mà không requirement nào yêu cầu; còn open question nào khiến `/sk:archive` sẽ dừng
 - **Coherence** — code có đúng từng contract trong `design.md` (lệch là CRITICAL), có theo các quyết định trong `design.md` và các `rules` trong `sk/config.yaml` không
+- **Code health** — lỗi trong chính code mà không scenario nào nhắc tới: logic sai, lỗi bị nuốt, null/biên, đồng thời, credential lọt ra log, thiếu kiểm quyền. Có tool `Agent` thì chạy trong một subagent chỉ được xem diff, file tiêu chuẩn và `sensitive:` (không xem spec), để nó đọc code đang làm gì chứ không phải code định làm gì. CRITICAL chỉ khi có bằng chứng cụ thể (lỗ hổng, mất dữ liệu, crash có đường tái hiện); lỗi có từ trước diff gắn nhãn `pre-existing`, tối đa SUGGESTION. Kết quả nằm trong mục `### Code health` riêng
 
 Mỗi vấn đề được xếp mức CRITICAL (phải sửa trước khi archive), WARNING hoặc SUGGESTION, kèm `file:dòng` và một việc cụ thể cần làm. Có shell thì nó so trên diff từ merge-base với nhánh chính và chạy lệnh test ghi trong `sk/config.yaml`. Không có shell thì nó đọc code theo tasks và delta, và nói rõ đã bỏ qua phần nào.
 
 Mỗi vấn đề có một mã `V1`, `V2`… đánh số trên toàn báo cáo. Sau khi sửa, chạy lại và dán báo cáo vòng trước vào cùng lệnh (hoặc chạy lại trong cùng cuộc trò chuyện): vấn đề còn lại giữ mã cũ, vấn đề mới lấy số tiếp theo, vấn đề đã hết nằm trong mục *Resolved* thay vì biến mất. Dòng đầu ghi `Round`, `Base`, `Head` để vòng sau biết đã so trên commit nào. Bảng *Disposition* để bạn điền `fixed` / `wrong` / `intended` / `wontfix` cho từng mã — `verify` giữ nguyên giá trị đó qua các vòng nhưng không bao giờ tự điền. Cả báo cáo là một khối markdown liền, dán thẳng thành một comment trên PR.
+
+**Nhiều vòng.** Từ vòng 3, nó chỉ tìm vấn đề mới trong phần diff kể từ `Head` của báo cáo trước; vấn đề cũ còn mở chỉ được cập nhật trạng thái. Từ vòng 4, dòng kết đề nghị dừng lại xem lại cách tiếp cận thay vì sửa tiếp. Diff chạm một glob trong `sensitive:` thì dòng kết nhắc chạy `/security-review` (nó không tự chạy).
+
+**Change đã archive vẫn verify được**: không có change mở cùng id thì nó đọc `sk/changes/archive/<id>/` trên máy, để bạn chạy tiếp các vòng sửa sau khi đã archive. **Không có change nào** (PR refactor, sửa nóng): nó chỉ chạy Code health và test, và ghi ba chiều kia vào *Skipped*.
+
+**Review PR của người khác — `/sk:verify --pr <id>`.** Nó đọc PR và các thread qua REST (chỉ đọc, chỉ khi có `--pr`), nhưng **không tự chạy `git fetch` hay `git worktree add`** vì hai lệnh đó ghi vào `.git/`: lần đầu nó in đúng các lệnh để bạn chạy, rồi bạn gọi lại `/sk:verify --pr <id> <đường-dẫn-worktree>`. Base là nhánh đích của PR. Change thường đã được archive trước khi Publish, nên nó lấy các requirement mà PR thêm/sửa trong `sk/specs/` làm chuẩn. Báo cáo `verify` mới nhất trên thread giúp giữ mã `V<n>`. `sk/config.yaml` (lệnh test, `rules`, `sensitive:`) lấy từ **nhánh đích**, không phải từ PR, để tác giả PR không quyết định lệnh nào chạy trên máy bạn; PR có sửa config hay script test thì nó hỏi trước khi chạy. Chi tiết: `plugins/sk/reference/pr-review.md`.
 
 Bước này nên chạy, nhưng không bắt buộc: `/sk:archive` không đòi phải verify trước, và vẫn tự chạy các kiểm tra merge của nó.
 
@@ -334,6 +342,20 @@ Chế độ code review gồm:
 **Mô tả PR chỉ viết hai lần:** lúc tạo draft (spec review) và lúc Publish (chạy lại `/sk:pr`, code review, thay toàn bộ mô tả một lần). Giữa hai mốc đó, mọi cập nhật đi vào comment, ví dụ báo cáo `/sk:verify` của từng vòng.
 
 **Nó không tạo PR, không ghi file nào.** Tạo PR trên Azure DevOps là một thao tác ghi, mà kit chỉ đọc ADO.
+
+### 7. Rút kinh nghiệm hàng tháng — `/sk:learn`
+
+```
+/sk:learn
+/sk:learn since 2026-10-01
+```
+
+Chỉ chạy khi bạn gõ đúng lệnh này (thường trong buổi họp tháng): nó đọc một tháng dữ liệu trên Azure DevOps qua REST, chỉ đọc — PR đã merge, báo cáo `/sk:verify` cuối cùng của mỗi PR (số `Round`, các mã `V<n>`, cột *Disposition*), trạng thái thread để đối chiếu, và các Bug gắn tag `escaped`. Sau đó:
+
+- **Đếm**: số vòng tới khi sạch, phát hiện theo cách xử lý, loại phát hiện lặp lại từ 3 lần, lỗi lọt qua theo lớp bỏ sót. Chỉ dùng số có trong dữ liệu; dưới 20 phát hiện thì nói rõ là chưa đủ để kết luận. Thread `closed` không bao giờ được tính là `wrong` — cách xử lý lấy từ cột *Disposition*
+- **Đề xuất sửa ở nguồn** dạng diff, ưu tiên lớp rẻ nhất: lint/analyzer → file tiêu chuẩn → `rules` trong `sk/config.yaml` → prompt của kit (chỉ in ra, vì kit không nằm trong repo của bạn). Kèm đề xuất bỏ hoặc thu hẹp quy tắc gây nhiều phát hiện `wrong`
+- **Phác thảo eval** cho mỗi lỗi lọt qua lớp `verify`, chỉ in ra văn bản, đã thay tên khách, payload EDI, credential bằng giá trị bịa
+- **Hỏi từng đề xuất** (`L1`, `L2`…) và chỉ ghi những file bạn duyệt. Không có ai trả lời thì không ghi gì. Không lưu nhật ký review trong repo
 
 ## Nâng cấp từ bản cũ (0.1.x)
 
@@ -419,7 +441,7 @@ Cách an toàn: copy nguyên requirement từ `sk/specs/` sang rồi sửa trên
 ## Những gì kit cố ý không làm
 
 - **Không sửa code ở bước `propose` hay `continue`, và không viết hai artifact trong một lần gọi** — kể cả khi bạn yêu cầu trong cùng câu lệnh
-- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state, không tạo PR (`/sk:pr` chỉ soạn nội dung). Cập nhật board vẫn là việc của bạn
+- **Không ghi gì lên Azure DevOps** — không comment, không tạo Task, không đổi state, không tạo PR (`/sk:pr` chỉ soạn nội dung), không vote hay đổi trạng thái thread, không gắn tag. Cập nhật board vẫn là việc của bạn
 - **Không tự nhận mô tả tự do** — một yêu cầu không có work item chỉ thành change khi bạn gọi rõ `/sk:propose <yêu cầu>`, và AC của nó phải do bạn viết hoặc xác nhận
 - **Không nhận số trần** — `12345` là mơ hồ, vì trong repo này số trần đã mang nghĩa mã PR. Gõ `AB#12345`
 

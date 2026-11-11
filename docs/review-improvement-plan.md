@@ -147,6 +147,8 @@ Không có mục *Tasks*, *Evidence*, *Open before merge* trong chế độ này
 
 Sau giai đoạn này, một lệnh `/sk:verify` dùng được cho cả hai lần review: tác giả tự review và dev khác review PR. Phát hành thành v0.15.0; đây là giai đoạn lớn nhất.
 
+> **Trạng thái (2026-11-11): đã triển khai** cùng PR #9, trước cổng "giai đoạn 2 chạy thật một thời gian" theo yêu cầu. Phần `--pr` tách sang `reference/pr-review.md`; `sk/config.yaml` (lệnh test, `rules`, `sensitive:`) đều lấy từ nhánh đích. **Chưa làm:** chạy thử `--pr` trên 3–5 PR thật và đếm phát hiện Code health bị đánh `wrong`/`wontfix`.
+
 ### 3.1 Chiều thứ tư: *Code health*
 
 - Thêm Step mới sau *Coherence*. Chạy trong một subagent với ngữ cảnh mới khi có tool `Agent`; subagent chỉ nhận diff, file tiêu chuẩn chung và mục `sensitive` — không nhận proposal, spec hay tasks. **Đường lui:** không có subagent → chạy ngay trong `verify` và ghi vào *Skipped*; không có diff (không shell) → đọc các file mà tasks và delta trỏ tới, nói rõ phạm vi bị thu hẹp. `docs/PLAN.md` từng xếp "subagent reviewer" ngoài phạm vi — cập nhật quyết định đó cùng lúc.
@@ -197,7 +199,9 @@ Khi diff chạm một glob trong `sensitive`, dòng kết của báo cáo nhắc
 
 ## Giai đoạn 4 — Vòng lặp rút kinh nghiệm
 
-Dữ liệu nằm trên Azure DevOps (comment PR, trạng thái thread, Bug có tag `escaped`); kit chỉ đọc và đề xuất. Bắt đầu sau khi giai đoạn 1–3 đã chạy ít nhất một tháng, để có dữ liệu thật.
+Dữ liệu nằm trên Azure DevOps (comment PR, trạng thái thread, Bug có tag `escaped`); kit chỉ đọc và đề xuất.
+
+> **Trạng thái (2026-11-11): đã triển khai** (0.16.0, PR #9). Code và eval làm trước; cổng dữ liệu vẫn giữ: **chưa làm** lần chạy `/sk:learn` đầu tiên — cần khoảng một tháng báo cáo `verify` trên PR, cột Disposition được điền và Bug gắn tag `escaped`. Bắt đầu sau khi giai đoạn 1–3 đã chạy ít nhất một tháng, để có dữ liệu thật.
 
 ### 4.1 `propose` cho Bug hỏi thêm hai câu
 

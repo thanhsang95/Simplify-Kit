@@ -3,7 +3,7 @@ name: pr
 description: "SimplifyKit (sk): draft the pull request description for a change under sk/changes/ (open or already archived) — for a draft PR that carries only the spec (spec review), or for the PR with the code (code review): the AB# link, what the spec delta adds, modifies or removes, task progress, open questions, and how risky the merge is — as text to paste; it creates no PR and writes no file. Use when the user says \"sk pr\", \"write the PR description for us-12345-...\", or wants the PR body for a change SimplifyKit planned."
 metadata:
   author: Simplify
-  version: "0.4.0"
+  version: "0.5.0"
 ---
 
 Write the body of the pull request that ships one change, from its artifacts, as response text. The person pastes it into Azure DevOps or GitHub.
@@ -90,6 +90,11 @@ For a Bug: what was wrong (the Symptom line) and what it does now.>
 - Modified: <requirement name> — <what changed, one line>
 - Removed: <requirement name> — <the one-line reason from the delta>
 
+## Escape
+
+**Caused by:** <from proposal.md's ## Escape>
+**Should have been caught by:** <from proposal.md's ## Escape>
+
 ## Out of scope
 
 - <each entry under proposal.md's ## Out of scope, with its source>
@@ -119,6 +124,7 @@ Suggested tag: risk:<low | medium | high>
 ```
 
 - **Spec changes** (both modes) come from the delta. A `Modified` line says what changed — `MODIFIED` restates the whole requirement, so a reviewer cannot otherwise tell the changed scenario from the copied ones
+- **Escape**: a Bug change whose `proposal.md` has `## Escape` — both lines as written there, `unknown` and `unconfirmed` included. Drop it otherwise; never fill it in from the diff. It puts on the fix's PR where the bug came from and which layer missed it, so the next reviewer of that layer sees it
 - **Evidence** is the person's: each scenario as a line to tick, plus only what this conversation showed (a `/sk:verify` report, tests seen failing then passing). Written but not run is "written, not run", never "passes". When this conversation showed a `/sk:verify` report, say to paste it as its own PR comment rather than into the description; otherwise say nothing about one. (Why, not for the body: an Azure DevOps description is short, and the latest report in a comment is the one that counts.)
 - **Merge danger**: the level from `conventions.md` → `## Risk`, then two or three lines with the facts behind it — which door and why, the blast radius, each `sensitive:` glob the touched paths match. Without the diff, match the globs against the paths the artifacts name and say the diff was not read. Name a path only when it matches a glob; none listed → say so in a few words
   - **Compared with `## Risk (preliminary)`**: higher now → open the section with `Risk went up from <X> to <Y> because <what the code or artifacts show>`. Lower → if the preliminary level is `confirmed`, keep it and say what would let a person lower it; if `unconfirmed`, rate from the artifacts and name both levels. No such section → skip the comparison

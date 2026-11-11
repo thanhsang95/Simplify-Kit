@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: propose-bug-records-escape
+description: >-
+  A Bug whose work item and comment say when it started but never name the
+  change or PR that caused it. With nobody to answer, /sk:propose still asks
+  which change caused it and which layer should have caught it, writes
+  ## Escape with "Caused by: unknown" instead of inventing a PR, and reminds
+  the person to tag the Bug escaped on the board, which the kit does not do.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

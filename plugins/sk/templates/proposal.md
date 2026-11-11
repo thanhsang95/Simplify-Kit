@@ -71,6 +71,21 @@ The actual result goes on the Symptom line, not here. Drop otherwise.
 
 <The steps and the expected result, verbatim.>
 
+## Escape
+
+<!--
+Bug only (or a Task under one): where the bug came from and which layer let it
+through, as /sk:propose asked it. /sk:pr copies both lines into the fix's PR
+description; /sk:learn counts escapes by the layer that missed them and turns
+the pattern into a fix at that layer. "unknown" is a full answer — never a
+guessed PR: an invented cause sends the fix to the wrong layer. The kit does
+not tag the Bug `escaped` or link the PR on the board; a person does.
+Drop otherwise.
+-->
+
+**Caused by:** <PR <id> | change <change-id> | unknown> — confirmed | unconfirmed
+**Should have been caught by:** <spec | design | standards | lint | test | verify | human review | unknown> — confirmed | unconfirmed
+
 ## Test cases
 
 <!--

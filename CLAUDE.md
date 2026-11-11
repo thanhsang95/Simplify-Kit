@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this repo is
 
-SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages nine skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:ff`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`, `/sk:questions`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
+SimplifyKit (`sk`) is a **Claude Code plugin**, markdown-only — no runtime, no build, no deploy. It packages ten skills (`/sk:init`, `/sk:propose`, `/sk:continue`, `/sk:ff`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`, `/sk:questions`, `/sk:learn`) that turn an Azure DevOps work item into spec artifacts (`sk/specs/`, `sk/changes/`) in a *consuming* repository, then implement and merge them. This repo's own content is the plugin's skills, templates, reference docs, and eval suite — there is no application code here to run.
 
 Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for maintainer structure before making non-trivial changes.
 
@@ -14,10 +14,10 @@ Read `README.md` for the full user-facing workflow and `CONTRIBUTING.md` for mai
 .claude-plugin/marketplace.json      marketplace "simplify"
 plugins/sk/
   .claude-plugin/plugin.json         manifest: name, version, description
-  skills/{init,propose,continue,ff,apply,verify,archive,pr,questions}/SKILL.md
+  skills/{init,propose,continue,ff,apply,verify,archive,pr,questions,learn}/SKILL.md
   templates/                         file skeletons skills copy into the consuming repo
-  reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md, tdd.md — read by skills at runtime
-  evals/                             claude plugin eval suite (44 cases)
+  reference/                         conventions.md, azure-devops.md, asking-the-user.md, playbook-mapping.md, pr-review.md, tdd.md — read by skills at runtime
+  evals/                             claude plugin eval suite (50 cases)
 plugins/sk-status/                   optional companion mod (TypeScript hooks module) — see below
 ```
 
@@ -67,7 +67,7 @@ Editing one without checking the other two is the easiest way to break this repo
 
 2. **A change you made in this repo will not show up for an already-installed plugin.** The installed copy is a version-locked cache at `~/.claude/plugins/cache/simplify/sk/<version>/`. To actually exercise a change: bump `version` in `plugins/sk/.claude-plugin/plugin.json`, `claude plugin update sk@simplify`, then test in a **new** Claude Code session.
 
-3. **Eval suite** (`plugins/sk/evals/`, 44 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
+3. **Eval suite** (`plugins/sk/evals/`, 50 cases, costs real money — do not run without the user's go-ahead and an explicit `--max-cost-usd`):
    ```bash
    cd plugins/sk
    # Windows only — WSL's bash on default PATH breaks every scaffolded case
@@ -90,7 +90,7 @@ Editing one without checking the other two is the easiest way to break this repo
 ## Hard constraints specific to this repo
 
 - **Claude Code only.** Never create or touch `AGENTS.md`, `.opencode/`, Codex prompts, Cursor rules, or any other coding agent's config — in this repo or in a repo `/sk:init` runs against. This is a settled decision, not a gap to fill.
-- **Azure DevOps access is read-only, everywhere in this kit.** No comments, no Task creation, no state changes. Never add code paths that write to ADO.
+- **Azure DevOps access is read-only, everywhere in this kit.** No comments, no Task creation, no state changes, no PR votes or thread updates. Never add code paths that write to ADO. Reads go over REST (`reference/azure-devops.md`); the one POST is the WIQL query, which only reads.
 - Work item text arrives as HTML — always strip tags and decode entities before it reaches a spec (see `plugins/sk/reference/azure-devops.md`).
 - `plugins/sk/evals/**/fixture.sh` fixtures embed real work-item HTML *shape* with names/orgs/ids replaced by invented ones. Before touching or adding a fixture, check the pre-push checklist in `CHANGELOG.md` and re-sanitize — fixtures ship inside the plugin, so every `/plugin install` copies them to another machine.
 - Do not add a CLI or auto-apply chaining from `/sk:propose` without the user explicitly asking — these are documented as out-of-scope decisions in `docs/PLAN.md`, not omissions.
