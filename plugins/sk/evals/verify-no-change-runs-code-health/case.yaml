@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: verify-no-change-runs-code-health
+description: >-
+  /sk:verify with no sk change behind the code runs a code health review of
+  the file the user named, lists the three spec dimensions as skipped because
+  there is no change, and writes nothing.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: verify-clean-code-no-invented-findings
+description: >-
+  /sk:verify's Code health step finds nothing above a suggestion in a small,
+  correct, tested change, invents no defect, and writes nothing.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
