@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.16.1 — 2026-11-11
+
+- **`/sk:init` confirms the Azure DevOps org and project.** `az devops configure --list` returns the machine's defaults, not the repository's: a real run wrote `SimplifyV2` — the last project configured on that machine — into a repo whose work items live in another project, and only a comment hinted at it. With a person to answer, init now shows both values and asks once before writing `config.yaml`, naming a git remote or README that points elsewhere as a hint, never as the answer. Unattended, it writes the defaults with a comment saying where they came from. It never changes the machine's defaults. Not covered by the eval suite (no Bash in eval runs, so `az` never returns a value there); the existing `init-*` cases are unaffected for the same reason — all four re-run, 3 runs each ($2.87): 1.00. By hand with this machine's `az` (`claude -p`, Bash limited to `az devops configure --list` and `git remote`): the defaults were written under an `UNCONFIRMED` comment, and the reply named the git remote's other project. The asking path needs an interactive session and was not run
+
 ## 0.16.0 — 2026-11-10
 
 Learning from review: where an escaped bug came from is recorded when it is planned, and a monthly `/sk:learn` turns a period of review data into fixes at the source. Azure DevOps stays read-only.

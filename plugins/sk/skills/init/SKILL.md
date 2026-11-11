@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.10.0"
+  version: "0.11.0"
 ---
 
 Set up the `sk/` workspace in the current repository.
@@ -21,6 +21,8 @@ Fill `context` with facts, not placeholders: build and test entry points, pinned
 ## Step 3 — Azure DevOps defaults
 
 From `az devops configure --list`, take `organization` and `project` verbatim. **Store the full org URL** in `ado.orgUrl` (e.g. `https://contoso.visualstudio.com/`) — never a short name or a rebuilt `dev.azure.com` URL, which points elsewhere for legacy orgs. If it fails or Bash is unavailable, leave both empty with a comment to fill them in, say so, and carry on; never guess from the git remote.
+
+**These are the machine's defaults, not this repository's.** One person working in several projects gets the last project they configured in every repo — a real run wrote `SimplifyV2` into a repo whose work items live in another project. So with a person to answer, show both values before writing `config.yaml` and ask once (`${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md`): use them, or which org URL / project instead. Name anything in the repo that points elsewhere — an Azure DevOps git remote's project segment, a project named in the README — as a hint in the question, never as the answer. **Nobody can answer** → write the defaults with a comment saying they came from this machine's `az devops configure` and may not be this repo's project. Never change the machine's defaults: other repos rely on them.
 
 ## Step 4 — Write the workspace
 
@@ -53,7 +55,7 @@ A rule in `.claude/rules/` that already mandates a planning workflow (e.g. a `pl
 
 ## Step 7 — Close out
 
-Report files created, the `.gitignore` entry, the `ado.orgUrl` (or why it is blank), the standards doc (or that none was found), that `sensitive:` is empty for the team to fill, which CLAUDE.md was appended to, the pre-push outcome, and any conflict. Next step: `/sk:propose AB#<id>` or `/sk:propose <request>`.
+Report files created, the `.gitignore` entry, the `ado.orgUrl` and `ado.project` (confirmed, from the machine's defaults unconfirmed, or why they are blank), the standards doc (or that none was found), that `sensitive:` is empty for the team to fill, which CLAUDE.md was appended to, the pre-push outcome, and any conflict. Next step: `/sk:propose AB#<id>` or `/sk:propose <request>`.
 
 End with one line: the optional `sk-status` plugin (`/plugin install sk-status@simplify`) shows each change's progress and next command; `sk` works the same without it. Never install it yourself.
 
