@@ -1,6 +1,6 @@
 # Reading an Azure DevOps work item
 
-Used by `/sk:propose` and `/sk:continue` (which re-fetches before writing a spec delta). Azure DevOps is **read-only** throughout SimplifyKit: no comments, no new work items, no state changes, regardless of what is asked. Every rule here exists because it already went wrong on this org's real data.
+Used by `/sk:propose` and `/sk:continue` (which re-fetches before writing a spec delta); the pull request and query sections near the end by `/sk:verify --pr` and `/sk:learn`. Azure DevOps is **read-only** throughout SimplifyKit: no comments, no new work items, no votes, no state changes, regardless of what is asked. Every rule in the work item sections exists because it already went wrong on this org's real data.
 
 ## Do not use `az boards` or `az devops invoke` to read work items
 
@@ -137,6 +137,51 @@ Only once Branch B has fired **and** the item is not a `Task` (a Task's parent w
 **Never offer a parent's criteria wholesale.** A `Feature` describes everything under it; lifting its AC into one Story overstates what that Story covers — fabrication from above. Ask a **narrowing** question instead: "the parent Feature is about migrating reporting to the new backend; does this story cover part of that, and which part should be verified?" The answer becomes the criteria, not the Feature's text.
 
 A related item and a parent both usable → one question naming both. Record the parent under Gaps as pending, then as a note with what the user confirmed.
+
+## Pull requests (read-only)
+
+Same token, same `ado.orgUrl` in full, same U+FFFD check on every text field, and **never print the token**. Not `az repos pr show`: it goes through the same `az` output path that corrupts non-ASCII. These endpoints come from the REST reference (api-version 7.1); unlike the work item sections, they have not yet been run against this org's data.
+
+**One PR by id**
+
+```
+GET {orgUrl}/{project}/_apis/git/pullrequests/{id}?api-version=7.1
+```
+
+| Field | Note |
+|---|---|
+| `repository.id` | needed for the threads call |
+| `sourceRefName`, `targetRefName` | `refs/heads/<branch>` — drop the prefix for `git` commands |
+| `title`, `description` | Markdown, not HTML; may carry `AB#<id>` |
+| `lastMergeSourceCommit.commitId` | the source commit the PR currently points at |
+| `status`, `closedDate` | `active` / `completed` / `abandoned`; `closedDate` only once closed |
+
+**A PR's threads**
+
+```
+GET {orgUrl}/{project}/_apis/git/repositories/{repositoryId}/pullRequests/{id}/threads?api-version=7.1
+```
+
+`value[]` is the threads. Per thread: `status` — `active`, `fixed`, `wontFix`, `closed`, `byDesign`, `pending` (absent or `unknown` on Azure DevOps' own system threads); `isDeleted` → skip; `comments[]` with `content` (Markdown), `author.displayName`, `publishedDate`, and `commentType` — `system` comments are Azure DevOps' own (votes, pushes), not a person's. A `/sk:verify` report is a comment whose `content` starts with `## Verification report:`; the latest by `publishedDate` is the previous round.
+
+**Completed PRs in a period**
+
+```
+GET {orgUrl}/{project}/_apis/git/pullrequests?searchCriteria.status=completed&searchCriteria.minTime=<ISO 8601>&searchCriteria.queryTimeRangeType=closed&$top=100&$skip=0&api-version=7.1
+```
+
+Without `status` the default is active PRs only; without `queryTimeRangeType=closed`, `minTime` filters by creation date. Page by raising `$skip` by `$top` until a page returns fewer than `$top` items.
+
+## Work item queries (read-only)
+
+```
+POST {orgUrl}/{project}/_apis/wit/wiql?api-version=7.1
+Content-Type: application/json
+
+{"query": "SELECT [System.Id] FROM WorkItems WHERE [System.TeamProject] = @project AND [System.WorkItemType] = 'Bug' AND [System.Tags] CONTAINS 'escaped' AND [System.ChangedDate] >= '<YYYY-MM-DD>'"}
+```
+
+**This POST only reads** — WIQL takes its query as a body. It is the only POST in SimplifyKit: never any other POST, nor PATCH, PUT or DELETE, on any endpoint. The response holds `workItems[].id` only; fetch each item as `## Fetch the work item` does (strip HTML, U+FFFD check).
 
 ## When a fetch fails
 

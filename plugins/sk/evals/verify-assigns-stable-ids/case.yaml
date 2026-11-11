@@ -1,0 +1,8 @@
+schema_version: "1.1"
+name: verify-assigns-stable-ids
+description: >-
+  /sk:verify gives every finding an ID V<n> numbered across the whole report,
+  not per severity, and leaves the Disposition column blank for the author.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

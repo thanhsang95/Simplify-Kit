@@ -3,7 +3,7 @@ name: init
 description: "SimplifyKit (sk): set up the sk/ spec workspace in this repository, or bring a workspace made by an older version up to date. Use when the user says \"sk init\", \"set up SimplifyKit\", \"initialize sk\", asks to start using SimplifyKit here, or asks to update or migrate an existing sk/ workspace. Creates sk/config.yaml, sk/specs/ and sk/changes/, appends a short pointer to the repo's CLAUDE.md, and gitignores sk/changes/archive/. Run this once per repository, before /sk:propose."
 metadata:
   author: Simplify
-  version: "0.9.0"
+  version: "0.10.0"
 ---
 
 Set up the `sk/` workspace in the current repository.
@@ -45,13 +45,15 @@ Offer it only with Bash **and** a person to answer — it writes inside `.git/` 
 
 **Append** a short section to the first of `./CLAUDE.md`, `./.claude/CLAUDE.md` that exists (else create `./CLAUDE.md`) — never rewrite existing content. A handful of lines: what `sk/` is and when to use `/sk:propose`, `/sk:continue`, `/sk:apply`, `/sk:verify`, `/sk:archive`, `/sk:pr`, `/sk:questions`.
 
+End it with `Code standards: <path>` — the same standards doc Step 2 put in `context`, never `CLAUDE.md` or a `.claude/rules/` file — so reviews that read only `CLAUDE.md` (`/code-review`) judge by the rules `/sk:verify` uses. Never create a standards file: none found → write `Code standards: none yet — add the path here and in sk/config.yaml context`, and say so in Step 7.
+
 ## Step 6 — Report a planning-system conflict
 
 A rule in `.claude/rules/` that already mandates a planning workflow (e.g. a `planner` agent writing plans elsewhere) → **report it**: file, quoted line, and that it wins until a person adds an exception for `/sk:propose` work. Never edit `.claude/rules/` or add a rule file to out-vote it — precedence between rule files is undefined.
 
 ## Step 7 — Close out
 
-Report files created, the `.gitignore` entry, the `ado.orgUrl` (or why it is blank), which CLAUDE.md was appended to, the pre-push outcome, and any conflict. Next step: `/sk:propose AB#<id>` or `/sk:propose <request>`.
+Report files created, the `.gitignore` entry, the `ado.orgUrl` (or why it is blank), the standards doc (or that none was found), that `sensitive:` is empty for the team to fill, which CLAUDE.md was appended to, the pre-push outcome, and any conflict. Next step: `/sk:propose AB#<id>` or `/sk:propose <request>`.
 
 End with one line: the optional `sk-status` plugin (`/plugin install sk-status@simplify`) shows each change's progress and next command; `sk` works the same without it. Never install it yourself.
 
@@ -68,10 +70,12 @@ Detect by **what is on disk**, never by a version number, so every item is safe 
 | 5 | Archived changes exist, and no `sk/context.md`, or one with a `design.md` has no ADR carrying its id | **Report only**: run `/sk:archive backfill` **once**, **before** item 4 — after it only the local copy holds the rationale |
 | 6 | The appended `CLAUDE.md` section does not mention `/sk:continue` | Offer to append one line at the end saying `/sk:continue <change-id>` writes the next planning artifact |
 | 7 | Bash is available, and `sk/hooks/pre-push` is missing, or the clone's `pre-push` hook does not mention it | Offer Step 4c — all of it, or only the shim. Without Bash, skip silently |
+| 8 | The appended `CLAUDE.md` section has no `Code standards:` line | Offer to append the Step 5 line at the end, with the standards doc `context` names; none named → the `none yet` line. Never invent a path |
+| 9 | `sk/config.yaml` has no `sensitive:` key | **Report only**: print the `sensitive:` block from `${CLAUDE_PLUGIN_ROOT}/templates/config.yaml` for a person to add — `config.yaml` is never touched |
 
 None applies → the workspace is up to date.
 
-**With a person:** show every item with the exact text and file in **one round** (`${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md`); items 4 and 5 are information, not questions. Write nothing before the answer. **When nobody can answer:** apply 1–3 and print 4–7.
+**With a person:** show every item with the exact text and file in **one round** (`${CLAUDE_PLUGIN_ROOT}/reference/asking-the-user.md`); items 4, 5 and 9 are information, not questions. Write nothing before the answer. **When nobody can answer:** apply 1–3 and print 4–9.
 
 Close out with what was applied, what was skipped and why, and commands left for a person.
 

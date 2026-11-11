@@ -4,7 +4,7 @@ description: "SimplifyKit (sk): fast-forward an existing change — write every 
 disable-model-invocation: true
 metadata:
   author: Simplify
-  version: "0.7.0"
+  version: "0.8.0"
 ---
 
 Write every planning artifact a change is still missing, in order, then stop — `/sk:continue` without the stop between artifacts, for small items. Only a person typing `/sk:ff` starts it (`disable-model-invocation`): "finish all the remaining artifacts" still goes to `/sk:continue`, whose one-artifact stop is measured and must not be routed around.
@@ -33,12 +33,13 @@ Write nothing further and go to Step 3 when:
 - the spec delta step refuses (`AC source: none yet`) or a fetch fails — nothing is written
 - the delta contains `## MODIFIED Requirements` — stop after it: the easiest place to lose specification, so a person reviews it before tasks are built on it
 - writing the delta raised a Gap — it goes to the user before anything is built on it
+- the delta or design raised `## Risk (preliminary)` to one-way (`/sk:continue` "Raising the preliminary risk") — stop after the design step (still write it when the delta raised the risk), so the spec and design go to early review before tasks are built on them
 
 Unresolved decidable tokens are **not** a reason to stop: mark them and keep going.
 
 ## Step 3 — Close out
 
-List every file written and which artifacts are done. Stopped early → say why; `/sk:continue <change-id>` or `/sk:ff <change-id>` picks up from there. Otherwise `/sk:apply <change-id>` is next — do not run it. With open questions, end with the list `/sk:continue` Step 4 describes.
+List every file written and which artifacts are done. Stopped early → say why; `/sk:continue <change-id>` or `/sk:ff <change-id>` picks up from there. Otherwise `/sk:apply <change-id>` is next — do not run it. With open questions, end with the list `/sk:continue` Step 4 describes; and its draft-PR line when that condition holds.
 
 ## Guardrails
 

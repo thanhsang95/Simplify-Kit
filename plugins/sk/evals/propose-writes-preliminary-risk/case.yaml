@@ -1,0 +1,10 @@
+schema_version: "1.1"
+name: propose-writes-preliminary-risk
+description: >-
+  /sk:propose on a work item whose criteria land in a path sk/config.yaml
+  lists under `sensitive:` writes ## Risk (preliminary) with Level, Door,
+  Sensitive areas and Early review — rated at least Medium, naming the
+  sensitive glob, and asking for an early review — and writes no spec.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

@@ -28,6 +28,14 @@ rules:
   design:
     - <project-specific rule>
 
+# Paths where a mistake costs the most: auth, tokens and secrets, CI/CD,
+# customer or partner data. Globs, relative to the repository root. /sk:pr rates
+# a change touching one at least Medium (reference/conventions.md, ## Risk).
+# The team decides this list; leave it empty rather than guess.
+sensitive: []
+#  - src/Auth/**
+#  - .azure-pipelines/**
+
 # Azure DevOps. Store the FULL organisation URL exactly as `az devops configure
 # --list` reports it. Legacy `*.visualstudio.com` organisations are still in use
 # and `https://dev.azure.com/<name>` does not resolve to the same place, so never

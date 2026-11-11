@@ -71,6 +71,21 @@ The actual result goes on the Symptom line, not here. Drop otherwise.
 
 <The steps and the expected result, verbatim.>
 
+## Escape
+
+<!--
+Bug only (or a Task under one): where the bug came from and which layer let it
+through, as /sk:propose asked it. /sk:pr copies both lines into the fix's PR
+description; /sk:learn counts escapes by the layer that missed them and turns
+the pattern into a fix at that layer. "unknown" is a full answer — never a
+guessed PR: an invented cause sends the fix to the wrong layer. The kit does
+not tag the Bug `escaped` or link the PR on the board; a person does.
+Drop otherwise.
+-->
+
+**Caused by:** <PR <id> | change <change-id> | unknown> — confirmed | unconfirmed
+**Should have been caught by:** <spec | design | standards | lint | test | verify | human review | unknown> — confirmed | unconfirmed
+
 ## Test cases
 
 <!--
@@ -155,3 +170,19 @@ Skipped — <the reason>.
 ## Impact
 
 - `<path>` — <what changes there>
+
+## Risk (preliminary)
+
+<!--
+An estimate made before any code exists, by reference/conventions.md → ## Risk,
+from the criteria, the work item and `sensitive:` in sk/config.yaml. The blast
+radius is ## Impact above. /sk:pr compares the merge danger it finds later with
+this and says when it went up. The kit only ever raises it — /sk:continue does
+when the delta or design.md turns out one-way; lowering it is a person's call.
+Not enough to tell → say what is missing on that line, never guess.
+-->
+
+**Level:** <Low | Medium | High> — confirmed | unconfirmed
+**Door:** <two-way | one-way> — <why>
+**Sensitive areas:** <each `sensitive:` glob the change is likely to touch | none matched | none listed in sk/config.yaml>
+**Early review:** <yes | no>  <!-- yes for Medium or High: a draft PR with the spec before /sk:apply -->

@@ -1,0 +1,9 @@
+schema_version: "1.1"
+name: init-points-claude-md-at-standards
+description: >-
+  /sk:init appends its section to an existing root CLAUDE.md without touching
+  what is there, ends it with a Code standards line naming the repo's
+  standards doc, and writes a sensitive key into sk/config.yaml.
+tags: [core]
+context:
+  scaffold_script: fixture.sh

@@ -1,0 +1,11 @@
+schema_version: "1.1"
+name: learn-proposes-without-writing
+description: >-
+  /sk:learn, typed explicitly, over offline review data: three completed PRs
+  whose /sk:verify reports flag "exported function has no JSDoc comment" three
+  times, each marked wrong, plus one escaped Bug. With a person available, it
+  presents its source fixes as diffs to approve — including dropping or
+  narrowing the JSDoc rule — and writes no file before they answer.
+tags: [core]
+context:
+  scaffold_script: fixture.sh
