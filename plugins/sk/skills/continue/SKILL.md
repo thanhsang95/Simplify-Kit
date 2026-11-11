@@ -3,7 +3,7 @@ name: continue
 description: "SimplifyKit (sk): create the next planning artifact of an existing change — spec delta, then design, then tasks — one per invocation, without touching project code. Use when the user says \"sk continue\", \"continue us-12345-...\", \"next artifact\", or has a change under sk/changes/ that /sk:propose started and wants it taken one step further. Planning only; implementation is /sk:apply."
 metadata:
   author: Simplify
-  version: "0.5.0"
+  version: "0.6.0"
 ---
 
 Create the next planning artifact of one change, then stop. **One artifact per invocation.**
@@ -18,99 +18,77 @@ This workflow creates planning artifacts only, full stop. **No wording in the re
 
 ## Step 1 — Select the change
 
-In order: the id given in the request → the change discussed earlier in this conversation → the only open change, if there is exactly one → otherwise list what is available and ask.
+The id in the request → the change discussed earlier → the only open change → otherwise list and ask. **Exclude `archive/`.** Announce `Using change: <id>` and how to override it (`/sk:continue <other-id>`).
 
-When listing `sk/changes/`, **exclude `archive/`**. Announce `Using change: <id>` and say how to override it (`/sk:continue <other-id>`).
-
-`sk/` must exist and the change must have a `proposal.md`. If either is missing, point the user at `/sk:init` or `/sk:propose` and stop. **This command never starts a change and never creates `sk/`** — it only extends one that `/sk:propose` began.
+`sk/` and the change's `proposal.md` must exist; if not, point at `/sk:init` or `/sk:propose` and stop. **Never start a change or create `sk/`.**
 
 ## Step 2 — Work out which artifact is next
 
-There is no status command; the state is the files on disk. Read them fresh every time — the user may have edited them after reviewing.
+The state is the files on disk; read them fresh every time.
 
-Order, and what counts as done:
-
-1. `proposal.md` — done (you just checked)
+1. `proposal.md` — done
 2. `specs/**/spec.md` — done when at least one delta file exists
-3. `design.md` — done when the file exists **or** `proposal.md` has a `## Design` section saying it was skipped and why
-4. `tasks.md` — done when the file exists
+3. `design.md` — done when it exists **or** `proposal.md` has a `## Design` section saying it was skipped and why
+4. `tasks.md` — done when it exists
 
-Pick the **first artifact not done**. Never skip ahead and never create one out of order. If all four are done, say planning is complete and that `/sk:apply <change-id>` is next, then stop.
+Create the **first one not done** — never out of order. All four done → say `/sk:apply <change-id>` is next and stop. Announce which artifact and how many are done.
 
-Announce which artifact you are creating and how many of the four are already done.
-
-Read `sk/config.yaml` (its `context` and `rules` constrain what you write — apply them, never copy them into an artifact), and read every artifact already written for this change.
+Read `sk/config.yaml` (`context` and `rules` constrain what you write; never copy them in) and every artifact already written.
 
 ## Step 3 — Create the artifact
 
 ### Spec delta
 
-Refuses to run while `proposal.md` records unresolved Gaps that mean the acceptance criteria themselves are missing (`**AC source:** none yet`). **Do not write anything under `specs/`** in that state — a spec generated from an empty field is fabrication that looks like analysis. Say what is pending and point back at `/sk:propose <change-id>` to resolve it, then stop.
+`**AC source:** none yet` → **write nothing under `specs/`**; say what is pending, point at `/sk:propose <change-id>`, stop.
 
-**Read the acceptance criteria from where `proposal.md`'s `**AC source:**` line says they live**:
+Read the criteria from where `**AC source:**` points:
 
-- `work item` → fetch it again, following `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` exactly (REST, not `az boards`; strip HTML; read comments; **scan for U+FFFD before writing anything and stop if one is present**). The board keeps moving after `proposal.md` was written; this re-fetch is what keeps the delta from being built on stale text. A comment that now contradicts the acceptance criteria wins — record that in `proposal.md`
-- any other source → use the text `proposal.md` recorded under it. It is the only copy, because the board does not hold it. This includes a direct request (`**Work item:** none — direct request`): its criteria are under `## Acceptance criteria not on the board`, never in `## Request` itself or in suggestions still listed under Gaps
+- `work item` → re-fetch per `${CLAUDE_PLUGIN_ROOT}/reference/azure-devops.md` (REST, strip HTML, comments; **scan for U+FFFD and stop if present**). A comment that now contradicts the criteria wins — record it in `proposal.md`
+- otherwise → the text recorded in `proposal.md`; for a direct request, `## Acceptance criteria not on the board` — never `## Request` or suggestions under Gaps
 
-Whatever the source, a step under `proposal.md`'s `## Test cases` marked `confirmed as criterion` is a criterion too — a person confirmed it in `/sk:propose` — its quoted action the `WHEN`, its quoted expected result the `THEN`; do not re-fetch the test case. A step marked `pins <what>` resolves that token with its quoted value, recorded under `## Assumptions` with the test case as source. One marked `covered` or `open` adds nothing: never turn a test case into a scenario on your own. For a Bug, the repro steps map to scenarios as `conventions.md` says — from the re-fetched work item, or from `## Repro steps` in `proposal.md` when the source is not the work item — and the `**Symptom:**` line never becomes one.
+From `## Test cases`: `confirmed as criterion` is a criterion (quoted action → `WHEN`, expected result → `THEN`); `pins <what>` resolves that token with its quoted value, recorded under `## Assumptions`; `covered` and `open` add nothing. A Bug's repro steps map as `conventions.md` says; `**Symptom:**` never becomes a scenario. Never invent content; a failed fetch → report the error and ask for the contents.
 
-Never invent the contents of a work item or of a request. If a fetch fails, report the real error and ask the user to paste the contents.
+Build the delta from the split recorded under "How the acceptance criteria were read", per `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md`: a bullet heading → `### Requirement:`, its bullets → `#### Scenario:`; Given/When/Then sentences about one behaviour → one requirement, one scenario each; prose → the recorded split.
 
-Derive the delta from the split `proposal.md` records under "How the acceptance criteria were read". Read `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` for the full mapping rules. The three shapes you will meet:
+A criterion you cannot make observable → **Gap** in `proposal.md`, and ask. Never drop one, never pad with an invented scenario. Nothing under `## Out of scope` becomes a scenario.
 
-- **Grouped bullets** — the heading becomes a `### Requirement:`, its bullets become `#### Scenario:` entries
-- **Given/When/Then sentences** with no grouping — gather sentences about the same behaviour into one requirement, one scenario per sentence
-- **Prose** — split by observable behaviour, following the split already recorded
+**Every `THEN` gets the two-step test (`conventions.md`, "Ambiguous acceptance criteria"):** name its decidable token, then try another concrete value the source still permits. If one exists, the token is unresolved: an existing convention → decide and record under `## Assumptions`; a product decision → write the open-question marker and log it under `## Open questions`.
 
-Any criterion you cannot turn into observable behaviour goes into **Gaps** in `proposal.md`, and you ask about it. Never drop one silently, and never pad the spec with a scenario you invented to make a criterion fit.
-
-Nothing listed under `proposal.md`'s `## Out of scope` becomes a scenario. When a criterion seems to need it after all, that contradiction is a Gap to ask about, not a reason to write it.
-
-**Every scenario you write gets the two-step test from `${CLAUDE_PLUGIN_ROOT}/reference/conventions.md` ("Ambiguous acceptance criteria").** For each `THEN`: name the decidable token it turns on, then try to write one other concrete value the same source text still permits. If you can, the token is unresolved — sort it as an existing convention (decide it, record it under `## Assumptions`) or a product decision (write the open-question marker defined there, and log the question under `## Open questions`). Both sections live in `proposal.md`; update them as you write.
-
-**Write it down; do not stop for it.** An unresolved token is never a reason to pause this command or to hold the delta back until every threshold is settled. The person who owns that threshold is not in this conversation, and a spec withheld until they are is a spec that never gets written. A spec with a visible, marked gap is the useful output.
+**Write it down; do not stop for it.** The owner of that threshold is not in this conversation; a spec with a visible, marked gap is the useful output.
 
 **When your delta contains `## MODIFIED Requirements`, restate the entire requirement — including every scenario you did not change.** `/sk:archive` replaces the whole requirement with what you wrote. A requirement that arrives with only the changed scenario silently deletes the rest. This is the single easiest way to lose specification in this workflow.
 
-**When a resolved value contradicts what `sk/specs/` already says for this capability, that requirement goes under `## MODIFIED Requirements`, restated in full per the rule above.** Read `sk/specs/**/spec.md` and `sk/changes/*/specs/**/spec.md` (changes planned but not yet archived) before writing, so you know what already exists.
+A resolved value contradicting `sk/specs/` goes under `## MODIFIED Requirements`, restated in full — read `sk/specs/**/spec.md` and unarchived deltas first.
 
-Write to `sk/changes/<change-id>/specs/<capability>/spec.md`, using `${CLAUDE_PLUGIN_ROOT}/templates/spec-delta.md` as structure.
+Write `sk/changes/<change-id>/specs/<capability>/spec.md` from `${CLAUDE_PLUGIN_ROOT}/templates/spec-delta.md`.
 
 #### Filling an open question from conversation
 
-When the answer to an open question comes from this conversation — someone states a threshold, a wording, a permission, right here — rather than from the work item or its comments, fill the marker with that value like any other resolution, but leave its provenance where it survives: immediately after the scenario line it resolves, in both the delta and the matching `## Assumptions` entry in `proposal.md`, add `<!-- Q<n> — Source: <who>, <when>. Verifiable: no -->`.
-
-That comment is not decoration — it rides inside the requirement text `/sk:archive` merges verbatim into `sk/specs/`, so the next change touching this capability sees the low-confidence resolution sitting in the spec instead of it existing only in this conversation's transcript. There is no confirmation gate before this can happen: a gate that fires on nearly every change degrades into a reflex click, and the record it would leave — "confirmed" — would itself be false.
+An answer given in this conversation (not by the work item) fills the marker like any other, plus `<!-- Q<n> — Source: <who>, <when>. Verifiable: no -->` right after the scenario line, in the delta and the matching `## Assumptions` entry. `/sk:archive` merges it verbatim, so the next change sees the low-confidence resolution in the spec. No confirmation gate — one that fires on every change becomes a reflex click.
 
 ### Design
 
-Write `design.md`, from `${CLAUDE_PLUGIN_ROOT}/templates/design.md`, when either holds:
+Write `design.md` from `${CLAUDE_PLUGIN_ROOT}/templates/design.md` when either holds:
 
-- **The change adds or changes a public interface** — anything a caller outside the changed module uses: an exported function or type, an endpoint, component props, a CLI command, an event or message, a database schema. An export used only inside the same module or by its own tests does not count. Write it under `## Contracts`, in the repository's own language, exactly as it will be written, and name the scenarios each one serves. Read the code the change touches first, so the contract fits what is there. This is the one place a person reviews the interface before `/sk:apply` builds it and writes every test against it: a wrong signature caught here costs one line, caught after apply it costs the code and the tests built on it
-- **There is a real technical trade-off to record** — `## Decision` through `## Consequences`
+- **A public interface is added or changed** — anything a caller outside the module uses: exported function or type, endpoint, component props, CLI command, event, database schema. Under `## Contracts`, in the repository's language, exactly as it will be written, naming the scenarios it serves; read the touched code first. A wrong signature costs one line here, the code and tests after apply
+- **A real technical trade-off** — `## Decision` through `## Consequences`
 
-Leave out the part that does not apply. A contract is not a trade-off: never pad `## Decision` to justify an interface.
-
-With neither, do **not** create the file. Add a `## Design` section to `proposal.md` reading `Skipped — <the reason>`; the reason must say no public interface changes. That line is what marks this artifact done, so the next invocation moves on to tasks instead of asking again.
+Omit what does not apply; never pad `## Decision` to justify an interface. With neither, create no file: add `## Design` to `proposal.md` reading `Skipped — <reason>`, saying no public interface changes.
 
 ### Tasks
 
-Read the delta and, if present, `design.md`. Use `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md` as structure. Tasks build the interfaces under `## Contracts` as written and name them; never a different signature. Nothing is ticked. Write `tasks.md`.
+From the delta, `design.md` and `${CLAUDE_PLUGIN_ROOT}/templates/tasks.md`. Tasks build the `## Contracts` interfaces as written — never a different signature. Nothing ticked.
 
 ## Step 4 — Close out
 
-Show what was created, which of the four artifacts are now done, and what is next. Tell the user to review the file just written, then run `/sk:continue <change-id>` again for the next one — or `/sk:apply <change-id>` when planning is complete.
+Show what was created, which artifacts are done, and the next step: review it, then `/sk:continue <change-id>` — or `/sk:apply <change-id>` when planning is complete.
 
-**When `## Open questions` in `proposal.md` is non-empty, close with a numbered list ready to paste into the work item's comments** — one line per `Q<n>`, the question, and your suggested answer. For a direct request there is no work item to paste into: give the same list as questions for the user. This is response text only: it is never written to a file, it is never posted to Azure DevOps, and neither `/sk:apply` nor `/sk:archive` may depend on it existing — the marker in the delta is what actually blocks, not this list. When the questions go to a PO or BA rather than into a comment, say that `/sk:questions <change-id>` writes them up as a file for them.
+**When `## Open questions` is non-empty, end with a numbered list to paste into the work item's comments** — each `Q<n>`, the question, your suggested answer (for a direct request, questions for the user). Response text only: never written to a file or posted, and nothing depends on it — the marker blocks. For a PO or BA, mention `/sk:questions <change-id>`.
 
 ## Guardrails
 
-- Planning only. No project code is edited, and `/sk:apply` is never invoked from within this command
-- **One artifact per invocation** — never a second, whatever the request said
-- Never create `sk/`, and never start a change: `proposal.md` must already exist
-- Never fabricate work item content, and never generate a spec from an empty AC field
-- An unresolved decidable token never stops this command — mark it with the open-question marker (`reference/conventions.md`) and keep going
-- Ambiguity that changes scope, observable behaviour, compatibility, or which capability owns the work is different from a single unresolved token — that still goes to the user, via Gaps
-- Read dependency artifacts from disk each time, not from memory of this conversation
+- Planning only; **one artifact per invocation**; never `/sk:apply`
+- Never fabricate content or write a spec from an empty AC field
+- An unresolved token never stops this command; ambiguity that changes scope, behaviour, compatibility or ownership goes to the user via Gaps
 - `MODIFIED` restates the whole requirement
-- Azure DevOps is read-only here: no comments, no new work items, no state changes — even if asked
+- Read artifacts from disk, not memory. Azure DevOps is read-only — even if asked

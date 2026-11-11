@@ -3,20 +3,18 @@ name: questions
 description: "SimplifyKit (sk): write the open questions of a change under sk/changes/ — its Gaps, open questions and unconfirmed assumptions — into one questions file a PO or BA can answer, with context, options and a suggested answer for each. Use when the user says \"sk questions\", \"questions for the PO on us-12345-...\", or wants what a change is still waiting on sent to the product owner or analyst. Writes sk/changes/<id>/questions.md only."
 metadata:
   author: Simplify
-  version: "0.1.0"
+  version: "0.2.0"
 ---
 
-Turn what one change is still waiting on into a file a product owner or business analyst can read and answer without knowing `sk`. Before this, `/sk:continue` printed a numbered list to paste into a work item comment, and Gaps and unconfirmed assumptions never left `proposal.md` at all.
+Turn what one change is still waiting on into a file a product owner or business analyst can answer without knowing `sk`.
 
 ## The file is a copy, never the source
 
-`proposal.md` holds the questions; this file is a view of them, rewritten from scratch on every run. **Answers never come back through this file.** They come back as a comment on the work item — `/sk:propose <id>` re-run reads comments and a comment wins — or in a conversation with whoever runs `sk`, where `/sk:continue` records them with their source. A second place to write answers would be a second place for them to drift.
-
-Writes nothing else: no `proposal.md` edit, no comment, nothing on Azure DevOps (read-only throughout the kit).
+`proposal.md` holds the questions; this file is a view, rewritten on every run. **Answers never come back through it** — they come as a work item comment (re-run `/sk:propose`; the comment wins) or in conversation (`/sk:continue` records them), so they cannot drift into a second place. Writes nothing else, and nothing on Azure DevOps.
 
 ## Step 1 — Select the change
 
-The id given in the request → the change discussed earlier in this conversation → the only open change → otherwise list and ask. Exclude `archive/`: a merged change has nothing left to ask. Announce `Using change: <id>`.
+The id in the request → the change discussed earlier → the only open change → otherwise list and ask. Exclude `archive/`. Announce `Using change: <id>`.
 
 ## Step 2 — Collect, from disk
 
